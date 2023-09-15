@@ -1,0 +1,283 @@
+type AdminChanged @entity(immutable: true) {
+  id: Bytes!
+  previousAdmin: Bytes! # address
+  newAdmin: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type BeaconUpgraded @entity(immutable: true) {
+  id: Bytes!
+  beacon: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ClusterDeposited @entity(immutable: true) {
+  id: Bytes!
+  owner: Bytes! # address
+  operatorIds: [BigInt!]! # uint64[]
+  value: BigInt! # uint256
+  cluster_validatorCount: BigInt! # uint32
+  cluster_networkFeeIndex: BigInt! # uint64
+  cluster_index: BigInt! # uint64
+  cluster_active: Boolean! # bool
+  cluster_balance: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ClusterLiquidated @entity(immutable: true) {
+  id: Bytes!
+  owner: Bytes! # address
+  operatorIds: [BigInt!]! # uint64[]
+  cluster_validatorCount: BigInt! # uint32
+  cluster_networkFeeIndex: BigInt! # uint64
+  cluster_index: BigInt! # uint64
+  cluster_active: Boolean! # bool
+  cluster_balance: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ClusterReactivated @entity(immutable: true) {
+  id: Bytes!
+  owner: Bytes! # address
+  operatorIds: [BigInt!]! # uint64[]
+  cluster_validatorCount: BigInt! # uint32
+  cluster_networkFeeIndex: BigInt! # uint64
+  cluster_index: BigInt! # uint64
+  cluster_active: Boolean! # bool
+  cluster_balance: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ClusterWithdrawn @entity(immutable: true) {
+  id: Bytes!
+  owner: Bytes! # address
+  operatorIds: [BigInt!]! # uint64[]
+  value: BigInt! # uint256
+  cluster_validatorCount: BigInt! # uint32
+  cluster_networkFeeIndex: BigInt! # uint64
+  cluster_index: BigInt! # uint64
+  cluster_active: Boolean! # bool
+  cluster_balance: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type DeclareOperatorFeePeriodUpdated @entity(immutable: true) {
+  id: Bytes!
+  value: BigInt! # uint64
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ExecuteOperatorFeePeriodUpdated @entity(immutable: true) {
+  id: Bytes!
+  value: BigInt! # uint64
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type FeeRecipientAddressUpdated @entity(immutable: true) {
+  id: Bytes!
+  owner: Bytes! # address
+  recipientAddress: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Initialized @entity(immutable: true) {
+  id: Bytes!
+  version: Int! # uint8
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type LiquidationThresholdPeriodUpdated @entity(immutable: true) {
+  id: Bytes!
+  value: BigInt! # uint64
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type MinimumLiquidationCollateralUpdated @entity(immutable: true) {
+  id: Bytes!
+  value: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type NetworkEarningsWithdrawn @entity(immutable: true) {
+  id: Bytes!
+  value: BigInt! # uint256
+  recipient: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type NetworkFeeUpdated @entity(immutable: true) {
+  id: Bytes!
+  oldFee: BigInt! # uint256
+  newFee: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OperatorAdded @entity(immutable: true) {
+  id: Bytes!
+  operatorId: BigInt! # uint64
+  owner: Bytes! # address
+  publicKey: Bytes! # bytes
+  fee: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OperatorFeeDeclarationCancelled @entity(immutable: true) {
+  id: Bytes!
+  owner: Bytes! # address
+  operatorId: BigInt! # uint64
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OperatorFeeDeclared @entity(immutable: true) {
+  id: Bytes!
+  owner: Bytes! # address
+  operatorId: BigInt! # uint64
+  blockNumber: BigInt! # uint256
+  fee: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OperatorFeeExecuted @entity(immutable: true) {
+  id: Bytes!
+  owner: Bytes! # address
+  operatorId: BigInt! # uint64
+  blockNumber: BigInt! # uint256
+  fee: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OperatorFeeIncreaseLimitUpdated @entity(immutable: true) {
+  id: Bytes!
+  value: BigInt! # uint64
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OperatorMaximumFeeUpdated @entity(immutable: true) {
+  id: Bytes!
+  maxFee: BigInt! # uint64
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OperatorRemoved @entity(immutable: true) {
+  id: Bytes!
+  operatorId: BigInt! # uint64
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OperatorWhitelistUpdated @entity(immutable: true) {
+  id: Bytes!
+  operatorId: BigInt! # uint64
+  whitelisted: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OperatorWithdrawn @entity(immutable: true) {
+  id: Bytes!
+  owner: Bytes! # address
+  operatorId: BigInt! # uint64
+  value: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OwnershipTransferStarted @entity(immutable: true) {
+  id: Bytes!
+  previousOwner: Bytes! # address
+  newOwner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OwnershipTransferred @entity(immutable: true) {
+  id: Bytes!
+  previousOwner: Bytes! # address
+  newOwner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Upgraded @entity(immutable: true) {
+  id: Bytes!
+  implementation: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ValidatorAdded @entity(immutable: true) {
+  id: Bytes!
+  owner: Bytes! # address
+  operatorIds: [BigInt!]! # uint64[]
+  publicKey: Bytes! # bytes
+  shares: Bytes! # bytes
+  cluster_validatorCount: BigInt! # uint32
+  cluster_networkFeeIndex: BigInt! # uint64
+  cluster_index: BigInt! # uint64
+  cluster_active: Boolean! # bool
+  cluster_balance: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ValidatorRemoved @entity(immutable: true) {
+  id: Bytes!
+  owner: Bytes! # address
+  operatorIds: [BigInt!]! # uint64[]
+  publicKey: Bytes! # bytes
+  cluster_validatorCount: BigInt! # uint32
+  cluster_networkFeeIndex: BigInt! # uint64
+  cluster_index: BigInt! # uint64
+  cluster_active: Boolean! # bool
+  cluster_balance: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

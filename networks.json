@@ -1,0 +1,8 @@
+{
+  "goerli": {
+    "SSVNetwork": {
+      "address": "0xC3CD9A0aE89Fff83b71b58b6512D43F8a41f363D",
+      "startBlock": 9203578
+    }
+  }
+}
