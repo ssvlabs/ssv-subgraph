@@ -166,7 +166,6 @@ type OperatorFeeDeclared @entity(immutable: true) {
   operatorId: BigInt! # uint64
   blockNumber: BigInt! # uint256
   fee: BigInt! # uint256
-  blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
@@ -177,7 +176,6 @@ type OperatorFeeExecuted @entity(immutable: true) {
   operatorId: BigInt! # uint64
   blockNumber: BigInt! # uint256
   fee: BigInt! # uint256
-  blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
