@@ -212,10 +212,10 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
 
   entity.save()
 
-  let clusterId = `${event.params.owner.toI32()}-${event.params.operatorIds.join("-")}`
+  let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
   let cluster = Cluster.load(clusterId) 
   if (!cluster) {
-    log.error(`Cluster ${clusterId} is being deposited, but it does not exist on our DB`, [])
+    log.error(`Cluster ${clusterId} is being deposited, but it does not exist on the database`, [])
   }
   else {
     cluster.active = event.params.cluster.active
@@ -250,10 +250,10 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
     owner = new Account(event.params.owner)
   }
 
-  let clusterId = `${event.params.owner.toI32()}-${event.params.operatorIds.join("-")}`
+  let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
   let cluster = Cluster.load(clusterId) 
   if (!cluster) {
-    log.error(`Cluster ${clusterId} is being liquidated, but it does not exist on our DB`, [])
+    log.error(`Cluster ${clusterId} is being liquidated, but it does not exist on the database`, [])
   }
   else {
     cluster.active = event.params.cluster.active
@@ -283,10 +283,10 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
 
   entity.save()
 
-  let clusterId = `${event.params.owner.toI32()}-${event.params.operatorIds.join("-")}`
+  let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
   let cluster = Cluster.load(clusterId) 
   if (!cluster) {
-    log.error(`Cluster ${clusterId} is being reactivated, but it does not exist on our DB`, [])
+    log.error(`Cluster ${clusterId} is being reactivated, but it does not exist on the database`, [])
   }
   else {
     cluster.active = event.params.cluster.active
@@ -317,10 +317,10 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
 
   entity.save()
 
-  let clusterId = `${event.params.owner.toI32()}-${event.params.operatorIds.join("-")}`
+  let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
   let cluster = Cluster.load(clusterId) 
   if (!cluster) {
-    log.error(`Cluster ${clusterId} is being withdrawn, but it does not exist on our DB`, [])
+    log.error(`Cluster ${clusterId} is being withdrawn, but it does not exist on the database`, [])
   }
   else {
     cluster.active = event.params.cluster.active
@@ -357,10 +357,10 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     owner = new Account(event.params.owner)
   }
 
-  let clusterId = `${event.params.owner.toI32()}-${event.params.operatorIds.join("-")}`
+  let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
   let cluster = Cluster.load(clusterId) 
   if (!cluster) {
-    log.info(`Validator ${event.params.publicKey} is being added to new Cluster ${clusterId}`, [])
+    log.info(`Validator ${event.params.publicKey.toHexString()} is being added to new Cluster ${clusterId}`, [])
     cluster = new Cluster(clusterId)
     cluster.validatorCount = BigInt.zero() // setting to zero, so we ALWAYS add 1, both for new, and existing clusters
   }
@@ -376,7 +376,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   let validatorId = event.params.publicKey
   let validator = Validator.load(validatorId) 
   if (!validator) {
-    log.info(`new Validator ${event.params.publicKey} being added to Cluster ${clusterId}`, [])
+    log.info(`new Validator ${event.params.publicKey.toHexString()} being added to Cluster ${clusterId}`, [])
 
   }
   else {
@@ -415,10 +415,10 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     owner = new Account(event.params.owner)
   }
 
-  let clusterId = `${event.params.owner.toI32()}-${event.params.operatorIds.join("-")}`
+  let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
   let cluster = Cluster.load(clusterId) 
   if (!cluster) {
-    log.error(`Validator ${event.params.publicKey} is being removed from Cluster ${clusterId} which does not exist on DB`, [])
+    log.error(`Validator ${event.params.publicKey.toHexString()} is being removed from Cluster ${clusterId} which does not exist on DB`, [])
   }
   else {
     cluster.owner = owner.id
@@ -434,7 +434,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   let validatorId = event.params.publicKey
   let validator = Validator.load(validatorId) 
   if (!validator) {
-    log.info(`new Validator ${event.params.publicKey} being added to Cluster ${clusterId}`, [])
+    log.info(`new Validator ${event.params.publicKey.toHexString()} being added to Cluster ${clusterId}`, [])
 
   }
   else {
@@ -469,7 +469,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     owner = new Account(event.params.owner)
   }
 
-  let operatorId = new Bytes(event.params.operatorId.toI32())
+  let operatorId = Bytes.fromByteArray(Bytes.fromBigInt(event.params.operatorId))
   let operator = Operator.load(operatorId) 
   if (!operator) {
     operator = new Operator(operatorId)
@@ -502,13 +502,13 @@ export function handleOperatorFeeDeclarationCancelled(
 
   let owner = Account.load(event.params.owner)
   if (!owner){
-    log.error(`Cancelling fee declaration for Operator ${event.params.operatorId}, but Owner ${event.params.owner} did not exist on the databas`, [])
+    log.error(`Cancelling fee declaration for Operator ${event.params.operatorId}, but Owner ${event.params.owner.toHexString()} did not exist on the database`, [])
   }
 
-  let operatorId = new Bytes(event.params.operatorId.toI32())
+  let operatorId = Bytes.fromByteArray(Bytes.fromBigInt(event.params.operatorId))
   let operator = Operator.load(operatorId) 
   if (!operator) {
-    log.error(`Cancelling fee declaration for Operator ${event.params.operatorId}, but it does not exist on our DB`, [])
+    log.error(`Cancelling fee declaration for Operator ${event.params.operatorId}, but it does not exist on the database`, [])
   }
   else {
     operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
@@ -537,13 +537,13 @@ export function handleOperatorFeeDeclared(
 
   let owner = Account.load(event.params.owner)
   if (!owner){
-    log.error(`Declaring fees for Operator ${event.params.operatorId}, but Owner ${event.params.owner} did not exist on the databas`, [])
+    log.error(`Declaring fees for Operator ${event.params.operatorId}, but Owner ${event.params.owner.toHexString()} did not exist on the database`, [])
   }
 
   let operatorId = new Bytes(event.params.operatorId.toI32())
   let operator = Operator.load(operatorId) 
   if (!operator) {
-    log.error(`Declaring fees for Operator ${event.params.operatorId}, but it does not exist on our DB`, [])
+    log.error(`Declaring fees for Operator ${event.params.operatorId}, but it does not exist on the database`, [])
   }
   else {
     operator.fee = event.params.fee // TODO is this going to be wrong when the declaration is cancelled via OperatorFeeDeclarationCancelledEvent?
@@ -573,13 +573,13 @@ export function handleOperatorFeeExecuted(
 
   let owner = Account.load(event.params.owner)
   if (!owner){
-    log.error(`Executing fees change for Operator ${event.params.operatorId}, but Owner ${event.params.owner} did not exist on the databas`, [])
+    log.error(`Executing fees change for Operator ${event.params.operatorId}, but Owner ${event.params.owner.toHexString()} did not exist on the database`, [])
   }
 
   let operatorId = new Bytes(event.params.operatorId.toI32())
   let operator = Operator.load(operatorId) 
   if (!operator) {
-    log.error(`Executing fees change for Operator ${event.params.operatorId}, but it does not exist on our DB`, [])
+    log.error(`Executing fees change for Operator ${event.params.operatorId}, but it does not exist on the database`, [])
   }
   else {
     operator.fee = event.params.fee
@@ -602,10 +602,10 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
 
   entity.save()
 
-  let operatorId = new Bytes(event.params.operatorId.toI32())
+  let operatorId = Bytes.fromByteArray(Bytes.fromBigInt(event.params.operatorId))
   let operator = Operator.load(operatorId) 
   if (!operator) {
-    log.error(`Operator ${operatorId} is being removed, but it does not exist on our DB`, [])
+    log.error(`Operator ${operatorId} is being removed, but it does not exist on the database`, [])
   }
   else {
     operator.active = true
@@ -632,14 +632,14 @@ export function handleOperatorWhitelistUpdated(
 
   let whitelisted = Account.load(event.params.whitelisted)
   if (!whitelisted){
-    log.info(`Adding new whitelisted address ${event.params.whitelisted} to Operator ${event.params.operatorId}, this is a new Account`, [])
+    log.info(`Adding new whitelisted address ${event.params.whitelisted.toHexString()} to Operator ${event.params.operatorId}, this is a new Account`, [])
     whitelisted = new Account(event.params.whitelisted)
   }
 
-  let operatorId = new Bytes(event.params.operatorId.toI32())
+  let operatorId = Bytes.fromByteArray(Bytes.fromBigInt(event.params.operatorId))
   let operator = Operator.load(operatorId) 
   if (!operator) {
-    log.error(`Executing fees change for Operator ${event.params.operatorId}, but it does not exist on our DB`, [])
+    log.error(`Executing fees change for Operator ${event.params.operatorId}, but it does not exist on the database`, [])
   }
   else {
     if (!operator.whitelisted) {
@@ -669,13 +669,13 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
 
   let owner = Account.load(event.params.owner)
   if (!owner){
-    log.error(`Executing fees change for Operator ${event.params.operatorId}, but Owner ${event.params.owner} did not exist on the databas`, [])
+    log.error(`Executing fees change for Operator ${event.params.operatorId}, but Owner ${event.params.owner.toHexString()} did not exist on the database`, [])
   }
 
-  let operatorId = new Bytes(event.params.operatorId.toI32())
+  let operatorId = Bytes.fromByteArray(Bytes.fromBigInt(event.params.operatorId))
   let operator = Operator.load(operatorId) 
   if (!operator) {
-    log.error(`Executing fees change for Operator ${event.params.operatorId}, but it does not exist on our DB`, [])
+    log.error(`Executing fees change for Operator ${event.params.operatorId}, but it does not exist on the database`, [])
   }
   else {
     operator.totalWithdrawn.minus(event.params.value)
