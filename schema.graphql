@@ -1,18 +1,49 @@
-type AdminChanged @entity(immutable: true) {
-  id: Bytes!
-  previousAdmin: Bytes! # address
-  newAdmin: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+type Cluster @entity(immutable: true) {
+  id: String! # concat owner + operatorIds ?
+  owner: Account! # address
+  operatorIds: [BigInt!]! # uint64[]
+  validatorCount: BigInt! # uint32
+  validators: [Validator!] @derivedFrom(field: "cluster")
+  networkFeeIndex: BigInt! # uint64
+  index: BigInt! # uint64
+  active: Boolean! # bool
+  balance: BigInt! # uint256
+  lastUpdateBlockNumber: BigInt! # uint256
+  lastUpdateBlockTimestamp: BigInt!
+  lastUpdateTransactionHash: Bytes!
 }
 
-type BeaconUpgraded @entity(immutable: true) {
-  id: Bytes!
-  beacon: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+type Validator @entity(immutable: true) {
+  id: Bytes! #publicKey
+  owner: Account! # address
+  operators: [Operator!]! # uint64[]
+  cluster: Cluster!
+  active: Boolean! # bool
+  # publicKey: Bytes! # bytes
+  shares: Bytes! # bytes
+  lastUpdateBlockNumber: BigInt! # uint256
+  lastUpdateBlockTimestamp: BigInt!
+  lastUpdateTransactionHash: Bytes!
+}
+
+type Operator @entity(immutable: true) {
+  id: Bytes! # uint64
+  owner: Account! # address
+  publicKey: Bytes! # bytes
+  active: Boolean! # bool
+  fee: BigInt! # uint256
+  whitelisted: [Account!]!
+  totalWithdrawn: BigInt! # uint256
+  lastUpdateBlockNumber: BigInt! # uint256
+  lastUpdateBlockTimestamp: BigInt!
+  lastUpdateTransactionHash: Bytes!
+}
+
+type Account @entity(immutable: true) {
+  id: Bytes! # address
+  clusters: [Cluster!] @derivedFrom(field: "owner")
+  validators: [Validator!] @derivedFrom(field: "owner")
+  operators: [Operator!] @derivedFrom(field: "owner")
 }
 
 type ClusterDeposited @entity(immutable: true) {
@@ -93,14 +124,6 @@ type FeeRecipientAddressUpdated @entity(immutable: true) {
   id: Bytes!
   owner: Bytes! # address
   recipientAddress: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type Initialized @entity(immutable: true) {
-  id: Bytes!
-  version: Int! # uint8
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
@@ -218,32 +241,6 @@ type OperatorWithdrawn @entity(immutable: true) {
   owner: Bytes! # address
   operatorId: BigInt! # uint64
   value: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type OwnershipTransferStarted @entity(immutable: true) {
-  id: Bytes!
-  previousOwner: Bytes! # address
-  newOwner: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type OwnershipTransferred @entity(immutable: true) {
-  id: Bytes!
-  previousOwner: Bytes! # address
-  newOwner: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type Upgraded @entity(immutable: true) {
-  id: Bytes!
-  implementation: Bytes! # address
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!

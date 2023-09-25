@@ -14,20 +14,34 @@ dataSources:
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - AdminChanged
-        - BeaconUpgraded
-        - ClusterDeposited
-        - ClusterLiquidated
-        - ClusterReactivated
-        - ClusterWithdrawn
+        # custom entities:
+        - Cluster
+        - Validator
+        - Operator
+        - Account
+        # unused events (for now)
+        # - Initialized
+        # - AdminChanged
+        # - BeaconUpgraded
+        # - OwnershipTransferStarted
+        # - OwnershipTransferred
+        # - Upgraded
+        # DAO events
         - DeclareOperatorFeePeriodUpdated
         - ExecuteOperatorFeePeriodUpdated
         - FeeRecipientAddressUpdated
-        - Initialized
         - LiquidationThresholdPeriodUpdated
         - MinimumLiquidationCollateralUpdated
         - NetworkEarningsWithdrawn
         - NetworkFeeUpdated
+        # cluster events
+        - ClusterDeposited
+        - ClusterLiquidated
+        - ClusterReactivated
+        - ClusterWithdrawn
+        - ValidatorAdded
+        - ValidatorRemoved
+        # Operator events
         - OperatorAdded
         - OperatorFeeDeclarationCancelled
         - OperatorFeeDeclared
@@ -37,35 +51,29 @@ dataSources:
         - OperatorRemoved
         - OperatorWhitelistUpdated
         - OperatorWithdrawn
-        - OwnershipTransferStarted
-        - OwnershipTransferred
-        - Upgraded
-        - ValidatorAdded
-        - ValidatorRemoved
       abis:
         - name: SSVNetwork
           file: ./abis/SSVNetwork.json
       eventHandlers:
-        - event: AdminChanged(address,address)
-          handler: handleAdminChanged
-        - event: BeaconUpgraded(indexed address)
-          handler: handleBeaconUpgraded
-        - event: ClusterDeposited(indexed address,uint64[],uint256,(uint32,uint64,uint64,bool,uint256))
-          handler: handleClusterDeposited
-        - event: ClusterLiquidated(indexed address,uint64[],(uint32,uint64,uint64,bool,uint256))
-          handler: handleClusterLiquidated
-        - event: ClusterReactivated(indexed address,uint64[],(uint32,uint64,uint64,bool,uint256))
-          handler: handleClusterReactivated
-        - event: ClusterWithdrawn(indexed address,uint64[],uint256,(uint32,uint64,uint64,bool,uint256))
-          handler: handleClusterWithdrawn
+        # - event: Initialized(uint8)
+        #   handler: handleInitialized
+        # - event: AdminChanged(address,address)
+        #   handler: handleAdminChanged
+        # - event: BeaconUpgraded(indexed address)
+        #   handler: handleBeaconUpgraded
+        # - event: OwnershipTransferStarted(indexed address,indexed address)
+        #   handler: handleOwnershipTransferStarted
+        # - event: OwnershipTransferred(indexed address,indexed address)
+        #   handler: handleOwnershipTransferred
+        # - event: Upgraded(indexed address)
+        #   handler: handleUpgraded
+        # DAO events
         - event: DeclareOperatorFeePeriodUpdated(uint64)
           handler: handleDeclareOperatorFeePeriodUpdated
         - event: ExecuteOperatorFeePeriodUpdated(uint64)
           handler: handleExecuteOperatorFeePeriodUpdated
         - event: FeeRecipientAddressUpdated(indexed address,address)
           handler: handleFeeRecipientAddressUpdated
-        - event: Initialized(uint8)
-          handler: handleInitialized
         - event: LiquidationThresholdPeriodUpdated(uint64)
           handler: handleLiquidationThresholdPeriodUpdated
         - event: MinimumLiquidationCollateralUpdated(uint256)
@@ -74,6 +82,20 @@ dataSources:
           handler: handleNetworkEarningsWithdrawn
         - event: NetworkFeeUpdated(uint256,uint256)
           handler: handleNetworkFeeUpdated
+        # Cluster events
+        - event: ClusterDeposited(indexed address,uint64[],uint256,(uint32,uint64,uint64,bool,uint256))
+          handler: handleClusterDeposited
+        - event: ClusterLiquidated(indexed address,uint64[],(uint32,uint64,uint64,bool,uint256))
+          handler: handleClusterLiquidated
+        - event: ClusterReactivated(indexed address,uint64[],(uint32,uint64,uint64,bool,uint256))
+          handler: handleClusterReactivated
+        - event: ClusterWithdrawn(indexed address,uint64[],uint256,(uint32,uint64,uint64,bool,uint256))
+          handler: handleClusterWithdrawn
+        - event: ValidatorAdded(indexed address,uint64[],bytes,bytes,(uint32,uint64,uint64,bool,uint256))
+          handler: handleValidatorAdded
+        - event: ValidatorRemoved(indexed address,uint64[],bytes,(uint32,uint64,uint64,bool,uint256))
+          handler: handleValidatorRemoved
+        # Operator events
         - event: OperatorAdded(indexed uint64,indexed address,bytes,uint256)
           handler: handleOperatorAdded
         - event: OperatorFeeDeclarationCancelled(indexed address,indexed uint64)
@@ -92,14 +114,4 @@ dataSources:
           handler: handleOperatorWhitelistUpdated
         - event: OperatorWithdrawn(indexed address,indexed uint64,uint256)
           handler: handleOperatorWithdrawn
-        - event: OwnershipTransferStarted(indexed address,indexed address)
-          handler: handleOwnershipTransferStarted
-        - event: OwnershipTransferred(indexed address,indexed address)
-          handler: handleOwnershipTransferred
-        - event: Upgraded(indexed address)
-          handler: handleUpgraded
-        - event: ValidatorAdded(indexed address,uint64[],bytes,bytes,(uint32,uint64,uint64,bool,uint256))
-          handler: handleValidatorAdded
-        - event: ValidatorRemoved(indexed address,uint64[],bytes,(uint32,uint64,uint64,bool,uint256))
-          handler: handleValidatorRemoved
       file: ./src/ssv-network.ts
