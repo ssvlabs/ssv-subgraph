@@ -1,4 +1,4 @@
-type Cluster @entity(immutable: true) {
+type Cluster @entity(immutable: false) {
   id: String! # concat owner + operatorIds ?
   owner: Account! # address
   operatorIds: [BigInt!]! # uint64[]
@@ -13,7 +13,7 @@ type Cluster @entity(immutable: true) {
   lastUpdateTransactionHash: Bytes!
 }
 
-type Validator @entity(immutable: true) {
+type Validator @entity(immutable: false) {
   id: Bytes! #publicKey
   owner: Account! # address
   operators: [Operator!]! # uint64[]
@@ -26,7 +26,7 @@ type Validator @entity(immutable: true) {
   lastUpdateTransactionHash: Bytes!
 }
 
-type Operator @entity(immutable: true) {
+type Operator @entity(immutable: false) {
   id: Bytes! # uint64
   owner: Account! # address
   publicKey: Bytes! # bytes
@@ -39,7 +39,7 @@ type Operator @entity(immutable: true) {
   lastUpdateTransactionHash: Bytes!
 }
 
-type Account @entity(immutable: true) {
+type Account @entity(immutable: false) {
   id: Bytes! # address
   clusters: [Cluster!] @derivedFrom(field: "owner")
   validators: [Validator!] @derivedFrom(field: "owner")

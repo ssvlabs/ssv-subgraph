@@ -212,15 +212,26 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
 
   entity.save()
 
+  let owner = Account.load(event.params.owner)
+  if (!owner){
+    owner = new Account(event.params.owner)
+    owner.save()
+  }
+
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
   let cluster = Cluster.load(clusterId) 
   if (!cluster) {
     log.error(`Cluster ${clusterId} is being deposited, but it does not exist on the database`, [])
     cluster = new Cluster(clusterId)
   }
+
+  cluster.owner = owner.id
+  cluster.operatorIds = event.params.operatorIds
+  cluster.validatorCount = event.params.cluster.validatorCount
+  cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
+  cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
-  cluster.index = event.params.cluster.index
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
   cluster.lastUpdateTransactionHash = event.transaction.hash
@@ -257,9 +268,14 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
     log.error(`Cluster ${clusterId} is being liquidated, but it does not exist on the database`, [])
     cluster = new Cluster(clusterId)
   }
+
+  cluster.owner = owner.id
+  cluster.operatorIds = event.params.operatorIds
+  cluster.validatorCount = event.params.cluster.validatorCount
+  cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
+  cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
-  cluster.index = event.params.cluster.index
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
   cluster.lastUpdateTransactionHash = event.transaction.hash
@@ -284,15 +300,26 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
 
   entity.save()
 
+  let owner = Account.load(event.params.owner)
+  if (!owner){
+    owner = new Account(event.params.owner)
+    owner.save()
+  }
+
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
   let cluster = Cluster.load(clusterId) 
   if (!cluster) {
     log.error(`Cluster ${clusterId} is being reactivated, but it does not exist on the database`, [])
     cluster = new Cluster(clusterId)
   }
+
+  cluster.owner = owner.id
+  cluster.operatorIds = event.params.operatorIds
+  cluster.validatorCount = event.params.cluster.validatorCount
+  cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
+  cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
-  cluster.index = event.params.cluster.index
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
   cluster.lastUpdateTransactionHash = event.transaction.hash
@@ -318,15 +345,25 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
 
   entity.save()
 
+  let owner = Account.load(event.params.owner)
+  if (!owner){
+    owner = new Account(event.params.owner)
+    owner.save()
+  }
+
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
   let cluster = Cluster.load(clusterId) 
   if (!cluster) {
     log.error(`Cluster ${clusterId} is being withdrawn, but it does not exist on the database`, [])
     cluster = new Cluster(clusterId)
+    cluster.owner = owner.id
+    cluster.operatorIds = event.params.operatorIds
+    cluster.validatorCount = event.params.cluster.validatorCount
   }
+  cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
+  cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
-  cluster.index = event.params.cluster.index
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
   cluster.lastUpdateTransactionHash = event.transaction.hash
@@ -366,11 +403,14 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     cluster = new Cluster(clusterId)
     cluster.validatorCount = BigInt.zero() // setting to zero, so we ALWAYS add 1, both for new, and existing clusters
   }
+
   cluster.owner = owner.id
+  cluster.operatorIds = event.params.operatorIds
+  cluster.validatorCount = cluster.validatorCount.plus(new BigInt(1))
+  cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
+  cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
-  cluster.validatorCount = cluster.validatorCount.plus(new BigInt(1))
-  cluster.index = event.params.cluster.index
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
   cluster.lastUpdateTransactionHash = event.transaction.hash
@@ -382,8 +422,9 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     log.info(`new Validator ${event.params.publicKey.toHexString()} being added to Cluster ${clusterId}`, [])
     validator = new Validator(validatorId)
   }
-  validator.operators = event.params.operatorIds.map<Bytes>((id: BigInt) => Bytes.fromByteArray(Bytes.fromBigInt(id))) // this does not sound right 🧐
+
   validator.owner = owner.id // this does not sound right 🧐
+  validator.operators = event.params.operatorIds.map<Bytes>((id: BigInt) => Bytes.fromByteArray(Bytes.fromBigInt(id))) // this does not sound right 🧐
   validator.cluster = cluster.id // this does not sound right 🧐
   validator.active = event.params.cluster.active
   validator.shares = event.params.shares
@@ -424,11 +465,15 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     log.error(`Validator ${event.params.publicKey.toHexString()} is being removed from Cluster ${clusterId} which does not exist on DB`, [])
     cluster = new Cluster(clusterId)
   }
+
+
   cluster.owner = owner.id
+  cluster.operatorIds = event.params.operatorIds
+  cluster.validatorCount = event.params.cluster.validatorCount
+  cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
+  cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
-  cluster.validatorCount = cluster.validatorCount.minus(new BigInt(1))
-  cluster.index = event.params.cluster.index
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
   cluster.lastUpdateTransactionHash = event.transaction.hash
@@ -438,15 +483,17 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   let validator = Validator.load(validatorId) 
   if (!validator) {
     log.info(`new Validator ${event.params.publicKey.toHexString()} being added to Cluster ${clusterId}`, [])
-    validator = new Validator(validatorId)
+    log.error(`Could not create ${event.params.publicKey.toHexString()} on the database, because of missing shares information`, [])
   }
-  validator.operators = event.params.operatorIds.map<Bytes>((id: BigInt) => Bytes.fromByteArray(Bytes.fromBigInt(id))) // this does not sound right 🧐
-  validator.owner = owner.id // this does not sound right 🧐
-  validator.active = false
-  validator.lastUpdateBlockNumber = event.block.number
-  validator.lastUpdateBlockTimestamp = event.block.timestamp
-  validator.lastUpdateTransactionHash = event.transaction.hash
-  validator.save()
+  else {
+    validator.operators = event.params.operatorIds.map<Bytes>((id: BigInt) => Bytes.fromByteArray(Bytes.fromBigInt(id))) // this does not sound right 🧐
+    validator.owner = owner.id // this does not sound right 🧐
+    validator.active = false
+    validator.lastUpdateBlockNumber = event.block.number
+    validator.lastUpdateBlockTimestamp = event.block.timestamp
+    validator.lastUpdateTransactionHash = event.transaction.hash
+    validator.save()
+  }
 }
 
 // ###### Operator Events ######
@@ -477,12 +524,13 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
   if (!operator) {
     operator = new Operator(operatorId)
     operator.owner = owner.id
+    operator.publicKey = event.params.publicKey
+    operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
     operator.fee = event.params.fee
-    operator.publicKey = event. params.publicKey
+    operator.whitelisted = []
+    operator.totalWithdrawn = BigInt.zero()
   }
-  operator.whitelisted = []
-  operator.totalWithdrawn = BigInt.zero()
-  operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
+  
   operator.lastUpdateBlockNumber = event.block.number
   operator.lastUpdateBlockTimestamp = event.block.timestamp
   operator.lastUpdateTransactionHash = event.transaction.hash
@@ -514,13 +562,16 @@ export function handleOperatorFeeDeclarationCancelled(
   let operator = Operator.load(operatorId) 
   if (!operator) {
     log.error(`Cancelling fee declaration for Operator ${event.params.operatorId}, but it does not exist on the database`, [])
-    operator = new Operator(operatorId)
+    log.error(`Could not create ${operatorId} on the database, because of missing publicKey and fee information`, [])
   }
-  operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
-  operator.lastUpdateBlockNumber = event.block.number
-  operator.lastUpdateBlockTimestamp = event.block.timestamp
-  operator.lastUpdateTransactionHash = event.transaction.hash
-  operator.save()
+  else {
+    operator.owner = owner.id
+    operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
+    operator.lastUpdateBlockNumber = event.block.number
+    operator.lastUpdateBlockTimestamp = event.block.timestamp
+    operator.lastUpdateTransactionHash = event.transaction.hash
+    operator.save()
+  }
 
 }
 
@@ -552,14 +603,17 @@ export function handleOperatorFeeDeclared(
   let operator = Operator.load(operatorId) 
   if (!operator) {
     log.error(`Declaring fees for Operator ${event.params.operatorId}, but it does not exist on the database`, [])
-    operator = new Operator(operatorId)
+    log.error(`Could not create ${operatorId} on the database, because of missing publicKey and fee information`, [])
   }
-  operator.fee = event.params.fee // TODO is this going to be wrong when the declaration is cancelled via OperatorFeeDeclarationCancelledEvent?
-  operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
-  operator.lastUpdateBlockNumber = event.block.number
-  operator.lastUpdateBlockTimestamp = event.block.timestamp
-  operator.lastUpdateTransactionHash = event.transaction.hash
-  operator.save()
+  else {
+    operator.owner = owner.id
+    operator.fee = event.params.fee // TODO is this going to be wrong when the declaration is cancelled via OperatorFeeDeclarationCancelledEvent?
+    operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
+    operator.lastUpdateBlockNumber = event.block.number
+    operator.lastUpdateBlockTimestamp = event.block.timestamp
+    operator.lastUpdateTransactionHash = event.transaction.hash
+    operator.save()
+  }
 }
 
 export function handleOperatorFeeExecuted(
@@ -590,14 +644,17 @@ export function handleOperatorFeeExecuted(
   let operator = Operator.load(operatorId) 
   if (!operator) {
     log.error(`Executing fees change for Operator ${event.params.operatorId}, but it does not exist on the database`, [])
-    operator = new Operator(operatorId)
+    log.error(`Could not create ${operatorId} on the database, because of missing publicKey information`, [])
   }
-  operator.fee = event.params.fee
-  operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
-  operator.lastUpdateBlockNumber = event.block.number
-  operator.lastUpdateBlockTimestamp = event.block.timestamp
-  operator.lastUpdateTransactionHash = event.transaction.hash
-  operator.save()
+  else {
+    operator.owner = owner.id
+    operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
+    operator.fee = event.params.fee
+    operator.lastUpdateBlockNumber = event.block.number
+    operator.lastUpdateBlockTimestamp = event.block.timestamp
+    operator.lastUpdateTransactionHash = event.transaction.hash
+    operator.save()
+  }
 }
 
 export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
@@ -616,13 +673,15 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
   let operator = Operator.load(operatorId) 
   if (!operator) {
     log.error(`Operator ${operatorId} is being removed, but it does not exist on the database`, [])
-    operator = new Operator(operatorId)
+    log.error(`Could not create ${operatorId} on the database, because of missing owner information`, [])
   }
-  operator.active = true
-  operator.lastUpdateBlockNumber = event.block.number
-  operator.lastUpdateBlockTimestamp = event.block.timestamp
-  operator.lastUpdateTransactionHash = event.transaction.hash
-  operator.save()
+  else {
+    operator.active = true
+    operator.lastUpdateBlockNumber = event.block.number
+    operator.lastUpdateBlockTimestamp = event.block.timestamp
+    operator.lastUpdateTransactionHash = event.transaction.hash
+    operator.save()
+  }
 }
 
 export function handleOperatorWhitelistUpdated(
@@ -651,17 +710,19 @@ export function handleOperatorWhitelistUpdated(
   let operator = Operator.load(operatorId) 
   if (!operator) {
     log.error(`Executing fees change for Operator ${event.params.operatorId}, but it does not exist on the database`, [])
-    operator = new Operator(operatorId)
+    log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
   }
-  if (!operator.whitelisted) {
-    operator.whitelisted = []
+  else {
+    if (!operator.whitelisted) {
+      operator.whitelisted = []
+    }
+    operator.whitelisted.push( whitelisted.id)
+    operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
+    operator.lastUpdateBlockNumber = event.block.number
+    operator.lastUpdateBlockTimestamp = event.block.timestamp
+    operator.lastUpdateTransactionHash = event.transaction.hash
+    operator.save()
   }
-  operator.whitelisted.push( whitelisted.id)
-  operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
-  operator.lastUpdateBlockNumber = event.block.number
-  operator.lastUpdateBlockTimestamp = event.block.timestamp
-  operator.lastUpdateTransactionHash = event.transaction.hash
-  operator.save()
 }
 
 export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
@@ -689,12 +750,14 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
   let operator = Operator.load(operatorId) 
   if (!operator) {
     log.error(`Executing fees change for Operator ${event.params.operatorId}, but it does not exist on the database`, [])
-    operator = new Operator(operatorId)
+    log.error(`Could not create ${operatorId} on the database, because of missing publicKey and fee information`, [])
   }
+  else {
     operator.totalWithdrawn.minus(event.params.value)
     operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
     operator.lastUpdateBlockNumber = event.block.number
     operator.lastUpdateBlockTimestamp = event.block.timestamp
     operator.lastUpdateTransactionHash = event.transaction.hash
     operator.save()
+  }
 }

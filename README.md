@@ -32,12 +32,11 @@ graph init --allow-simple-name --node http://localhost:8020 \
 --start-block 9203578 ssv-network ssv-subgraph
 ```
 
-<aside>
-⚠️ Make sure to download the contracts ABI [(obtained here](docs.ssv.network/developers/smart-contracts)) and provide the path to it via the `--abi` parameter.
+> ⚠️ Make sure to download the contracts ABI ([obtained here](docs.ssv.network/developers/smart-contracts)) and provide the path to it via the `--abi` parameter.
 
-</aside>
 
-## Deploy Subgraph
+## Deploy
+### Deploy Subgraph locally
 
 To deploy the Subgraph to the local node, use the following command:
 
@@ -47,20 +46,70 @@ graph deploy --node http://localhost:8020 --ipfs http://localhost:5001 ssv-netwo
 
 Wait for the Subgraph to index⏳
 
+### Deploy to Subgraph studio
+
+#### Authenticate with Subgraph Studio
+
+In your terminal, run:
+
+```
+graph auth --studio <STUDIO_KEY>  
+```
+
+To obtain a key, navigate to [Subgraph Studio](https://thegraph.com/studio/). You can also create your Subgraph from the WebApp and skip next step.
+
+#### Create a Subgraph on Studio
+
+In your terminal run:
+
+```
+graph create --studio <SUBGRAPH_NAME>
+```
+
+Where `<SUBGRAPH_NAME>` is the name you are choosing for your Subgraph
+
+### Deploy
+
+In your terminal run:
+
+```
+graph deploy --studio ssv-subgraph
+```
+
+Where `<SUBGRAPH_NAME>` is the name you are choosing for your Subgraph
+
 ## Query indexed data
 
 The Subgraph provides a GraphQL playground at the following URL: [http://localhost:8000/subgraphs/name/ssv-network/](http://localhost:8000/subgraphs/name/ssv-network/)
 
 ### Query example
 
-Test your Subgraph by running this query:
+Test the Subgraph by running this query:
 
 ```graphql
 query MyQuery {
-  validatorAddeds(orderBy: blockTimestamp) {
+  validators(where: {owner_: {id: "0xaA184b86B4cdb747F4A3BF6e6FCd5e27c1d92c5c"}}) {
     id
-    owner
-    publicKey
+    owner {
+      id
+    }
+    operators {
+      id
+    }
+    cluster {
+      id
+    }
+    active
+  }
+  clusters(where: {owner_: {id: "0xaA184b86B4cdb747F4A3BF6e6FCd5e27c1d92c5c"}}) {
+    id
+    owner {
+      id
+    }
+    operatorIds
+    validatorCount
+    balance
+    active
   }
 }
 ```
