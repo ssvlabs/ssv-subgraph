@@ -1,4 +1,4 @@
-import { BigInt, Bytes } from "@graphprotocol/graph-ts"
+import { BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts"
 import {
   ClusterDeposited as ClusterDepositedEvent,
   ClusterLiquidated as ClusterLiquidatedEvent,
@@ -52,6 +52,11 @@ import {
   ValidatorRemoved
 } from "../generated/schema"
 import { log } from "matchstick-as"
+
+// export function handleBlock(block: ethereum.Block): void {
+//   // TODO need to update clusters balance
+//   log.info("Running every block!", [])
+// }
 
 // ###### DAO Events ######
 
@@ -215,6 +220,7 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
   let owner = Account.load(event.params.owner)
   if (!owner){
     owner = new Account(event.params.owner)
+    owner.nonce = BigInt.zero()
     owner.save()
   }
 
@@ -259,6 +265,7 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
   let owner = Account.load(event.params.owner)
   if (!owner){
     owner = new Account(event.params.owner)
+    owner.nonce = BigInt.zero()
     owner.save()
   }
 
@@ -303,6 +310,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   let owner = Account.load(event.params.owner)
   if (!owner){
     owner = new Account(event.params.owner)
+    owner.nonce = BigInt.zero()
     owner.save()
   }
 
@@ -348,6 +356,7 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
   let owner = Account.load(event.params.owner)
   if (!owner){
     owner = new Account(event.params.owner)
+    owner.nonce = BigInt.zero()
     owner.save()
   }
 
@@ -393,8 +402,10 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   let owner = Account.load(event.params.owner)
   if (!owner){
     owner = new Account(event.params.owner)
+    owner.nonce = BigInt.zero()
     owner.save()
   }
+  owner.nonce = owner.nonce.plus(new BigInt(1))
 
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
   let cluster = Cluster.load(clusterId) 
@@ -456,6 +467,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   let owner = Account.load(event.params.owner)
   if (!owner){
     owner = new Account(event.params.owner)
+    owner.nonce = BigInt.zero()
     owner.save()
   }
 
@@ -516,6 +528,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
   let owner = Account.load(event.params.owner)
   if (!owner){
     owner = new Account(event.params.owner)
+    owner.nonce = BigInt.zero()
     owner.save()
   }
 
@@ -523,6 +536,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
   let operator = Operator.load(operatorId) 
   if (!operator) {
     operator = new Operator(operatorId)
+    operator.operatorId = event.params.operatorId
     operator.owner = owner.id
     operator.publicKey = event.params.publicKey
     operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
@@ -556,6 +570,8 @@ export function handleOperatorFeeDeclarationCancelled(
   if (!owner){
     log.error(`Cancelling fee declaration for Operator ${event.params.operatorId}, but Owner ${event.params.owner.toHexString()} did not exist on the database`, [])
     owner = new Account(event.params.owner)
+    owner.nonce = BigInt.zero()
+    owner.save()
   }
 
   let operatorId = Bytes.fromByteArray(Bytes.fromBigInt(event.params.operatorId))
@@ -565,6 +581,7 @@ export function handleOperatorFeeDeclarationCancelled(
     log.error(`Could not create ${operatorId} on the database, because of missing publicKey and fee information`, [])
   }
   else {
+    operator.operatorId = event.params.operatorId
     operator.owner = owner.id
     operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
     operator.lastUpdateBlockNumber = event.block.number
@@ -596,6 +613,7 @@ export function handleOperatorFeeDeclared(
   if (!owner){
     log.error(`Declaring fees for Operator ${event.params.operatorId}, but Owner ${event.params.owner.toHexString()} did not exist on the database`, [])
     owner = new Account(event.params.owner)
+    owner.nonce = BigInt.zero()
     owner.save()
   }
 
@@ -606,6 +624,7 @@ export function handleOperatorFeeDeclared(
     log.error(`Could not create ${operatorId} on the database, because of missing publicKey and fee information`, [])
   }
   else {
+    operator.operatorId = event.params.operatorId
     operator.owner = owner.id
     operator.fee = event.params.fee // TODO is this going to be wrong when the declaration is cancelled via OperatorFeeDeclarationCancelledEvent?
     operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
@@ -637,6 +656,7 @@ export function handleOperatorFeeExecuted(
   if (!owner){
     log.error(`Executing fees change for Operator ${event.params.operatorId}, but Owner ${event.params.owner.toHexString()} did not exist on the database`, [])
     owner = new Account(event.params.owner)
+    owner.nonce = BigInt.zero()
     owner.save()
   }
 
@@ -647,6 +667,7 @@ export function handleOperatorFeeExecuted(
     log.error(`Could not create ${operatorId} on the database, because of missing publicKey information`, [])
   }
   else {
+    operator.operatorId = event.params.operatorId
     operator.owner = owner.id
     operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
     operator.fee = event.params.fee
@@ -676,6 +697,7 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
     log.error(`Could not create ${operatorId} on the database, because of missing owner information`, [])
   }
   else {
+    operator.operatorId = event.params.operatorId
     operator.active = true
     operator.lastUpdateBlockNumber = event.block.number
     operator.lastUpdateBlockTimestamp = event.block.timestamp
@@ -703,6 +725,7 @@ export function handleOperatorWhitelistUpdated(
   if (!whitelisted){
     log.info(`Adding new whitelisted address ${event.params.whitelisted.toHexString()} to Operator ${event.params.operatorId}, this is a new Account`, [])
     whitelisted = new Account(event.params.whitelisted)
+    whitelisted.nonce = BigInt.zero()
     whitelisted.save()
   }
 
@@ -716,6 +739,7 @@ export function handleOperatorWhitelistUpdated(
     if (!operator.whitelisted) {
       operator.whitelisted = []
     }
+    operator.operatorId = event.params.operatorId
     operator.whitelisted.push( whitelisted.id)
     operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
     operator.lastUpdateBlockNumber = event.block.number
@@ -743,6 +767,7 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
   if (!owner){
     log.error(`Executing fees change for Operator ${event.params.operatorId}, but Owner ${event.params.owner.toHexString()} did not exist on the database`, [])
     owner = new Account(event.params.owner)
+    owner.nonce = BigInt.zero()
     owner.save()
   }
 
@@ -753,6 +778,7 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
     log.error(`Could not create ${operatorId} on the database, because of missing publicKey and fee information`, [])
   }
   else {
+    operator.operatorId = event.params.operatorId
     operator.totalWithdrawn.minus(event.params.value)
     operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
     operator.lastUpdateBlockNumber = event.block.number

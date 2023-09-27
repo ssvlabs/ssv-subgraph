@@ -54,6 +54,8 @@ dataSources:
       abis:
         - name: SSVNetwork
           file: ./abis/SSVNetwork.json
+      # blockHandlers:
+      #   - handler: handleBlock
       eventHandlers:
         # - event: Initialized(uint8)
         #   handler: handleInitialized
