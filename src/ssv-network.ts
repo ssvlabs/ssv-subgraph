@@ -406,6 +406,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     owner.save()
   }
   owner.nonce = owner.nonce.plus(new BigInt(1))
+  owner.save()
 
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
   let cluster = Cluster.load(clusterId) 
