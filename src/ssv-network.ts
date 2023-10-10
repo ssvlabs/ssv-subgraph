@@ -234,6 +234,7 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
   cluster.owner = owner.id
   cluster.operatorIds = event.params.operatorIds
   cluster.validatorCount = event.params.cluster.validatorCount
+  log.info(`Set validator count of cluster ${cluster.id} to ${cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
@@ -279,6 +280,7 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
   cluster.owner = owner.id
   cluster.operatorIds = event.params.operatorIds
   cluster.validatorCount = event.params.cluster.validatorCount
+  log.info(`Set validator count of cluster ${cluster.id} to ${cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
@@ -324,6 +326,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   cluster.owner = owner.id
   cluster.operatorIds = event.params.operatorIds
   cluster.validatorCount = event.params.cluster.validatorCount
+  log.info(`Set validator count of cluster ${cluster.id} to ${cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
@@ -365,10 +368,12 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
   if (!cluster) {
     log.error(`Cluster ${clusterId} is being withdrawn, but it does not exist on the database`, [])
     cluster = new Cluster(clusterId)
-    cluster.owner = owner.id
-    cluster.operatorIds = event.params.operatorIds
-    cluster.validatorCount = event.params.cluster.validatorCount
   }
+
+  cluster.owner = owner.id
+  cluster.operatorIds = event.params.operatorIds
+  cluster.validatorCount = event.params.cluster.validatorCount
+  log.info(`Set validator count of cluster ${cluster.id} to ${cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
@@ -403,9 +408,9 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   if (!owner){
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
-    owner.save()
   }
   owner.nonce = owner.nonce.plus(new BigInt(1))
+  log.info(`Increased nonce of Account ${owner.id.toHexString()} to ${owner.nonce}`, []);
   owner.save()
 
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
@@ -413,12 +418,12 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   if (!cluster) {
     log.info(`Validator ${event.params.publicKey.toHexString()} is being added to new Cluster ${clusterId}`, [])
     cluster = new Cluster(clusterId)
-    cluster.validatorCount = BigInt.zero() // setting to zero, so we ALWAYS add 1, both for new, and existing clusters
   }
 
   cluster.owner = owner.id
   cluster.operatorIds = event.params.operatorIds
-  cluster.validatorCount = cluster.validatorCount.plus(new BigInt(1))
+  cluster.validatorCount = event.params.cluster.validatorCount
+  log.info(`Set validator count of cluster ${cluster.id} to ${cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
@@ -479,10 +484,10 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     cluster = new Cluster(clusterId)
   }
 
-
   cluster.owner = owner.id
   cluster.operatorIds = event.params.operatorIds
   cluster.validatorCount = event.params.cluster.validatorCount
+  log.info(`Set validator count of cluster ${cluster.id} to ${cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
