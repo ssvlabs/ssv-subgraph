@@ -445,6 +445,19 @@ export class Operator extends Entity {
     this.set("fee", Value.fromBigInt(value));
   }
 
+  get previousFee(): BigInt {
+    let value = this.get("previousFee");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set previousFee(value: BigInt) {
+    this.set("previousFee", Value.fromBigInt(value));
+  }
+
   get whitelisted(): Array<Bytes> {
     let value = this.get("whitelisted");
     if (!value || value.kind == ValueKind.NULL) {
@@ -587,6 +600,189 @@ export class Account extends Entity {
         .toHexString(),
       "operators"
     );
+  }
+}
+
+export class DAOValues extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save DAOValues entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type DAOValues must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+      );
+      store.set("DAOValues", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): DAOValues | null {
+    return changetype<DAOValues | null>(store.get_in_block("DAOValues", id));
+  }
+
+  static load(id: string): DAOValues | null {
+    return changetype<DAOValues | null>(store.get("DAOValues", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get networkFee(): BigInt {
+    let value = this.get("networkFee");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set networkFee(value: BigInt) {
+    this.set("networkFee", Value.fromBigInt(value));
+  }
+
+  get liquidationThreshold(): BigInt {
+    let value = this.get("liquidationThreshold");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set liquidationThreshold(value: BigInt) {
+    this.set("liquidationThreshold", Value.fromBigInt(value));
+  }
+
+  get minimumLiquidationCollateral(): BigInt {
+    let value = this.get("minimumLiquidationCollateral");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set minimumLiquidationCollateral(value: BigInt) {
+    this.set("minimumLiquidationCollateral", Value.fromBigInt(value));
+  }
+
+  get operatorFeeIncreaseLimit(): BigInt {
+    let value = this.get("operatorFeeIncreaseLimit");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set operatorFeeIncreaseLimit(value: BigInt) {
+    this.set("operatorFeeIncreaseLimit", Value.fromBigInt(value));
+  }
+
+  get declareOperatorFeePeriod(): BigInt {
+    let value = this.get("declareOperatorFeePeriod");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set declareOperatorFeePeriod(value: BigInt) {
+    this.set("declareOperatorFeePeriod", Value.fromBigInt(value));
+  }
+
+  get executeOperatorFeePeriod(): BigInt {
+    let value = this.get("executeOperatorFeePeriod");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set executeOperatorFeePeriod(value: BigInt) {
+    this.set("executeOperatorFeePeriod", Value.fromBigInt(value));
+  }
+
+  get operatorMaximumFee(): BigInt {
+    let value = this.get("operatorMaximumFee");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set operatorMaximumFee(value: BigInt) {
+    this.set("operatorMaximumFee", Value.fromBigInt(value));
+  }
+
+  get updateType(): string {
+    let value = this.get("updateType");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set updateType(value: string) {
+    this.set("updateType", Value.fromString(value));
+  }
+
+  get lastUpdateBlockNumber(): BigInt {
+    let value = this.get("lastUpdateBlockNumber");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set lastUpdateBlockNumber(value: BigInt) {
+    this.set("lastUpdateBlockNumber", Value.fromBigInt(value));
+  }
+
+  get lastUpdateBlockTimestamp(): BigInt {
+    let value = this.get("lastUpdateBlockTimestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set lastUpdateBlockTimestamp(value: BigInt) {
+    this.set("lastUpdateBlockTimestamp", Value.fromBigInt(value));
+  }
+
+  get lastUpdateTransactionHash(): Bytes {
+    let value = this.get("lastUpdateTransactionHash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set lastUpdateTransactionHash(value: Bytes) {
+    this.set("lastUpdateTransactionHash", Value.fromBytes(value));
   }
 }
 

@@ -33,6 +33,7 @@ type Operator @entity(immutable: false) {
   publicKey: Bytes! # bytes
   active: Boolean! # bool
   fee: BigInt! # uint256
+  previousFee: BigInt! # uint256
   whitelisted: [Account!]!
   totalWithdrawn: BigInt! # uint256
   lastUpdateBlockNumber: BigInt! # uint256
@@ -46,6 +47,31 @@ type Account @entity(immutable: false) {
   clusters: [Cluster!] @derivedFrom(field: "owner")
   validators: [Validator!] @derivedFrom(field: "owner")
   operators: [Operator!] @derivedFrom(field: "owner")
+}
+
+type DAOValues @entity(immutable: false) {
+  id: String!
+  networkFee: BigInt! # uint256
+  liquidationThreshold: BigInt! # uint256
+  minimumLiquidationCollateral: BigInt! # uint256
+  operatorFeeIncreaseLimit: BigInt! # uint256
+  declareOperatorFeePeriod: BigInt! # uint256
+  executeOperatorFeePeriod: BigInt! # uint256
+  operatorMaximumFee: BigInt! # uint256
+  updateType: DAOUpdateTypes!
+  lastUpdateBlockNumber: BigInt! # uint256
+  lastUpdateBlockTimestamp: BigInt! # uint256
+  lastUpdateTransactionHash: Bytes! # uint256
+}
+
+enum DAOUpdateTypes {
+  NETWORK_FEE,
+  LIQUIDATION_THRESHOLD,
+  MIN_LIQUIDATION_COLLATERAL,
+  OPERATOR_FEE_INCREASE_LIMIT,
+  DECLARE_OPERATOR_FEE_PERIOD,
+  EXECUTE_OPERATOR_FEE_PERIOD,
+  OPERATOR_MAX_FEE,
 }
 
 type ClusterDeposited @entity(immutable: true) {

@@ -49,7 +49,8 @@ import {
   OperatorWhitelistUpdated,
   OperatorWithdrawn,
   ValidatorAdded,
-  ValidatorRemoved
+  ValidatorRemoved,
+  DAOValues
 } from "../generated/schema"
 import { log } from "matchstick-as"
 
@@ -57,6 +58,8 @@ import { log } from "matchstick-as"
 //   // TODO need to update clusters balance
 //   log.info("Running every block!", [])
 // }
+
+const daoID = "DAOValues"
 
 // ###### DAO Events ######
 
@@ -73,6 +76,24 @@ export function handleDeclareOperatorFeePeriodUpdated(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  let dao = DAOValues.load(daoID)
+  if (!dao) {
+    log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
+    dao = new DAOValues(daoID)
+    dao.networkFee = BigInt.zero()
+    dao.liquidationThreshold = BigInt.zero()
+    dao.minimumLiquidationCollateral = BigInt.zero()
+    dao.operatorFeeIncreaseLimit = BigInt.zero()
+    dao.declareOperatorFeePeriod = BigInt.zero()
+    dao.executeOperatorFeePeriod = BigInt.zero()
+  }
+  dao.updateType = "DECLARE_OPERATOR_FEE_PERIOD"
+  dao.declareOperatorFeePeriod = event.params.value
+  dao.lastUpdateBlockNumber = event.block.number
+  dao.lastUpdateBlockTimestamp = event.block.timestamp
+  dao.lastUpdateTransactionHash = event.transaction.hash
+  dao.save()
 }
 
 export function handleExecuteOperatorFeePeriodUpdated(
@@ -88,6 +109,24 @@ export function handleExecuteOperatorFeePeriodUpdated(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+  
+  let dao = DAOValues.load(daoID)
+  if (!dao) {
+    log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
+    dao = new DAOValues(daoID)
+    dao.networkFee = BigInt.zero()
+    dao.liquidationThreshold = BigInt.zero()
+    dao.minimumLiquidationCollateral = BigInt.zero()
+    dao.operatorFeeIncreaseLimit = BigInt.zero()
+    dao.declareOperatorFeePeriod = BigInt.zero()
+    dao.executeOperatorFeePeriod = BigInt.zero()
+  }
+  dao.updateType = "EXECUTE_OPERATOR_FEE_PERIOD"
+  dao.executeOperatorFeePeriod = event.params.value
+  dao.lastUpdateBlockNumber = event.block.number
+  dao.lastUpdateBlockTimestamp = event.block.timestamp
+  dao.lastUpdateTransactionHash = event.transaction.hash
+  dao.save()
 }
 
 export function handleFeeRecipientAddressUpdated(
@@ -119,6 +158,24 @@ export function handleLiquidationThresholdPeriodUpdated(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+  
+  let dao = DAOValues.load(daoID)
+  if (!dao) {
+    log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
+    dao = new DAOValues(daoID)
+    dao.networkFee = BigInt.zero()
+    dao.liquidationThreshold = BigInt.zero()
+    dao.minimumLiquidationCollateral = BigInt.zero()
+    dao.operatorFeeIncreaseLimit = BigInt.zero()
+    dao.declareOperatorFeePeriod = BigInt.zero()
+    dao.executeOperatorFeePeriod = BigInt.zero()
+  }
+  dao.updateType = "LIQUIDATION_THRESHOLD"
+  dao.liquidationThreshold = event.params.value
+  dao.lastUpdateBlockNumber = event.block.number
+  dao.lastUpdateBlockTimestamp = event.block.timestamp
+  dao.lastUpdateTransactionHash = event.transaction.hash
+  dao.save()
 }
 
 export function handleMinimumLiquidationCollateralUpdated(
@@ -134,6 +191,24 @@ export function handleMinimumLiquidationCollateralUpdated(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+  
+  let dao = DAOValues.load(daoID)
+  if (!dao) {
+    log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
+    dao = new DAOValues(daoID)
+    dao.networkFee = BigInt.zero()
+    dao.liquidationThreshold = BigInt.zero()
+    dao.minimumLiquidationCollateral = BigInt.zero()
+    dao.operatorFeeIncreaseLimit = BigInt.zero()
+    dao.declareOperatorFeePeriod = BigInt.zero()
+    dao.executeOperatorFeePeriod = BigInt.zero()
+  }
+  dao.updateType = "MIN_LIQUIDATION_COLLATERAL"
+  dao.minimumLiquidationCollateral = event.params.value
+  dao.lastUpdateBlockNumber = event.block.number
+  dao.lastUpdateBlockTimestamp = event.block.timestamp
+  dao.lastUpdateTransactionHash = event.transaction.hash
+  dao.save()
 }
 
 export function handleNetworkEarningsWithdrawn(
@@ -164,6 +239,24 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+  
+  let dao = DAOValues.load(daoID)
+  if (!dao) {
+    log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
+    dao = new DAOValues(daoID)
+    dao.networkFee = BigInt.zero()
+    dao.liquidationThreshold = BigInt.zero()
+    dao.minimumLiquidationCollateral = BigInt.zero()
+    dao.operatorFeeIncreaseLimit = BigInt.zero()
+    dao.declareOperatorFeePeriod = BigInt.zero()
+    dao.executeOperatorFeePeriod = BigInt.zero()
+  }
+  dao.updateType = "NETWORK_FEE"
+  dao.networkFee = event.params.newFee
+  dao.lastUpdateBlockNumber = event.block.number
+  dao.lastUpdateBlockTimestamp = event.block.timestamp
+  dao.lastUpdateTransactionHash = event.transaction.hash
+  dao.save()
 }
 
 export function handleOperatorFeeIncreaseLimitUpdated(
@@ -179,6 +272,24 @@ export function handleOperatorFeeIncreaseLimitUpdated(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+  
+  let dao = DAOValues.load(daoID)
+  if (!dao) {
+    log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
+    dao = new DAOValues(daoID)
+    dao.networkFee = BigInt.zero()
+    dao.liquidationThreshold = BigInt.zero()
+    dao.minimumLiquidationCollateral = BigInt.zero()
+    dao.operatorFeeIncreaseLimit = BigInt.zero()
+    dao.declareOperatorFeePeriod = BigInt.zero()
+    dao.executeOperatorFeePeriod = BigInt.zero()
+  }
+  dao.updateType = "OPERATOR_FEE_INCREASE_LIMIT"
+  dao.operatorFeeIncreaseLimit = event.params.value
+  dao.lastUpdateBlockNumber = event.block.number
+  dao.lastUpdateBlockTimestamp = event.block.timestamp
+  dao.lastUpdateTransactionHash = event.transaction.hash
+  dao.save()
 }
 
 export function handleOperatorMaximumFeeUpdated(
@@ -194,6 +305,24 @@ export function handleOperatorMaximumFeeUpdated(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+  
+  let dao = DAOValues.load(daoID)
+  if (!dao) {
+    log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
+    dao = new DAOValues(daoID)
+    dao.networkFee = BigInt.zero()
+    dao.liquidationThreshold = BigInt.zero()
+    dao.minimumLiquidationCollateral = BigInt.zero()
+    dao.operatorFeeIncreaseLimit = BigInt.zero()
+    dao.declareOperatorFeePeriod = BigInt.zero()
+    dao.executeOperatorFeePeriod = BigInt.zero()
+  }
+  dao.updateType = "DECLARE_OPERATOR_FEE_PERIOD"
+  dao.operatorMaximumFee = event.params.maxFee
+  dao.lastUpdateBlockNumber = event.block.number
+  dao.lastUpdateBlockTimestamp = event.block.timestamp
+  dao.lastUpdateTransactionHash = event.transaction.hash
+  dao.save()
 }
 
 // ###### Cluster Events ######
@@ -234,7 +363,7 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
   cluster.owner = owner.id
   cluster.operatorIds = event.params.operatorIds
   cluster.validatorCount = event.params.cluster.validatorCount
-  log.info(`Set validator count of cluster ${cluster.id} to ${cluster.validatorCount}`, []);
+  log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
@@ -280,7 +409,7 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
   cluster.owner = owner.id
   cluster.operatorIds = event.params.operatorIds
   cluster.validatorCount = event.params.cluster.validatorCount
-  log.info(`Set validator count of cluster ${cluster.id} to ${cluster.validatorCount}`, []);
+  log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
@@ -326,7 +455,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   cluster.owner = owner.id
   cluster.operatorIds = event.params.operatorIds
   cluster.validatorCount = event.params.cluster.validatorCount
-  log.info(`Set validator count of cluster ${cluster.id} to ${cluster.validatorCount}`, []);
+  log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
@@ -373,7 +502,7 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
   cluster.owner = owner.id
   cluster.operatorIds = event.params.operatorIds
   cluster.validatorCount = event.params.cluster.validatorCount
-  log.info(`Set validator count of cluster ${cluster.id} to ${cluster.validatorCount}`, []);
+  log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
@@ -407,9 +536,11 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   let owner = Account.load(event.params.owner)
   if (!owner){
     owner = new Account(event.params.owner)
+    log.info(`New Address ${owner.id.toHexString()} is adding a validator, creating new Account`, []);
     owner.nonce = BigInt.zero()
   }
-  owner.nonce = owner.nonce.plus(new BigInt(1))
+  log.info(`Old nonce of Account ${owner.id.toHexString()}: ${owner.nonce}`, []);
+  owner.nonce = owner.nonce.plus(BigInt.fromI32(1))
   log.info(`Increased nonce of Account ${owner.id.toHexString()} to ${owner.nonce}`, []);
   owner.save()
 
@@ -423,7 +554,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   cluster.owner = owner.id
   cluster.operatorIds = event.params.operatorIds
   cluster.validatorCount = event.params.cluster.validatorCount
-  log.info(`Set validator count of cluster ${cluster.id} to ${cluster.validatorCount}`, []);
+  log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
@@ -487,7 +618,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   cluster.owner = owner.id
   cluster.operatorIds = event.params.operatorIds
   cluster.validatorCount = event.params.cluster.validatorCount
-  log.info(`Set validator count of cluster ${cluster.id} to ${cluster.validatorCount}`, []);
+  log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
   cluster.active = event.params.cluster.active
@@ -545,8 +676,9 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.operatorId = event.params.operatorId
     operator.owner = owner.id
     operator.publicKey = event.params.publicKey
-    operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
+    operator.active = true
     operator.fee = event.params.fee
+    operator.previousFee = event.params.fee
     operator.whitelisted = []
     operator.totalWithdrawn = BigInt.zero()
   }
@@ -589,7 +721,7 @@ export function handleOperatorFeeDeclarationCancelled(
   else {
     operator.operatorId = event.params.operatorId
     operator.owner = owner.id
-    operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
+    operator.fee = operator.previousFee // reset fee to previous one, as fee change was cancelled
     operator.lastUpdateBlockNumber = event.block.number
     operator.lastUpdateBlockTimestamp = event.block.timestamp
     operator.lastUpdateTransactionHash = event.transaction.hash
@@ -632,8 +764,8 @@ export function handleOperatorFeeDeclared(
   else {
     operator.operatorId = event.params.operatorId
     operator.owner = owner.id
-    operator.fee = event.params.fee // TODO is this going to be wrong when the declaration is cancelled via OperatorFeeDeclarationCancelledEvent?
-    operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
+    operator.previousFee = operator.fee // storing current fee, in case fee change gets cancelled
+    operator.fee = event.params.fee
     operator.lastUpdateBlockNumber = event.block.number
     operator.lastUpdateBlockTimestamp = event.block.timestamp
     operator.lastUpdateTransactionHash = event.transaction.hash
@@ -675,7 +807,6 @@ export function handleOperatorFeeExecuted(
   else {
     operator.operatorId = event.params.operatorId
     operator.owner = owner.id
-    operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
     operator.fee = event.params.fee
     operator.lastUpdateBlockNumber = event.block.number
     operator.lastUpdateBlockTimestamp = event.block.timestamp
@@ -704,7 +835,7 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
   }
   else {
     operator.operatorId = event.params.operatorId
-    operator.active = true
+    operator.active = false
     operator.lastUpdateBlockNumber = event.block.number
     operator.lastUpdateBlockTimestamp = event.block.timestamp
     operator.lastUpdateTransactionHash = event.transaction.hash
@@ -747,7 +878,6 @@ export function handleOperatorWhitelistUpdated(
     }
     operator.operatorId = event.params.operatorId
     operator.whitelisted.push( whitelisted.id)
-    operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
     operator.lastUpdateBlockNumber = event.block.number
     operator.lastUpdateBlockTimestamp = event.block.timestamp
     operator.lastUpdateTransactionHash = event.transaction.hash
@@ -786,7 +916,6 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
   else {
     operator.operatorId = event.params.operatorId
     operator.totalWithdrawn.minus(event.params.value)
-    operator.active = true // TODO this is wrong at the moment, need a MANY-TO-MANY with validators. When operator.validators > 1, then this is true
     operator.lastUpdateBlockNumber = event.block.number
     operator.lastUpdateBlockTimestamp = event.block.timestamp
     operator.lastUpdateTransactionHash = event.transaction.hash
