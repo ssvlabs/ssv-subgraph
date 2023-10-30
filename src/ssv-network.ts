@@ -1,4 +1,4 @@
-import { BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts"
+import { BigInt, Bytes } from "@graphprotocol/graph-ts"
 import {
   ClusterDeposited as ClusterDepositedEvent,
   ClusterLiquidated as ClusterLiquidatedEvent,
@@ -77,10 +77,10 @@ export function handleDeclareOperatorFeePeriodUpdated(
 
   entity.save()
 
-  let dao = DAOValues.load(daoID)
+  let dao = DAOValues.load(event.address)
   if (!dao) {
     log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
-    dao = new DAOValues(daoID)
+    dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.liquidationThreshold = BigInt.zero()
     dao.minimumLiquidationCollateral = BigInt.zero()
@@ -110,10 +110,10 @@ export function handleExecuteOperatorFeePeriodUpdated(
 
   entity.save()
   
-  let dao = DAOValues.load(daoID)
+  let dao = DAOValues.load(event.address)
   if (!dao) {
     log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
-    dao = new DAOValues(daoID)
+    dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.liquidationThreshold = BigInt.zero()
     dao.minimumLiquidationCollateral = BigInt.zero()
@@ -159,10 +159,10 @@ export function handleLiquidationThresholdPeriodUpdated(
 
   entity.save()
   
-  let dao = DAOValues.load(daoID)
+  let dao = DAOValues.load(event.address)
   if (!dao) {
     log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
-    dao = new DAOValues(daoID)
+    dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.liquidationThreshold = BigInt.zero()
     dao.minimumLiquidationCollateral = BigInt.zero()
@@ -192,10 +192,10 @@ export function handleMinimumLiquidationCollateralUpdated(
 
   entity.save()
   
-  let dao = DAOValues.load(daoID)
+  let dao = DAOValues.load(event.address)
   if (!dao) {
     log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
-    dao = new DAOValues(daoID)
+    dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.liquidationThreshold = BigInt.zero()
     dao.minimumLiquidationCollateral = BigInt.zero()
@@ -240,10 +240,10 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
 
   entity.save()
   
-  let dao = DAOValues.load(daoID)
+  let dao = DAOValues.load(event.address)
   if (!dao) {
     log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
-    dao = new DAOValues(daoID)
+    dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.liquidationThreshold = BigInt.zero()
     dao.minimumLiquidationCollateral = BigInt.zero()
@@ -273,10 +273,10 @@ export function handleOperatorFeeIncreaseLimitUpdated(
 
   entity.save()
   
-  let dao = DAOValues.load(daoID)
+  let dao = DAOValues.load(event.address)
   if (!dao) {
     log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
-    dao = new DAOValues(daoID)
+    dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.liquidationThreshold = BigInt.zero()
     dao.minimumLiquidationCollateral = BigInt.zero()
@@ -306,10 +306,10 @@ export function handleOperatorMaximumFeeUpdated(
 
   entity.save()
   
-  let dao = DAOValues.load(daoID)
+  let dao = DAOValues.load(event.address)
   if (!dao) {
     log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
-    dao = new DAOValues(daoID)
+    dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.liquidationThreshold = BigInt.zero()
     dao.minimumLiquidationCollateral = BigInt.zero()

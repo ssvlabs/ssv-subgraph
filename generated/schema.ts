@@ -604,9 +604,9 @@ export class Account extends Entity {
 }
 
 export class DAOValues extends Entity {
-  constructor(id: string) {
+  constructor(id: Bytes) {
     super();
-    this.set("id", Value.fromString(id));
+    this.set("id", Value.fromBytes(id));
   }
 
   save(): void {
@@ -614,32 +614,36 @@ export class DAOValues extends Entity {
     assert(id != null, "Cannot save DAOValues entity without an ID");
     if (id) {
       assert(
-        id.kind == ValueKind.STRING,
-        `Entities of type DAOValues must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`
+        id.kind == ValueKind.BYTES,
+        `Entities of type DAOValues must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`
       );
-      store.set("DAOValues", id.toString(), this);
+      store.set("DAOValues", id.toBytes().toHexString(), this);
     }
   }
 
-  static loadInBlock(id: string): DAOValues | null {
-    return changetype<DAOValues | null>(store.get_in_block("DAOValues", id));
+  static loadInBlock(id: Bytes): DAOValues | null {
+    return changetype<DAOValues | null>(
+      store.get_in_block("DAOValues", id.toHexString())
+    );
   }
 
-  static load(id: string): DAOValues | null {
-    return changetype<DAOValues | null>(store.get("DAOValues", id));
+  static load(id: Bytes): DAOValues | null {
+    return changetype<DAOValues | null>(
+      store.get("DAOValues", id.toHexString())
+    );
   }
 
-  get id(): string {
+  get id(): Bytes {
     let value = this.get("id");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
-      return value.toString();
+      return value.toBytes();
     }
   }
 
-  set id(value: string) {
-    this.set("id", Value.fromString(value));
+  set id(value: Bytes) {
+    this.set("id", Value.fromBytes(value));
   }
 
   get networkFee(): BigInt {

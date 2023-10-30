@@ -50,7 +50,7 @@ type Account @entity(immutable: false) {
 }
 
 type DAOValues @entity(immutable: false) {
-  id: String!
+  id: Bytes!
   networkFee: BigInt! # uint256
   liquidationThreshold: BigInt! # uint256
   minimumLiquidationCollateral: BigInt! # uint256
