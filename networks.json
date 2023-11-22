@@ -1,4 +1,10 @@
 {
+  "holesky": {
+    "SSVNetwork": {
+      "address": "0x38A4794cCEd47d3baf7370CcC43B560D3a1beEFA",
+      "startBlock": 181612
+    }
+  },
   "goerli": {
     "SSVNetwork": {
       "address": "0xC3CD9A0aE89Fff83b71b58b6512D43F8a41f363D",
