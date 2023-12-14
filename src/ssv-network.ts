@@ -54,11 +54,6 @@ import {
 } from "../generated/schema"
 import { log } from "matchstick-as"
 
-// export function handleBlock(block: ethereum.Block): void {
-//   // TODO need to update clusters balance
-//   log.info("Running every block!", [])
-// }
-
 const daoID = "DAOValues"
 
 // ###### DAO Events ######
@@ -87,6 +82,7 @@ export function handleDeclareOperatorFeePeriodUpdated(
     dao.operatorFeeIncreaseLimit = BigInt.zero()
     dao.declareOperatorFeePeriod = BigInt.zero()
     dao.executeOperatorFeePeriod = BigInt.zero()
+    dao.operatorMaximumFee = BigInt.zero()
   }
   dao.updateType = "DECLARE_OPERATOR_FEE_PERIOD"
   dao.declareOperatorFeePeriod = event.params.value
@@ -120,6 +116,7 @@ export function handleExecuteOperatorFeePeriodUpdated(
     dao.operatorFeeIncreaseLimit = BigInt.zero()
     dao.declareOperatorFeePeriod = BigInt.zero()
     dao.executeOperatorFeePeriod = BigInt.zero()
+    dao.operatorMaximumFee = BigInt.zero()
   }
   dao.updateType = "EXECUTE_OPERATOR_FEE_PERIOD"
   dao.executeOperatorFeePeriod = event.params.value
@@ -169,6 +166,7 @@ export function handleLiquidationThresholdPeriodUpdated(
     dao.operatorFeeIncreaseLimit = BigInt.zero()
     dao.declareOperatorFeePeriod = BigInt.zero()
     dao.executeOperatorFeePeriod = BigInt.zero()
+    dao.operatorMaximumFee = BigInt.zero()
   }
   dao.updateType = "LIQUIDATION_THRESHOLD"
   dao.liquidationThreshold = event.params.value
@@ -202,6 +200,7 @@ export function handleMinimumLiquidationCollateralUpdated(
     dao.operatorFeeIncreaseLimit = BigInt.zero()
     dao.declareOperatorFeePeriod = BigInt.zero()
     dao.executeOperatorFeePeriod = BigInt.zero()
+    dao.operatorMaximumFee = BigInt.zero()
   }
   dao.updateType = "MIN_LIQUIDATION_COLLATERAL"
   dao.minimumLiquidationCollateral = event.params.value
@@ -250,6 +249,7 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
     dao.operatorFeeIncreaseLimit = BigInt.zero()
     dao.declareOperatorFeePeriod = BigInt.zero()
     dao.executeOperatorFeePeriod = BigInt.zero()
+    dao.operatorMaximumFee = BigInt.zero()
   }
   dao.updateType = "NETWORK_FEE"
   dao.networkFee = event.params.newFee
@@ -283,6 +283,7 @@ export function handleOperatorFeeIncreaseLimitUpdated(
     dao.operatorFeeIncreaseLimit = BigInt.zero()
     dao.declareOperatorFeePeriod = BigInt.zero()
     dao.executeOperatorFeePeriod = BigInt.zero()
+    dao.operatorMaximumFee = BigInt.zero()
   }
   dao.updateType = "OPERATOR_FEE_INCREASE_LIMIT"
   dao.operatorFeeIncreaseLimit = event.params.value
@@ -316,6 +317,7 @@ export function handleOperatorMaximumFeeUpdated(
     dao.operatorFeeIncreaseLimit = BigInt.zero()
     dao.declareOperatorFeePeriod = BigInt.zero()
     dao.executeOperatorFeePeriod = BigInt.zero()
+    dao.operatorMaximumFee = BigInt.zero()
   }
   dao.updateType = "DECLARE_OPERATOR_FEE_PERIOD"
   dao.operatorMaximumFee = event.params.maxFee
