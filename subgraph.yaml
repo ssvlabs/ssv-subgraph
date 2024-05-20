@@ -49,8 +49,11 @@ dataSources:
         - OperatorFeeIncreaseLimitUpdated
         - OperatorMaximumFeeUpdated
         - OperatorRemoved
-        - OperatorWhitelistUpdated
         - OperatorWithdrawn
+        - OperatorMultipleWhitelistRemoved
+        - OperatorMultipleWhitelistUpdated
+        - OperatorWhitelistingContractUpdated
+        - OperatorWhitelistUpdated
       abis:
         - name: SSVNetwork
           file: ./abis/SSVNetwork.json

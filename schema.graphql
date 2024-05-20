@@ -35,6 +35,7 @@ type Operator @entity(immutable: false) {
   fee: BigInt! # uint256
   previousFee: BigInt! # uint256
   whitelisted: [Account!]!
+  whitelistedContract: Account
   totalWithdrawn: BigInt! # uint256
   lastUpdateBlockNumber: BigInt! # uint256
   lastUpdateBlockTimestamp: BigInt!

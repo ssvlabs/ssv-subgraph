@@ -19,6 +19,9 @@ import {
   OperatorMaximumFeeUpdated as OperatorMaximumFeeUpdatedEvent,
   OperatorRemoved as OperatorRemovedEvent,
   OperatorWhitelistUpdated as OperatorWhitelistUpdatedEvent,
+  OperatorWhitelistingContractUpdated as OperatorWhitelistingContractUpdatedEvent,
+  OperatorMultipleWhitelistRemoved as OperatorMultipleWhitelistRemovedEvent,
+  OperatorMultipleWhitelistUpdated as OperatorMultipleWhitelistUpdatedEvent,
   OperatorWithdrawn as OperatorWithdrawnEvent,
   ValidatorAdded as ValidatorAddedEvent,
   ValidatorRemoved as ValidatorRemovedEvent
@@ -852,7 +855,7 @@ export function handleOperatorWhitelistUpdated(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
   entity.operatorId = event.params.operatorId
-  entity.whitelisted = event.params.whitelisted
+  entity.whitelisted = event.params.whitelistAddress
 
   entity.blockNumber = event.block.number
   entity.blockTimestamp = event.block.timestamp
@@ -860,10 +863,10 @@ export function handleOperatorWhitelistUpdated(
 
   entity.save()
 
-  let whitelisted = Account.load(event.params.whitelisted)
+  let whitelisted = Account.load(event.params.whitelistAddress)
   if (!whitelisted){
-    log.info(`Adding new whitelisted address ${event.params.whitelisted.toHexString()} to Operator ${event.params.operatorId}, this is a new Account`, [])
-    whitelisted = new Account(event.params.whitelisted)
+    log.info(`Adding new whitelisted address ${event.params.whitelistAddress.toHexString()} to Operator ${event.params.operatorId}, this is a new Account`, [])
+    whitelisted = new Account(event.params.whitelistAddress)
     whitelisted.nonce = BigInt.zero()
     whitelisted.save()
   }
