@@ -668,28 +668,6 @@ export class OperatorRemoved__Params {
   }
 }
 
-export class OperatorWhitelistUpdated extends ethereum.Event {
-  get params(): OperatorWhitelistUpdated__Params {
-    return new OperatorWhitelistUpdated__Params(this);
-  }
-}
-
-export class OperatorWhitelistUpdated__Params {
-  _event: OperatorWhitelistUpdated;
-
-  constructor(event: OperatorWhitelistUpdated) {
-    this._event = event;
-  }
-
-  get operatorId(): BigInt {
-    return this._event.parameters[0].value.toBigInt();
-  }
-
-  get whitelistAddress(): Address {
-    return this._event.parameters[1].value.toAddress();
-  }
-}
-
 export class OperatorWhitelistingContractUpdated extends ethereum.Event {
   get params(): OperatorWhitelistingContractUpdated__Params {
     return new OperatorWhitelistingContractUpdated__Params(this);
@@ -2056,40 +2034,6 @@ export class SetOperatorMultipleWhitelistsCall__Outputs {
   _call: SetOperatorMultipleWhitelistsCall;
 
   constructor(call: SetOperatorMultipleWhitelistsCall) {
-    this._call = call;
-  }
-}
-
-export class SetOperatorWhitelistCall extends ethereum.Call {
-  get inputs(): SetOperatorWhitelistCall__Inputs {
-    return new SetOperatorWhitelistCall__Inputs(this);
-  }
-
-  get outputs(): SetOperatorWhitelistCall__Outputs {
-    return new SetOperatorWhitelistCall__Outputs(this);
-  }
-}
-
-export class SetOperatorWhitelistCall__Inputs {
-  _call: SetOperatorWhitelistCall;
-
-  constructor(call: SetOperatorWhitelistCall) {
-    this._call = call;
-  }
-
-  get operatorId(): BigInt {
-    return this._call.inputValues[0].value.toBigInt();
-  }
-
-  get whitelisted(): Address {
-    return this._call.inputValues[1].value.toAddress();
-  }
-}
-
-export class SetOperatorWhitelistCall__Outputs {
-  _call: SetOperatorWhitelistCall;
-
-  constructor(call: SetOperatorWhitelistCall) {
     this._call = call;
   }
 }

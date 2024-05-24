@@ -28,12 +28,33 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "caller",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "CallerNotOwnerWithData",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "CallerNotWhitelisted",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint64",
         "name": "operatorId",
         "type": "uint64"
       }
     ],
-    "name": "CallerNotWhitelisted",
+    "name": "CallerNotWhitelistedWithData",
     "type": "error"
   },
   {
@@ -62,8 +83,25 @@
     "type": "error"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "uint64",
+        "name": "operatorId",
+        "type": "uint64"
+      }
+    ],
     "name": "ExceedValidatorLimit",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint64",
+        "name": "operatorId",
+        "type": "uint64"
+      }
+    ],
+    "name": "ExceedValidatorLimitWithData",
     "type": "error"
   },
   {
@@ -191,6 +229,17 @@
   {
     "inputs": [],
     "name": "TargetModuleDoesNotExist",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint8",
+        "name": "moduleId",
+        "type": "uint8"
+      }
+    ],
+    "name": "TargetModuleDoesNotExistWithData",
     "type": "error"
   },
   {
@@ -828,25 +877,6 @@
       }
     ],
     "name": "OperatorRemoved",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "uint64",
-        "name": "operatorId",
-        "type": "uint64"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "whitelistAddress",
-        "type": "address"
-      }
-    ],
-    "name": "OperatorWhitelistUpdated",
     "type": "event"
   },
   {
@@ -1792,24 +1822,6 @@
       }
     ],
     "name": "setOperatorMultipleWhitelists",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint64",
-        "name": "operatorId",
-        "type": "uint64"
-      },
-      {
-        "internalType": "address",
-        "name": "whitelisted",
-        "type": "address"
-      }
-    ],
-    "name": "setOperatorWhitelist",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

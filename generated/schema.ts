@@ -3068,7 +3068,7 @@ export class OperatorRemoved extends Entity {
   }
 }
 
-export class OperatorWhitelistUpdated extends Entity {
+export class OperatorMultipleWhitelistUpdated extends Entity {
   constructor(id: Bytes) {
     super();
     this.set("id", Value.fromBytes(id));
@@ -3078,26 +3078,30 @@ export class OperatorWhitelistUpdated extends Entity {
     let id = this.get("id");
     assert(
       id != null,
-      "Cannot save OperatorWhitelistUpdated entity without an ID",
+      "Cannot save OperatorMultipleWhitelistUpdated entity without an ID",
     );
     if (id) {
       assert(
         id.kind == ValueKind.BYTES,
-        `Entities of type OperatorWhitelistUpdated must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+        `Entities of type OperatorMultipleWhitelistUpdated must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`,
       );
-      store.set("OperatorWhitelistUpdated", id.toBytes().toHexString(), this);
+      store.set(
+        "OperatorMultipleWhitelistUpdated",
+        id.toBytes().toHexString(),
+        this,
+      );
     }
   }
 
-  static loadInBlock(id: Bytes): OperatorWhitelistUpdated | null {
-    return changetype<OperatorWhitelistUpdated | null>(
-      store.get_in_block("OperatorWhitelistUpdated", id.toHexString()),
+  static loadInBlock(id: Bytes): OperatorMultipleWhitelistUpdated | null {
+    return changetype<OperatorMultipleWhitelistUpdated | null>(
+      store.get_in_block("OperatorMultipleWhitelistUpdated", id.toHexString()),
     );
   }
 
-  static load(id: Bytes): OperatorWhitelistUpdated | null {
-    return changetype<OperatorWhitelistUpdated | null>(
-      store.get("OperatorWhitelistUpdated", id.toHexString()),
+  static load(id: Bytes): OperatorMultipleWhitelistUpdated | null {
+    return changetype<OperatorMultipleWhitelistUpdated | null>(
+      store.get("OperatorMultipleWhitelistUpdated", id.toHexString()),
     );
   }
 
@@ -3114,8 +3118,38 @@ export class OperatorWhitelistUpdated extends Entity {
     this.set("id", Value.fromBytes(value));
   }
 
-  get operatorId(): BigInt {
-    let value = this.get("operatorId");
+  get operatorIds(): Array<BigInt> {
+    let value = this.get("operatorIds");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigIntArray();
+    }
+  }
+
+  set operatorIds(value: Array<BigInt>) {
+    this.set("operatorIds", Value.fromBigIntArray(value));
+  }
+
+  get whitelistAddresses(): Array<Bytes> | null {
+    let value = this.get("whitelistAddresses");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBytesArray();
+    }
+  }
+
+  set whitelistAddresses(value: Array<Bytes> | null) {
+    if (!value) {
+      this.unset("whitelistAddresses");
+    } else {
+      this.set("whitelistAddresses", Value.fromBytesArray(<Array<Bytes>>value));
+    }
+  }
+
+  get blockNumber(): BigInt {
+    let value = this.get("blockNumber");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -3123,12 +3157,25 @@ export class OperatorWhitelistUpdated extends Entity {
     }
   }
 
-  set operatorId(value: BigInt) {
-    this.set("operatorId", Value.fromBigInt(value));
+  set blockNumber(value: BigInt) {
+    this.set("blockNumber", Value.fromBigInt(value));
   }
 
-  get whitelisted(): Bytes {
-    let value = this.get("whitelisted");
+  get blockTimestamp(): BigInt {
+    let value = this.get("blockTimestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set blockTimestamp(value: BigInt) {
+    this.set("blockTimestamp", Value.fromBigInt(value));
+  }
+
+  get transactionHash(): Bytes {
+    let value = this.get("transactionHash");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -3136,8 +3183,324 @@ export class OperatorWhitelistUpdated extends Entity {
     }
   }
 
-  set whitelisted(value: Bytes) {
-    this.set("whitelisted", Value.fromBytes(value));
+  set transactionHash(value: Bytes) {
+    this.set("transactionHash", Value.fromBytes(value));
+  }
+}
+
+export class OperatorMultipleWhitelistRemoved extends Entity {
+  constructor(id: Bytes) {
+    super();
+    this.set("id", Value.fromBytes(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(
+      id != null,
+      "Cannot save OperatorMultipleWhitelistRemoved entity without an ID",
+    );
+    if (id) {
+      assert(
+        id.kind == ValueKind.BYTES,
+        `Entities of type OperatorMultipleWhitelistRemoved must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set(
+        "OperatorMultipleWhitelistRemoved",
+        id.toBytes().toHexString(),
+        this,
+      );
+    }
+  }
+
+  static loadInBlock(id: Bytes): OperatorMultipleWhitelistRemoved | null {
+    return changetype<OperatorMultipleWhitelistRemoved | null>(
+      store.get_in_block("OperatorMultipleWhitelistRemoved", id.toHexString()),
+    );
+  }
+
+  static load(id: Bytes): OperatorMultipleWhitelistRemoved | null {
+    return changetype<OperatorMultipleWhitelistRemoved | null>(
+      store.get("OperatorMultipleWhitelistRemoved", id.toHexString()),
+    );
+  }
+
+  get id(): Bytes {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set id(value: Bytes) {
+    this.set("id", Value.fromBytes(value));
+  }
+
+  get operatorIds(): Array<BigInt> {
+    let value = this.get("operatorIds");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigIntArray();
+    }
+  }
+
+  set operatorIds(value: Array<BigInt>) {
+    this.set("operatorIds", Value.fromBigIntArray(value));
+  }
+
+  get whitelistAddresses(): Array<Bytes> | null {
+    let value = this.get("whitelistAddresses");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBytesArray();
+    }
+  }
+
+  set whitelistAddresses(value: Array<Bytes> | null) {
+    if (!value) {
+      this.unset("whitelistAddresses");
+    } else {
+      this.set("whitelistAddresses", Value.fromBytesArray(<Array<Bytes>>value));
+    }
+  }
+
+  get blockNumber(): BigInt {
+    let value = this.get("blockNumber");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set blockNumber(value: BigInt) {
+    this.set("blockNumber", Value.fromBigInt(value));
+  }
+
+  get blockTimestamp(): BigInt {
+    let value = this.get("blockTimestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set blockTimestamp(value: BigInt) {
+    this.set("blockTimestamp", Value.fromBigInt(value));
+  }
+
+  get transactionHash(): Bytes {
+    let value = this.get("transactionHash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set transactionHash(value: Bytes) {
+    this.set("transactionHash", Value.fromBytes(value));
+  }
+}
+
+export class OperatorWhitelistingContractUpdated extends Entity {
+  constructor(id: Bytes) {
+    super();
+    this.set("id", Value.fromBytes(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(
+      id != null,
+      "Cannot save OperatorWhitelistingContractUpdated entity without an ID",
+    );
+    if (id) {
+      assert(
+        id.kind == ValueKind.BYTES,
+        `Entities of type OperatorWhitelistingContractUpdated must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set(
+        "OperatorWhitelistingContractUpdated",
+        id.toBytes().toHexString(),
+        this,
+      );
+    }
+  }
+
+  static loadInBlock(id: Bytes): OperatorWhitelistingContractUpdated | null {
+    return changetype<OperatorWhitelistingContractUpdated | null>(
+      store.get_in_block(
+        "OperatorWhitelistingContractUpdated",
+        id.toHexString(),
+      ),
+    );
+  }
+
+  static load(id: Bytes): OperatorWhitelistingContractUpdated | null {
+    return changetype<OperatorWhitelistingContractUpdated | null>(
+      store.get("OperatorWhitelistingContractUpdated", id.toHexString()),
+    );
+  }
+
+  get id(): Bytes {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set id(value: Bytes) {
+    this.set("id", Value.fromBytes(value));
+  }
+
+  get operatorIds(): Array<BigInt> {
+    let value = this.get("operatorIds");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigIntArray();
+    }
+  }
+
+  set operatorIds(value: Array<BigInt>) {
+    this.set("operatorIds", Value.fromBigIntArray(value));
+  }
+
+  get whitelistingContract(): Bytes {
+    let value = this.get("whitelistingContract");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set whitelistingContract(value: Bytes) {
+    this.set("whitelistingContract", Value.fromBytes(value));
+  }
+
+  get blockNumber(): BigInt {
+    let value = this.get("blockNumber");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set blockNumber(value: BigInt) {
+    this.set("blockNumber", Value.fromBigInt(value));
+  }
+
+  get blockTimestamp(): BigInt {
+    let value = this.get("blockTimestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set blockTimestamp(value: BigInt) {
+    this.set("blockTimestamp", Value.fromBigInt(value));
+  }
+
+  get transactionHash(): Bytes {
+    let value = this.get("transactionHash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set transactionHash(value: Bytes) {
+    this.set("transactionHash", Value.fromBytes(value));
+  }
+}
+
+export class OperatorPrivacyStatusUpdated extends Entity {
+  constructor(id: Bytes) {
+    super();
+    this.set("id", Value.fromBytes(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(
+      id != null,
+      "Cannot save OperatorPrivacyStatusUpdated entity without an ID",
+    );
+    if (id) {
+      assert(
+        id.kind == ValueKind.BYTES,
+        `Entities of type OperatorPrivacyStatusUpdated must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set(
+        "OperatorPrivacyStatusUpdated",
+        id.toBytes().toHexString(),
+        this,
+      );
+    }
+  }
+
+  static loadInBlock(id: Bytes): OperatorPrivacyStatusUpdated | null {
+    return changetype<OperatorPrivacyStatusUpdated | null>(
+      store.get_in_block("OperatorPrivacyStatusUpdated", id.toHexString()),
+    );
+  }
+
+  static load(id: Bytes): OperatorPrivacyStatusUpdated | null {
+    return changetype<OperatorPrivacyStatusUpdated | null>(
+      store.get("OperatorPrivacyStatusUpdated", id.toHexString()),
+    );
+  }
+
+  get id(): Bytes {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set id(value: Bytes) {
+    this.set("id", Value.fromBytes(value));
+  }
+
+  get operatorIds(): Array<BigInt> {
+    let value = this.get("operatorIds");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigIntArray();
+    }
+  }
+
+  set operatorIds(value: Array<BigInt>) {
+    this.set("operatorIds", Value.fromBigIntArray(value));
+  }
+
+  get toPrivate(): boolean {
+    let value = this.get("toPrivate");
+    if (!value || value.kind == ValueKind.NULL) {
+      return false;
+    } else {
+      return value.toBoolean();
+    }
+  }
+
+  set toPrivate(value: boolean) {
+    this.set("toPrivate", Value.fromBoolean(value));
   }
 
   get blockNumber(): BigInt {
