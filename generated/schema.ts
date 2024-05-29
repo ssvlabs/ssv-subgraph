@@ -486,6 +486,19 @@ export class Operator extends Entity {
     }
   }
 
+  get isPrivate(): boolean {
+    let value = this.get("isPrivate");
+    if (!value || value.kind == ValueKind.NULL) {
+      return false;
+    } else {
+      return value.toBoolean();
+    }
+  }
+
+  set isPrivate(value: boolean) {
+    this.set("isPrivate", Value.fromBoolean(value));
+  }
+
   get totalWithdrawn(): BigInt {
     let value = this.get("totalWithdrawn");
     if (!value || value.kind == ValueKind.NULL) {

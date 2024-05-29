@@ -688,6 +688,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.fee = event.params.fee
     operator.previousFee = event.params.fee
     operator.whitelisted = []
+    operator.isPrivate = false;
     operator.totalWithdrawn = BigInt.zero()
   }
   
@@ -851,65 +852,53 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
   }
 }
 
-
-
-// Temporary global variables to bypass ERROR AS100: Closure Error
-// Need to discuss this together next week
-let whitelistIdList: Bytes[];
-let blockNumber: BigInt;
-let timestamp: BigInt;
-let hash: Bytes;
-let whitelistedContract: Bytes;
-let toPrivate: bool;
-
 export function handleOperatorMultipleWhitelistUpdated(
   event: OperatorMultipleWhitelistUpdatedEvent
 ): void {
   let entity = new OperatorMultipleWhitelistUpdated(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
+
   entity.operatorIds = event.params.operatorIds
   entity.whitelistAddresses = changetype<Bytes[]>(event.params.whitelistAddresses)
 
-  blockNumber = entity.blockNumber = event.block.number
-  timestamp = entity.blockTimestamp = event.block.timestamp
-  hash = entity.transactionHash = event.transaction.hash
+  entity.blockNumber = event.block.number
+  entity.blockTimestamp = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
 
   entity.save()
 
-  //eventArray = [event.params.operatorIds]
-
-  event.params.whitelistAddresses.forEach( (whitelistAddress) => {
-    let whitelisted = Account.load(whitelistAddress)
+  let whitelistIDList: Bytes[] = [];
+  for (var i=0, n=event.params.whitelistAddresses.length; i < n; ++i ) {
+    let whitelisted = Account.load(event.params.whitelistAddresses[i])
     if (!whitelisted){
-      //log.info(`Adding new whitelisted address ${whitelistAddress.toHexString()} to Multiple Operators: ${eventArray[0]}}, this is a new Account`, [])
-      whitelisted = new Account(whitelistAddress)
+      log.info(`Adding new whitelisted address ${event.params.whitelistAddresses[i].toHexString()} to Multiple Operators: ${event.params.operatorIds}}, this is a new Account`, [])
+      whitelisted = new Account(event.params.whitelistAddresses[i])
       whitelisted.nonce = BigInt.zero()
       whitelisted.save()
     }
-    whitelistIdList.push(whitelisted.id)
-  });
+    whitelistIDList.push(whitelisted.id)
+  }
 
-  event.params.operatorIds.forEach( (operatorIdElement) => {
-    let operatorId = Bytes.fromByteArray(Bytes.fromBigInt(operatorIdElement))
+  for (var j=0, m=event.params.operatorIds.length; j < m; ++j ) {
+    let operatorId = Bytes.fromByteArray(Bytes.fromBigInt(event.params.operatorIds[j]))
     let operator = Operator.load(operatorId) 
     if (!operator) {
-      log.error(`Executing fees change for Operator ${operatorIdElement}, but it does not exist on the database`, [])
+      log.error(`Executing fees change for Operator ${event.params.operatorIds[j]}, but it does not exist on the database`, [])
       log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
     }
     else {
       if (!operator.whitelisted) {
         operator.whitelisted = []
       }
-      operator.operatorId = operatorIdElement
-      operator.whitelisted = operator.whitelisted.concat(whitelistIdList)
-      operator.lastUpdateBlockNumber = blockNumber
-      operator.lastUpdateBlockTimestamp = timestamp
-      operator.lastUpdateTransactionHash = hash
+      operator.operatorId = event.params.operatorIds[j]
+      operator.whitelisted = operator.whitelisted.concat(whitelistIDList)
+      operator.lastUpdateBlockNumber = event.block.number
+      operator.lastUpdateBlockTimestamp = event.block.timestamp
+      operator.lastUpdateTransactionHash = event.transaction.hash
       operator.save()
     }
-  });
-  whitelistIdList = [];
+  }
 }
 
 export function handleOperatorMultipleWhitelistRemoved(
@@ -921,53 +910,47 @@ export function handleOperatorMultipleWhitelistRemoved(
   entity.operatorIds = event.params.operatorIds
   entity.whitelistAddresses = changetype<Bytes[]>(event.params.whitelistAddresses)
 
-  blockNumber = entity.blockNumber = event.block.number
-  timestamp = entity.blockTimestamp = event.block.timestamp
-  hash = entity.transactionHash = event.transaction.hash
+  entity.blockNumber = event.block.number
+  entity.blockTimestamp = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
 
   entity.save()
-
-  // ERROR AS100: Closure Error
-  //eventArray = [event.params.operatorIds]
-
-  event.params.whitelistAddresses.forEach( (whitelistAddress) => {
-    let whitelisted = Account.load(whitelistAddress)
+  
+  let whitelistIDList: Bytes[] = [];
+  for (var i=0, n=event.params.whitelistAddresses.length; i < n; ++i ) {
+    let whitelisted = Account.load(event.params.whitelistAddresses[i])
     if (!whitelisted){
-      
-      // ERROR AS100: Closure Error
-      //log.info(`Removing whitelisted address ${whitelistAddress.toHexString()} to Multiple Operators: ${eventArray[0]}}, this is a new Account`, [])
-      whitelisted = new Account(whitelistAddress)
+      log.info(`Removing whitelisted address ${event.params.whitelistAddresses[i].toHexString()} to Multiple Operators: ${event.params.operatorIds}}, this is a new Account`, [])
+      whitelisted = new Account(event.params.whitelistAddresses[i])
       whitelisted.nonce = BigInt.zero()
       whitelisted.save()
     }
-    whitelistIdList.push(whitelisted.id)
-  });
+    whitelistIDList.push(whitelisted.id)
+  }
 
-  event.params.operatorIds.forEach( (operatorIdElement) => {
-    let operatorId = Bytes.fromByteArray(Bytes.fromBigInt(operatorIdElement))
+  for (var j=0, m=event.params.operatorIds.length; j < m; ++j ) {
+    let operatorId = Bytes.fromByteArray(Bytes.fromBigInt(event.params.operatorIds[j]))
     let operator = Operator.load(operatorId) 
     if (!operator) {
-      log.error(`Executing fees change for Operator ${operatorIdElement}, but it does not exist on the database`, [])
+      log.error(`Executing fees change for Operator ${event.params.operatorIds[j]}, but it does not exist on the database`, [])
       log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
     }
     else {
       if (!operator.whitelisted) {
         operator.whitelisted = []
       }
-      operator.operatorId = operatorIdElement
-      operator.whitelisted = operator.whitelisted.concat(whitelistIdList)
-      whitelistIdList.forEach( (whitelistId, i) => {
-        // ERROR AS100: Closure Error
-        // if (operator.whitelisted[i] == whitelistId) 
-        //     operator.whitelisted.splice(i,1);
-      });
-      operator.lastUpdateBlockNumber = blockNumber
-      operator.lastUpdateBlockTimestamp = timestamp
-      operator.lastUpdateTransactionHash = hash
+
+      operator.operatorId = event.params.operatorIds[j]
+      for (var k=0, p=whitelistIDList.length; j < p; ++j ) {
+        if (operator.whitelisted[k] == whitelistIDList[k]) 
+             operator.whitelisted.splice(k,1);
+      }
+      operator.lastUpdateBlockNumber = event.block.number
+      operator.lastUpdateBlockTimestamp = event.block.timestamp
+      operator.lastUpdateTransactionHash = event.transaction.hash
       operator.save()
     }
-  });
-  whitelistIdList = [];
+  }
 }
 
 export function handleOperatorWhitelistingContractUpdated(
@@ -978,36 +961,35 @@ export function handleOperatorWhitelistingContractUpdated(
   )
 
   entity.operatorIds = event.params.operatorIds
-  whitelistedContract = entity.whitelistingContract = event.params.whitelistingContract
+  entity.whitelistingContract = event.params.whitelistingContract
 
-  blockNumber = entity.blockNumber = event.block.number
-  timestamp = entity.blockTimestamp = event.block.timestamp
-  hash = entity.transactionHash = event.transaction.hash
+  entity.blockNumber = event.block.number
+  entity.blockTimestamp = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
 
   entity.save()
 
-  event.params.operatorIds.forEach( (operatorIdElement) => {
-  let operatorId = Bytes.fromByteArray(Bytes.fromBigInt(operatorIdElement))
+  for (var i=0, n=event.params.operatorIds.length; i < n; ++i ) {
+  let operatorId = Bytes.fromByteArray(Bytes.fromBigInt(event.params.operatorIds[i]))
     let operator = Operator.load(operatorId) 
     if (!operator) {
-      log.error(`Executing fees change for Operator ${operatorIdElement}, but it does not exist on the database`, [])
+      log.error(`Executing fees change for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`, [])
       log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
     }
     else {
       if (!operator.whitelisted) {
         operator.whitelisted = []
       }
-      operator.operatorId = operatorIdElement
-      operator.whitelistedContract = whitelistedContract
-      operator.lastUpdateBlockNumber = blockNumber
-      operator.lastUpdateBlockTimestamp = timestamp
-      operator.lastUpdateTransactionHash = hash
+      operator.operatorId = event.params.operatorIds[i]
+      operator.whitelistedContract = event.params.whitelistingContract
+      operator.lastUpdateBlockNumber = event.block.number
+      operator.lastUpdateBlockTimestamp = event.block.timestamp
+      operator.lastUpdateTransactionHash = event.transaction.hash
       operator.save()
     }
-  });
+  }
 }
 
-// Not entirely sure where to update 
 export function handleOperatorPrivacyStatusUpdated(
   event: OperatorPrivacyStatusUpdatedEvent
 ): void {
@@ -1016,33 +998,33 @@ export function handleOperatorPrivacyStatusUpdated(
   )
 
   entity.operatorIds = event.params.operatorIds
-  toPrivate = entity.toPrivate = event.params.toPrivate
+  entity.toPrivate = event.params.toPrivate
 
-  blockNumber = entity.blockNumber = event.block.number
-  timestamp = entity.blockTimestamp = event.block.timestamp
-  hash = entity.transactionHash = event.transaction.hash
+  entity.blockNumber = event.block.number
+  entity.blockTimestamp = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
 
   entity.save()
 
-  event.params.operatorIds.forEach( (operatorIdElement) => {
-  let operatorId = Bytes.fromByteArray(Bytes.fromBigInt(operatorIdElement))
+  for (var i=0, n=event.params.operatorIds.length; i < n; ++i ) {
+    let operatorId = Bytes.fromByteArray(Bytes.fromBigInt(event.params.operatorIds[i]))
     let operator = Operator.load(operatorId) 
     if (!operator) {
-      log.error(`Executing fees change for Operator ${operatorIdElement}, but it does not exist on the database`, [])
+      log.error(`Executing fees change for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`, [])
       log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
     }
     else {
       if (!operator.whitelisted) {
         operator.whitelisted = []
       }
-      operator.operatorId = operatorIdElement
-      // where update 
-      operator.lastUpdateBlockNumber = blockNumber
-      operator.lastUpdateBlockTimestamp = timestamp
-      operator.lastUpdateTransactionHash = hash
+      operator.operatorId = event.params.operatorIds[i]
+      operator.isPrivate = event.params.toPrivate;
+      operator.lastUpdateBlockNumber = event.block.number
+      operator.lastUpdateBlockTimestamp = event.block.timestamp
+      operator.lastUpdateTransactionHash = event.transaction.hash
       operator.save()
     }
-  });
+  }
 }
 
 export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
