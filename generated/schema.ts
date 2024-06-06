@@ -469,21 +469,17 @@ export class Operator extends Entity {
     this.set("whitelisted", Value.fromBytesArray(value));
   }
 
-  get whitelistedContract(): Bytes | null {
+  get whitelistedContract(): Bytes {
     let value = this.get("whitelistedContract");
     if (!value || value.kind == ValueKind.NULL) {
-      return null;
+      throw new Error("Cannot return null for a required field.");
     } else {
       return value.toBytes();
     }
   }
 
-  set whitelistedContract(value: Bytes | null) {
-    if (!value) {
-      this.unset("whitelistedContract");
-    } else {
-      this.set("whitelistedContract", Value.fromBytes(<Bytes>value));
-    }
+  set whitelistedContract(value: Bytes) {
+    this.set("whitelistedContract", Value.fromBytes(value));
   }
 
   get isPrivate(): boolean {

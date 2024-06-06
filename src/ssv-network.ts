@@ -689,6 +689,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.previousFee = event.params.fee
     operator.whitelisted = []
     operator.isPrivate = false;
+    operator.whitelistedContract = new Bytes(0x0000000000000000000000000000000000000000)
     operator.totalWithdrawn = BigInt.zero()
   }
   
@@ -916,35 +917,40 @@ export function handleOperatorMultipleWhitelistRemoved(
 
   entity.save()
   
-  let whitelistIDList: Bytes[] = [];
-  for (var i=0, n=event.params.whitelistAddresses.length; i < n; ++i ) {
-    let whitelisted = Account.load(event.params.whitelistAddresses[i])
-    if (!whitelisted){
-      log.info(`Removing whitelisted address ${event.params.whitelistAddresses[i].toHexString()} to Multiple Operators: ${event.params.operatorIds}}, this is a new Account`, [])
-      whitelisted = new Account(event.params.whitelistAddresses[i])
+  let whitelistAddressSet = new Set<Bytes>()
+  for (let i = 0; i < event.params.whitelistAddresses.length; i++) {
+    let address = event.params.whitelistAddresses[i]
+    whitelistAddressSet.add(address)
+    let whitelisted = Account.load(address)
+    if (!whitelisted) {
+      log.info(`Removing whitelisted address ${address.toHexString()} to Multiple Operators: ${event.params.operatorIds}, this is a new Account`, [])
+      whitelisted = new Account(address)
       whitelisted.nonce = BigInt.zero()
       whitelisted.save()
     }
-    whitelistIDList.push(whitelisted.id)
   }
 
-  for (var j=0, m=event.params.operatorIds.length; j < m; ++j ) {
+  for (let j = 0; j < event.params.operatorIds.length; j++) {
     let operatorId = Bytes.fromByteArray(Bytes.fromBigInt(event.params.operatorIds[j]))
-    let operator = Operator.load(operatorId) 
+    let operator = Operator.load(operatorId)
     if (!operator) {
       log.error(`Executing fees change for Operator ${event.params.operatorIds[j]}, but it does not exist on the database`, [])
       log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
-    }
-    else {
+    } else {
       if (!operator.whitelisted) {
         operator.whitelisted = []
       }
 
       operator.operatorId = event.params.operatorIds[j]
-      for (var k=0, p=whitelistIDList.length; j < p; ++j ) {
-        if (operator.whitelisted[k] == whitelistIDList[k]) 
-             operator.whitelisted.splice(k,1);
+
+      let whitelistArray = operator.whitelisted;
+      for (let k = 0; k < whitelistArray.length; k++) {
+        if (whitelistAddressSet.has(whitelistArray[k])) {
+          whitelistArray.splice(k, 1);
+        }
       }
+
+      operator.whitelisted = whitelistArray;
       operator.lastUpdateBlockNumber = event.block.number
       operator.lastUpdateBlockTimestamp = event.block.timestamp
       operator.lastUpdateTransactionHash = event.transaction.hash
@@ -969,14 +975,13 @@ export function handleOperatorWhitelistingContractUpdated(
 
   entity.save()
 
-  for (var i=0, n=event.params.operatorIds.length; i < n; ++i ) {
-  let operatorId = Bytes.fromByteArray(Bytes.fromBigInt(event.params.operatorIds[i]))
-    let operator = Operator.load(operatorId) 
+  for (var i = 0, n = event.params.operatorIds.length; i < n; ++i) {
+    let operatorId = Bytes.fromByteArray(Bytes.fromBigInt(event.params.operatorIds[i]))
+    let operator = Operator.load(operatorId)
     if (!operator) {
       log.error(`Executing fees change for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`, [])
       log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
-    }
-    else {
+    } else {
       if (!operator.whitelisted) {
         operator.whitelisted = []
       }
@@ -989,6 +994,7 @@ export function handleOperatorWhitelistingContractUpdated(
     }
   }
 }
+
 
 export function handleOperatorPrivacyStatusUpdated(
   event: OperatorPrivacyStatusUpdatedEvent
