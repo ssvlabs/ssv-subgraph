@@ -27,7 +27,7 @@ type Validator @entity(immutable: false) {
 }
 
 type Operator @entity(immutable: false) {
-  id: Bytes! # uint64
+  id: String! # uint256
   operatorId: BigInt!
   owner: Account! # address
   publicKey: Bytes! # bytes
