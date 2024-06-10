@@ -1,4 +1,4 @@
-import { BigInt, Bytes, arweave } from "@graphprotocol/graph-ts"
+import { Address, BigInt, Bytes, arweave } from "@graphprotocol/graph-ts"
 import {
   ClusterDeposited as ClusterDepositedEvent,
   ClusterLiquidated as ClusterLiquidatedEvent,
@@ -689,7 +689,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.previousFee = event.params.fee
     operator.whitelisted = []
     operator.isPrivate = false
-    operator.whitelistedContract = new Bytes(0x0000000000000000000000000000000000000000)
+    operator.whitelistedContract = new Address(0x0000000000000000000000000000000000000000)
     operator.totalWithdrawn = BigInt.zero()
   }
   
