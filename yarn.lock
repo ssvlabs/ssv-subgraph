@@ -259,10 +259,10 @@
   dependencies:
     assemblyscript "0.19.10"
 
-"@graphprotocol/graph-ts@0.30.0":
-  version "0.30.0"
-  resolved "https://registry.npmjs.org/@graphprotocol/graph-ts/-/graph-ts-0.30.0.tgz"
-  integrity sha512-h5tJqlsZXglGYM0PcBsBOqof4PT0Fr4Z3QBTYN/IjMF3VvRX2A8/bdpqaAnva+2N0uAfXXwRcwcOcW5O35yzXw==
+"@graphprotocol/graph-ts@0.35.0":
+  version "0.35.0"
+  resolved "https://registry.npmjs.org/@graphprotocol/graph-ts/-/graph-ts-0.35.0.tgz"
+  integrity sha512-dM+I/e/WeBa8Q3m4ZLFfJjKBS9YwV+DLggWi8oEIGmnhPAZ298QB6H4hquvxqaOTSXJ2j9tPsw3xSmbRLwk39A==
   dependencies:
     assemblyscript "0.19.10"
 

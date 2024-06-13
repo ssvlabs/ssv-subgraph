@@ -41,6 +41,8 @@ type Operator @entity(immutable: false) {
   lastUpdateBlockNumber: BigInt! # uint256
   lastUpdateBlockTimestamp: BigInt!
   lastUpdateTransactionHash: Bytes!
+  validatorCount: BigInt! # uint256
+  validators: [Validator!]! # @derivedFrom(field: "publicKey")
 }
 
 type Account @entity(immutable: false) {

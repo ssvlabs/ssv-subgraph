@@ -588,6 +588,29 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   validator.lastUpdateBlockTimestamp = event.block.timestamp
   validator.lastUpdateTransactionHash = event.transaction.hash
   validator.save()
+
+  for (var i=0; i < event.params.operatorIds.length; i++) {
+    let operatorId = event.params.operatorIds[i].toString()
+    let operator = Operator.load(operatorId) 
+    if (!operator) {
+      log.error(`Adding validator data for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`, [])
+      log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
+    } else {
+      if (!operator.validators) {
+        operator.validators = []
+      }
+
+      operator.operatorId = event.params.operatorIds[i]
+      operator.validatorCount = operator.validatorCount.plus(BigInt.fromI32(1))
+      let validatorAddressList = operator.validators
+      validatorAddressList.push(validatorId)
+      operator.validators = validatorAddressList
+      operator.lastUpdateBlockNumber = event.block.number
+      operator.lastUpdateBlockTimestamp = event.block.timestamp
+      operator.lastUpdateTransactionHash = event.transaction.hash
+      operator.save()
+    }
+  }
 }
 
 export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
@@ -651,6 +674,35 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     validator.lastUpdateTransactionHash = event.transaction.hash
     validator.save()
   }
+
+  for (var i=0; i < event.params.operatorIds.length; i++ ) {
+    let operatorId = event.params.operatorIds[i].toString()
+    let operator = Operator.load(operatorId) 
+    if (!operator) {
+      log.error(`Removing validator data for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`, [])
+      log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
+    }
+    else {
+      if (!operator.validators) {
+        operator.validators = []
+      }
+      operator.operatorId = event.params.operatorIds[i]
+      operator.validatorCount = operator.validatorCount.minus(BigInt.fromI32(1))
+
+      let validatorAddressList = operator.validators      
+      for (let i = 0; i < validatorAddressList.length; i++) {
+        if (validatorAddressList[i] == event.params.publicKey) {
+          validatorAddressList.splice(i, 1);
+        }
+      }
+      operator.validators = validatorAddressList
+
+      operator.lastUpdateBlockNumber = event.block.number
+      operator.lastUpdateBlockTimestamp = event.block.timestamp
+      operator.lastUpdateTransactionHash = event.transaction.hash
+      operator.save()
+    }
+  }
 }
 
 // ###### Operator Events ######
@@ -691,6 +743,8 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.isPrivate = false
     operator.whitelistedContract = new Address(0x0000000000000000000000000000000000000000)
     operator.totalWithdrawn = BigInt.zero()
+    operator.validatorCount = BigInt.zero()
+    operator.validators = []
   }
   
   operator.lastUpdateBlockNumber = event.block.number
@@ -917,7 +971,6 @@ export function handleOperatorMultipleWhitelistRemoved(
 
   entity.save()
   
-  let whitelistIDList: Bytes[] = [];
   let whitelistAddressSet = new Set<Bytes>()
   for (let i = 0; i < event.params.whitelistAddresses.length; i++) {
     let address = event.params.whitelistAddresses[i]    
@@ -928,7 +981,6 @@ export function handleOperatorMultipleWhitelistRemoved(
       whitelisted.nonce = BigInt.zero()
       whitelisted.save()
     }
-    whitelistIDList.push(whitelisted.id)
     whitelistAddressSet.add(whitelisted.id)
   }
 
@@ -975,8 +1027,7 @@ export function handleOperatorWhitelistingContractUpdated(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
-
-  for (var i = 0; i < event.params.operatorIds.length; i++) {
+  for (var i=0; i < event.params.operatorIds.length; i++) {
     let operatorId = event.params.operatorIds[i].toString()
     let operator = Operator.load(operatorId)
     if (!operator) {
