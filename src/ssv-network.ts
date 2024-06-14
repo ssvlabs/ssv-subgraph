@@ -690,11 +690,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
       operator.validatorCount = operator.validatorCount.minus(BigInt.fromI32(1))
 
       let validatorAddressList = operator.validators      
-      for (let i = 0; i < validatorAddressList.length; i++) {
-        if (validatorAddressList[i] == event.params.publicKey) {
-          validatorAddressList.splice(i, 1);
-        }
-      }
+      validatorAddressList.slice(validatorAddressList.indexOf(event.params.publicKey), 1)
       operator.validators = validatorAddressList
 
       operator.lastUpdateBlockNumber = event.block.number
