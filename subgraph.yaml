@@ -4,11 +4,11 @@ schema:
 dataSources:
   - kind: ethereum
     name: SSVNetwork
-    network: goerli
+    network: holesky
     source:
-      address: "0xC3CD9A0aE89Fff83b71b58b6512D43F8a41f363D"
+      address: "0x38A4794cCEd47d3baf7370CcC43B560D3a1beEFA"
       abi: SSVNetwork
-      startBlock: 9203578
+      startBlock: 181611
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -49,8 +49,11 @@ dataSources:
         - OperatorFeeIncreaseLimitUpdated
         - OperatorMaximumFeeUpdated
         - OperatorRemoved
-        - OperatorWhitelistUpdated
         - OperatorWithdrawn
+        - OperatorMultipleWhitelistRemoved
+        - OperatorMultipleWhitelistUpdated
+        - OperatorWhitelistingContractUpdated
+        - OperatorPrivacyStatusUpdated
       abis:
         - name: SSVNetwork
           file: ./abis/SSVNetwork.json
@@ -112,8 +115,14 @@ dataSources:
           handler: handleOperatorMaximumFeeUpdated
         - event: OperatorRemoved(indexed uint64)
           handler: handleOperatorRemoved
-        - event: OperatorWhitelistUpdated(indexed uint64,address)
-          handler: handleOperatorWhitelistUpdated
+        - event: OperatorMultipleWhitelistUpdated(uint64[],address[])
+          handler: handleOperatorMultipleWhitelistUpdated
+        - event: OperatorMultipleWhitelistRemoved(uint64[],address[])
+          handler: handleOperatorMultipleWhitelistRemoved
+        - event: OperatorWhitelistingContractUpdated(uint64[],address)
+          handler: handleOperatorWhitelistingContractUpdated
+        - event: OperatorPrivacyStatusUpdated(uint64[],bool)
+          handler: handleOperatorPrivacyStatusUpdated
         - event: OperatorWithdrawn(indexed address,indexed uint64,uint256)
           handler: handleOperatorWithdrawn
       file: ./src/ssv-network.ts
