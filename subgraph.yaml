@@ -53,6 +53,7 @@ dataSources:
         - OperatorMultipleWhitelistRemoved
         - OperatorMultipleWhitelistUpdated
         - OperatorWhitelistingContractUpdated
+        - OperatorPrivacyStatusUpdated
       abis:
         - name: SSVNetwork
           file: ./abis/SSVNetwork.json
