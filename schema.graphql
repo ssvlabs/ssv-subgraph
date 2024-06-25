@@ -27,7 +27,7 @@ type Validator @entity(immutable: false) {
 }
 
 type Operator @entity(immutable: false) {
-  id: Bytes! # uint64
+  id: String! # uint256
   operatorId: BigInt!
   owner: Account! # address
   publicKey: Bytes! # bytes
@@ -35,6 +35,8 @@ type Operator @entity(immutable: false) {
   fee: BigInt! # uint256
   previousFee: BigInt! # uint256
   whitelisted: [Account!]!
+  whitelistedContract: Bytes! #address
+  isPrivate: Boolean! # bool
   totalWithdrawn: BigInt! # uint256
   lastUpdateBlockNumber: BigInt! # uint256
   lastUpdateBlockTimestamp: BigInt!
@@ -255,10 +257,37 @@ type OperatorRemoved @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type OperatorWhitelistUpdated @entity(immutable: true) {
+type OperatorMultipleWhitelistUpdated @entity(immutable: true) {
   id: Bytes!
-  operatorId: BigInt! # uint64
-  whitelisted: Bytes! # address
+  operatorIds: [BigInt!]! # uint64[]
+  whitelistAddresses: [Bytes!] # address[]
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OperatorMultipleWhitelistRemoved @entity(immutable: true) {
+  id: Bytes!
+  operatorIds: [BigInt!]! # uint64[]
+  whitelistAddresses: [Bytes!] # address[]
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OperatorWhitelistingContractUpdated @entity(immutable: true) {
+  id: Bytes!
+  operatorIds: [BigInt!]! # uint64[]
+  whitelistingContract: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OperatorPrivacyStatusUpdated @entity(immutable: true) {
+  id: Bytes!
+  operatorIds: [BigInt!]! # uint64[]
+  toPrivate: Boolean! # bool
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
