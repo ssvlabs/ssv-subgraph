@@ -8,7 +8,7 @@ dataSources:
     source:
       address: "0x38A4794cCEd47d3baf7370CcC43B560D3a1beEFA"
       abi: SSVNetwork
-      startBlock: 181611
+      startBlock: 1653200
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -50,6 +50,7 @@ dataSources:
         - OperatorMaximumFeeUpdated
         - OperatorRemoved
         - OperatorWithdrawn
+        - OperatorWhitelistUpdated
         - OperatorMultipleWhitelistRemoved
         - OperatorMultipleWhitelistUpdated
         - OperatorWhitelistingContractUpdated
@@ -115,6 +116,8 @@ dataSources:
           handler: handleOperatorMaximumFeeUpdated
         - event: OperatorRemoved(indexed uint64)
           handler: handleOperatorRemoved
+        - event: OperatorWhitelistUpdated(uint64,address)
+          handler: handleOperatorWhitelistUpdated
         - event: OperatorMultipleWhitelistUpdated(uint64[],address[])
           handler: handleOperatorMultipleWhitelistUpdated
         - event: OperatorMultipleWhitelistRemoved(uint64[],address[])

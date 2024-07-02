@@ -584,6 +584,28 @@ export class OperatorMaximumFeeUpdated__Params {
   }
 }
 
+export class OperatorWhitelistUpdated extends ethereum.Event {
+  get params(): OperatorWhitelistUpdated__Params {
+    return new OperatorWhitelistUpdated__Params(this);
+  }
+}
+
+export class OperatorWhitelistUpdated__Params {
+  _event: OperatorWhitelistUpdated;
+
+  constructor(event: OperatorWhitelistUpdated) {
+    this._event = event;
+  }
+
+  get operatorId(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+
+  get whitelisted(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+}
+
 export class OperatorMultipleWhitelistRemoved extends ethereum.Event {
   get params(): OperatorMultipleWhitelistRemoved__Params {
     return new OperatorMultipleWhitelistRemoved__Params(this);
