@@ -813,7 +813,7 @@
     "anonymous": false,
     "inputs": [
       {
-        "indexed": false,
+        "indexed": true,
         "internalType": "uint64",
         "name": "operatorId",
         "type": "uint64"

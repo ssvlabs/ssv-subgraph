@@ -691,7 +691,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.previousFee = event.params.fee
     operator.whitelisted = []
     operator.isPrivate = false
-    operator.whitelistedContract = new Address(0x0000000000000000000000000000000000000000)
+    operator.whitelistedContract = Address.fromString('0x0000000000000000000000000000000000000000');
     operator.totalWithdrawn = BigInt.zero()
   }
   
@@ -877,7 +877,6 @@ export function handleOperatorWhitelistUpdated(
     whitelisted.nonce = BigInt.zero()
     whitelisted.save()
   }
-
   let operatorId = event.params.operatorId.toString()
   let operator = Operator.load(operatorId) 
   if (!operator) {
@@ -889,7 +888,7 @@ export function handleOperatorWhitelistUpdated(
       operator.whitelisted = []
     }
     operator.operatorId = event.params.operatorId
-    operator.whitelisted.push( whitelisted.id)
+    operator.whitelisted = [whitelisted.id]
     operator.lastUpdateBlockNumber = event.block.number
     operator.lastUpdateBlockTimestamp = event.block.timestamp
     operator.lastUpdateTransactionHash = event.transaction.hash
