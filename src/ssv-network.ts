@@ -888,7 +888,13 @@ export function handleOperatorWhitelistUpdated(
       operator.whitelisted = []
     }
     operator.operatorId = event.params.operatorId
-    operator.whitelisted = [whitelisted.id]
+    if (event.params.whitelisted == Address.fromString('0x0000000000000000000000000000000000000000')){
+      operator.isPrivate = false;
+      operator.whitelisted = [];
+    } else {
+      operator.isPrivate = true;
+      operator.whitelisted = [whitelisted.id]
+    }
     operator.lastUpdateBlockNumber = event.block.number
     operator.lastUpdateBlockTimestamp = event.block.timestamp
     operator.lastUpdateTransactionHash = event.transaction.hash
