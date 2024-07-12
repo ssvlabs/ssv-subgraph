@@ -19,6 +19,7 @@ import {
   OperatorMaximumFeeUpdated as OperatorMaximumFeeUpdatedEvent,
   OperatorRemoved as OperatorRemovedEvent,
   OperatorWhitelistingContractUpdated as OperatorWhitelistingContractUpdatedEvent,
+  OperatorWhitelistUpdated as OperatorWhitelistUpdatedEvent,
   OperatorMultipleWhitelistRemoved as OperatorMultipleWhitelistRemovedEvent,
   OperatorMultipleWhitelistUpdated as OperatorMultipleWhitelistUpdatedEvent,
   OperatorPrivacyStatusUpdated as OperatorPrivacyStatusUpdatedEvent,
@@ -49,6 +50,7 @@ import {
   OperatorFeeIncreaseLimitUpdated,
   OperatorMaximumFeeUpdated,
   OperatorRemoved,
+  OperatorWhitelistUpdated,
   OperatorMultipleWhitelistUpdated,
   OperatorMultipleWhitelistRemoved,
   OperatorWhitelistingContractUpdated,
@@ -737,7 +739,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.previousFee = event.params.fee
     operator.whitelisted = []
     operator.isPrivate = false
-    operator.whitelistedContract = new Address(0x0000000000000000000000000000000000000000)
+    operator.whitelistedContract = Address.fromString('0x0000000000000000000000000000000000000000');
     operator.totalWithdrawn = BigInt.zero()
     operator.validatorCount = BigInt.zero()
     operator.validators = []
@@ -896,6 +898,52 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
   else {
     operator.operatorId = event.params.operatorId
     operator.active = false
+    operator.lastUpdateBlockNumber = event.block.number
+    operator.lastUpdateBlockTimestamp = event.block.timestamp
+    operator.lastUpdateTransactionHash = event.transaction.hash
+    operator.save()
+  }
+}
+
+export function handleOperatorWhitelistUpdated(
+  event: OperatorWhitelistUpdatedEvent
+): void {
+  let entity = new OperatorWhitelistUpdated(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  )
+  entity.operatorId = event.params.operatorId
+  entity.whitelisted = event.params.whitelisted
+
+  entity.blockNumber = event.block.number
+  entity.blockTimestamp = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+
+  entity.save()
+
+  let whitelisted = Account.load(event.params.whitelisted)
+  if (!whitelisted && (event.params.whitelisted != Address.fromString('0x0000000000000000000000000000000000000000'))){
+    log.info(`Adding new whitelisted address ${event.params.whitelisted.toHexString()} to Operator ${event.params.operatorId}, this is a new Account`, [])
+    whitelisted = new Account(event.params.whitelisted)
+    whitelisted.nonce = BigInt.zero()
+    whitelisted.save()
+  }
+  let operatorId = event.params.operatorId.toString()
+  let operator = Operator.load(operatorId) 
+  if (!operator) {
+    log.error(`Executing fees change for Operator ${event.params.operatorId}, but it does not exist on the database`, [])
+    log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
+  }
+  else {
+    if (whitelisted) {
+    operator.operatorId = event.params.operatorId
+    if (event.params.whitelisted == Address.fromString('0x0000000000000000000000000000000000000000')){
+      operator.isPrivate = false;
+      operator.whitelisted = [];
+    } else {
+      operator.isPrivate = true;
+      operator.whitelisted = [whitelisted.id]
+    }
+  }
     operator.lastUpdateBlockNumber = event.block.number
     operator.lastUpdateBlockTimestamp = event.block.timestamp
     operator.lastUpdateTransactionHash = event.transaction.hash
