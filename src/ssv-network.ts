@@ -871,7 +871,7 @@ export function handleOperatorWhitelistUpdated(
   entity.save()
 
   let whitelisted = Account.load(event.params.whitelisted)
-  if (!whitelisted){
+  if (!whitelisted && (event.params.whitelisted != Address.fromString('0x0000000000000000000000000000000000000000'))){
     log.info(`Adding new whitelisted address ${event.params.whitelisted.toHexString()} to Operator ${event.params.operatorId}, this is a new Account`, [])
     whitelisted = new Account(event.params.whitelisted)
     whitelisted.nonce = BigInt.zero()
@@ -884,9 +884,7 @@ export function handleOperatorWhitelistUpdated(
     log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
   }
   else {
-    if (!operator.whitelisted) {
-      operator.whitelisted = []
-    }
+    if (whitelisted) {
     operator.operatorId = event.params.operatorId
     if (event.params.whitelisted == Address.fromString('0x0000000000000000000000000000000000000000')){
       operator.isPrivate = false;
@@ -895,6 +893,7 @@ export function handleOperatorWhitelistUpdated(
       operator.isPrivate = true;
       operator.whitelisted = [whitelisted.id]
     }
+  }
     operator.lastUpdateBlockNumber = event.block.number
     operator.lastUpdateBlockTimestamp = event.block.timestamp
     operator.lastUpdateTransactionHash = event.transaction.hash
