@@ -257,6 +257,15 @@ type OperatorRemoved @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+type OperatorWhitelistUpdated @entity(immutable: true) {
+  id: Bytes!
+  operatorId: BigInt! # uint64
+  whitelisted: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
 type OperatorMultipleWhitelistUpdated @entity(immutable: true) {
   id: Bytes!
   operatorIds: [BigInt!]! # uint64[]
