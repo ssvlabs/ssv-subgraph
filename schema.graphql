@@ -3,7 +3,7 @@ type Cluster @entity(immutable: false) {
   owner: Account! # address
   operatorIds: [BigInt!]! # uint64[]
   validatorCount: BigInt! # uint32
-  validators: [Validator!] @derivedFrom(field: "cluster")
+  validators: [Validator!]! #@derivedFrom(field: "cluster")
   networkFeeIndex: BigInt! # uint64
   index: BigInt! # uint64
   active: Boolean! # bool
