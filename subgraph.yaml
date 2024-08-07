@@ -50,9 +50,11 @@ dataSources:
         - OperatorMaximumFeeUpdated
         - OperatorRemoved
         - OperatorWithdrawn
+        - OperatorWhitelistUpdated
         - OperatorMultipleWhitelistRemoved
         - OperatorMultipleWhitelistUpdated
         - OperatorWhitelistingContractUpdated
+        - OperatorPrivacyStatusUpdated
       abis:
         - name: SSVNetwork
           file: ./abis/SSVNetwork.json
@@ -114,6 +116,8 @@ dataSources:
           handler: handleOperatorMaximumFeeUpdated
         - event: OperatorRemoved(indexed uint64)
           handler: handleOperatorRemoved
+        - event: OperatorWhitelistUpdated(indexed uint64,address)
+          handler: handleOperatorWhitelistUpdated
         - event: OperatorMultipleWhitelistUpdated(uint64[],address[])
           handler: handleOperatorMultipleWhitelistUpdated
         - event: OperatorMultipleWhitelistRemoved(uint64[],address[])
