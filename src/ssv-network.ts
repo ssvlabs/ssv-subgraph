@@ -360,6 +360,7 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
   if (!owner){
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
+    owner.validatorCount = BigInt.zero()
     owner.save()
   }
 
@@ -406,9 +407,11 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
   if (!owner){
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
-    owner.save()
+    owner.validatorCount = BigInt.zero()
   }
-
+  owner.validatorCount = owner.validatorCount.minus(event.params.cluster.validatorCount)
+  owner.save()
+  
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
   let cluster = Cluster.load(clusterId) 
   if (!cluster) {
@@ -469,8 +472,10 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   if (!owner){
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
-    owner.save()
+    owner.validatorCount = BigInt.zero()
   }
+  owner.validatorCount = owner.validatorCount.plus(event.params.cluster.validatorCount)
+  owner.save()
 
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
   let cluster = Cluster.load(clusterId) 
@@ -532,6 +537,7 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
   if (!owner){
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
+    owner.validatorCount = BigInt.zero()
     owner.save()
   }
 
@@ -581,10 +587,12 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     owner = new Account(event.params.owner)
     log.info(`New Address ${owner.id.toHexString()} is adding a validator, creating new Account`, []);
     owner.nonce = BigInt.zero()
+    owner.validatorCount = BigInt.zero()
   }
   log.info(`Old nonce of Account ${owner.id.toHexString()}: ${owner.nonce}`, []);
   owner.nonce = owner.nonce.plus(BigInt.fromI32(1))
   log.info(`Increased nonce of Account ${owner.id.toHexString()} to ${owner.nonce}`, []);
+  owner.validatorCount = owner.validatorCount.plus(BigInt.fromI32(1))
   owner.save()
 
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
@@ -663,8 +671,14 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   if (!owner){
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
-    owner.save()
+    owner.validatorCount = BigInt.zero()
   }
+  // update owner validator count if the cluster is active
+  // (avoid double counting if already liquidated/inactive)
+  if (event.params.cluster.active){
+    owner.validatorCount = owner.validatorCount.minus(BigInt.fromI32(1))
+  }
+  owner.save()
 
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
   let cluster = Cluster.load(clusterId) 
@@ -745,6 +759,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
   if (!owner){
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
+    owner.validatorCount = BigInt.zero()
     owner.save()
   }
 
@@ -791,6 +806,7 @@ export function handleOperatorFeeDeclarationCancelled(
     log.error(`Cancelling fee declaration for Operator ${event.params.operatorId}, but Owner ${event.params.owner.toHexString()} did not exist on the database`, [])
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
+    owner.validatorCount = BigInt.zero()
     owner.save()
   }
 
@@ -834,6 +850,7 @@ export function handleOperatorFeeDeclared(
     log.error(`Declaring fees for Operator ${event.params.operatorId}, but Owner ${event.params.owner.toHexString()} did not exist on the database`, [])
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
+    owner.validatorCount = BigInt.zero()
     owner.save()
   }
 
@@ -877,6 +894,7 @@ export function handleOperatorFeeExecuted(
     log.error(`Executing fees change for Operator ${event.params.operatorId}, but Owner ${event.params.owner.toHexString()} did not exist on the database`, [])
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
+    owner.validatorCount = BigInt.zero()
     owner.save()
   }
 
@@ -946,6 +964,7 @@ export function handleOperatorWhitelistUpdated(
     log.info(`Adding new whitelisted address ${event.params.whitelisted.toHexString()} to Operator ${event.params.operatorId}, this is a new Account`, [])
     whitelisted = new Account(event.params.whitelisted)
     whitelisted.nonce = BigInt.zero()
+    whitelisted.validatorCount = BigInt.zero()
     whitelisted.save()
   }
   let operatorId = event.params.operatorId.toString()
@@ -995,6 +1014,7 @@ export function handleOperatorMultipleWhitelistUpdated(
       log.info(`Adding new whitelisted address ${event.params.whitelistAddresses[i].toHexString()} to Multiple Operators: ${event.params.operatorIds}}, this is a new Account`, [])
       whitelisted = new Account(event.params.whitelistAddresses[i])
       whitelisted.nonce = BigInt.zero()
+      whitelisted.validatorCount = BigInt.zero()
       whitelisted.save()
     }
     whitelistIDList.push(whitelisted.id)
@@ -1044,6 +1064,7 @@ export function handleOperatorMultipleWhitelistRemoved(
       log.info(`Removing whitelisted address ${address.toHexString()} to Multiple Operators: ${event.params.operatorIds}, this is a new Account`, [])
       whitelisted = new Account(address)
       whitelisted.nonce = BigInt.zero()
+      whitelisted.validatorCount = BigInt.zero()
       whitelisted.save()
     }
     whitelistAddressSet.add(whitelisted.id)
@@ -1169,6 +1190,7 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
     log.error(`Executing fees change for Operator ${event.params.operatorId}, but Owner ${event.params.owner.toHexString()} did not exist on the database`, [])
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
+    owner.validatorCount = BigInt.zero()
     owner.save()
   }
 

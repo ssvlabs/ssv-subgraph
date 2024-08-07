@@ -613,6 +613,19 @@ export class Account extends Entity {
     this.set("nonce", Value.fromBigInt(value));
   }
 
+  get validatorCount(): BigInt {
+    let value = this.get("validatorCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set validatorCount(value: BigInt) {
+    this.set("validatorCount", Value.fromBigInt(value));
+  }
+
   get clusters(): ClusterLoader {
     return new ClusterLoader(
       "Account",
