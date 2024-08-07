@@ -760,7 +760,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.previousFee = event.params.fee
     operator.whitelisted = []
     operator.isPrivate = false
-    operator.whitelistedContract = new Address(0x0000000000000000000000000000000000000000)
+    operator.whitelistedContract = Address.fromString('0x0000000000000000000000000000000000000000');
     operator.totalWithdrawn = BigInt.zero()
     operator.validatorCount = BigInt.zero()
   }
