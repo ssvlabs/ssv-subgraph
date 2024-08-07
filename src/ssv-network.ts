@@ -431,23 +431,12 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
     let operatorId = event.params.operatorIds[i].toString()
     let operator = Operator.load(operatorId) 
     if (!operator) {
-      // Debug
-      log.error(`ZZZ1 Removing validator data for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`, [])
+      log.error(`Removing validator data for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`, [])
       log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
     }
     else {
-      if (!operator.validators) {
-        operator.validators = []
-      }
       operator.operatorId = event.params.operatorIds[i]
-      // Debug
-      log.error(`ZZZ2 REMOVING ${event.params.cluster.validatorCount} to ${event.params.operatorIds[i]}, `, [])
       operator.validatorCount = operator.validatorCount.minus(event.params.cluster.validatorCount)
-      // TODO: Cannot figure out the logic for storing the list of validator addresses for liquidation or reactivation events.
-      // This may not work without a very convoluted approach.
-      //let validatorAddressList = operator.validators      
-      //validatorAddressList.slice(validatorAddressList.indexOf(event.params.publicKey), 1)
-      //operator.validators = validatorAddressList
       operator.lastUpdateBlockNumber = event.block.number
       operator.lastUpdateBlockTimestamp = event.block.timestamp
       operator.lastUpdateTransactionHash = event.transaction.hash
@@ -501,25 +490,15 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   cluster.lastUpdateTransactionHash = event.transaction.hash
   cluster.save()
 
-
   for (var i=0; i < event.params.operatorIds.length; i++) {
     let operatorId = event.params.operatorIds[i].toString()
     let operator = Operator.load(operatorId) 
     if (!operator) {
-      log.error(`XXX1 Adding validator data for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`, [])
+      log.error(`Adding validator data for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`, [])
       log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
     } else {
-      if (!operator.validators) {
-        operator.validators = []
-      }
-
       operator.operatorId = event.params.operatorIds[i]
-      log.error(`XXX2 ADDING ${event.params.cluster.validatorCount} to ${event.params.operatorIds[i]}, `, [])
       operator.validatorCount = operator.validatorCount.plus(event.params.cluster.validatorCount)
-      // TODO: Cannot figure out the logic for storing the list of validator addresses for liquidation or reactivation events.
-      // This may not work without a very convoluted approach.
-      //let validatorAddressList = cluster.validators
-      //operator.validators = operator.validators.push([validatorAddressList])
       operator.lastUpdateBlockNumber = event.block.number
       operator.lastUpdateBlockTimestamp = event.block.timestamp
       operator.lastUpdateTransactionHash = event.transaction.hash
@@ -642,11 +621,6 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   validator.lastUpdateTransactionHash = event.transaction.hash
   validator.save()
 
-  // Think this could be wrong
-  if(cluster.validators)
-  cluster.validators.push(validator.id)
-  cluster.save()
-
   for (var i=0; i < event.params.operatorIds.length; i++) {
     let operatorId = event.params.operatorIds[i].toString()
     let operator = Operator.load(operatorId) 
@@ -654,15 +628,8 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
       log.error(`Adding validator data for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`, [])
       log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
     } else {
-      if (!operator.validators) {
-        operator.validators = []
-      }
-
       operator.operatorId = event.params.operatorIds[i]
       operator.validatorCount = operator.validatorCount.plus(BigInt.fromI32(1))
-      let validatorAddressList = operator.validators
-      validatorAddressList.push(validatorId)
-      operator.validators = validatorAddressList
       operator.lastUpdateBlockNumber = event.block.number
       operator.lastUpdateBlockTimestamp = event.block.timestamp
       operator.lastUpdateTransactionHash = event.transaction.hash
@@ -741,20 +708,16 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
       log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
     }
     else {
-      if (!operator.validators) {
-        operator.validators = []
+      // We only want to amend the validator details for this cluster if it is active
+      // This keeps the data in line when liquidations/reactivation events are parsed
+      if(cluster.active) {
+        operator.operatorId = event.params.operatorIds[i]
+        operator.validatorCount = operator.validatorCount.minus(BigInt.fromI32(1))
+        operator.lastUpdateBlockNumber = event.block.number
+        operator.lastUpdateBlockTimestamp = event.block.timestamp
+        operator.lastUpdateTransactionHash = event.transaction.hash
+        operator.save()
       }
-      operator.operatorId = event.params.operatorIds[i]
-      operator.validatorCount = operator.validatorCount.minus(BigInt.fromI32(1))
-
-      let validatorAddressList = operator.validators      
-      validatorAddressList.slice(validatorAddressList.indexOf(event.params.publicKey), 1)
-      operator.validators = validatorAddressList
-
-      operator.lastUpdateBlockNumber = event.block.number
-      operator.lastUpdateBlockTimestamp = event.block.timestamp
-      operator.lastUpdateTransactionHash = event.transaction.hash
-      operator.save()
     }
   }
 }
@@ -798,7 +761,6 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.whitelistedContract = new Address(0x0000000000000000000000000000000000000000)
     operator.totalWithdrawn = BigInt.zero()
     operator.validatorCount = BigInt.zero()
-    operator.validators = []
   }
   
   operator.lastUpdateBlockNumber = event.block.number

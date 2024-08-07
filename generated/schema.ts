@@ -89,17 +89,12 @@ export class Cluster extends Entity {
     this.set("validatorCount", Value.fromBigInt(value));
   }
 
-  get validators(): Array<Bytes> {
-    let value = this.get("validators");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytesArray();
-    }
-  }
-
-  set validators(value: Array<Bytes>) {
-    this.set("validators", Value.fromBytesArray(value));
+  get validators(): ValidatorLoader {
+    return new ValidatorLoader(
+      "Cluster",
+      this.get("id")!.toString(),
+      "validators",
+    );
   }
 
   get networkFeeIndex(): BigInt {
@@ -561,19 +556,6 @@ export class Operator extends Entity {
 
   set validatorCount(value: BigInt) {
     this.set("validatorCount", Value.fromBigInt(value));
-  }
-
-  get validators(): Array<Bytes> {
-    let value = this.get("validators");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytesArray();
-    }
-  }
-
-  set validators(value: Array<Bytes>) {
-    this.set("validators", Value.fromBytesArray(value));
   }
 }
 
@@ -4202,24 +4184,6 @@ export class ValidatorRemoved extends Entity {
   }
 }
 
-export class ClusterLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
-    super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
-  }
-
-  load(): Cluster[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<Cluster[]>(value);
-  }
-}
-
 export class ValidatorLoader extends Entity {
   _entity: string;
   _field: string;
@@ -4235,6 +4199,24 @@ export class ValidatorLoader extends Entity {
   load(): Validator[] {
     let value = store.loadRelated(this._entity, this._id, this._field);
     return changetype<Validator[]>(value);
+  }
+}
+
+export class ClusterLoader extends Entity {
+  _entity: string;
+  _field: string;
+  _id: string;
+
+  constructor(entity: string, id: string, field: string) {
+    super();
+    this._entity = entity;
+    this._id = id;
+    this._field = field;
+  }
+
+  load(): Cluster[] {
+    let value = store.loadRelated(this._entity, this._id, this._field);
+    return changetype<Cluster[]>(value);
   }
 }
 
