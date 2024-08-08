@@ -41,11 +41,13 @@ type Operator @entity(immutable: false) {
   lastUpdateBlockNumber: BigInt! # uint256
   lastUpdateBlockTimestamp: BigInt!
   lastUpdateTransactionHash: Bytes!
+  validatorCount: BigInt! # uint256
 }
 
 type Account @entity(immutable: false) {
   id: Bytes! # address
   nonce: BigInt!
+  validatorCount: BigInt! # uint256
   clusters: [Cluster!] @derivedFrom(field: "owner")
   validators: [Validator!] @derivedFrom(field: "owner")
   operators: [Operator!] @derivedFrom(field: "owner")
