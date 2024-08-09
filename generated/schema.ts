@@ -544,6 +544,27 @@ export class Operator extends Entity {
   set lastUpdateTransactionHash(value: Bytes) {
     this.set("lastUpdateTransactionHash", Value.fromBytes(value));
   }
+
+  get validatorCount(): BigInt {
+    let value = this.get("validatorCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set validatorCount(value: BigInt) {
+    this.set("validatorCount", Value.fromBigInt(value));
+  }
+
+  get validators(): ValidatorLoader {
+    return new ValidatorLoader(
+      "Operator",
+      this.get("id")!.toString(),
+      "validators",
+    );
+  }
 }
 
 export class Account extends Entity {
@@ -598,6 +619,19 @@ export class Account extends Entity {
 
   set nonce(value: BigInt) {
     this.set("nonce", Value.fromBigInt(value));
+  }
+
+  get validatorCount(): BigInt {
+    let value = this.get("validatorCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set validatorCount(value: BigInt) {
+    this.set("validatorCount", Value.fromBigInt(value));
   }
 
   get clusters(): ClusterLoader {
