@@ -557,6 +557,14 @@ export class Operator extends Entity {
   set validatorCount(value: BigInt) {
     this.set("validatorCount", Value.fromBigInt(value));
   }
+
+  get validators(): ValidatorLoader {
+    return new ValidatorLoader(
+      "Operator",
+      this.get("id")!.toString(),
+      "validators",
+    );
+  }
 }
 
 export class Account extends Entity {

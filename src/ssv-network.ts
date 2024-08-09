@@ -613,6 +613,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
   cluster.lastUpdateTransactionHash = event.transaction.hash
+  cluster.save()
 
   let validatorId = event.params.publicKey
   let validator = Validator.load(validatorId) 
