@@ -85,6 +85,8 @@ export function handleDeclareOperatorFeePeriodUpdated(
     log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
+    dao.networkFeeIndex = BigInt.zero()
+    dao.networkFeeIndexBlockNumber = BigInt.zero()
     dao.liquidationThreshold = BigInt.zero()
     dao.minimumLiquidationCollateral = BigInt.zero()
     dao.operatorFeeIncreaseLimit = BigInt.zero()
@@ -119,6 +121,8 @@ export function handleExecuteOperatorFeePeriodUpdated(
     log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
+    dao.networkFeeIndex = BigInt.zero()
+    dao.networkFeeIndexBlockNumber = BigInt.zero()
     dao.liquidationThreshold = BigInt.zero()
     dao.minimumLiquidationCollateral = BigInt.zero()
     dao.operatorFeeIncreaseLimit = BigInt.zero()
@@ -169,6 +173,8 @@ export function handleLiquidationThresholdPeriodUpdated(
     log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
+    dao.networkFeeIndex = BigInt.zero()
+    dao.networkFeeIndexBlockNumber = BigInt.zero()
     dao.liquidationThreshold = BigInt.zero()
     dao.minimumLiquidationCollateral = BigInt.zero()
     dao.operatorFeeIncreaseLimit = BigInt.zero()
@@ -203,6 +209,8 @@ export function handleMinimumLiquidationCollateralUpdated(
     log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
+    dao.networkFeeIndex = BigInt.zero()
+    dao.networkFeeIndexBlockNumber = BigInt.zero()
     dao.liquidationThreshold = BigInt.zero()
     dao.minimumLiquidationCollateral = BigInt.zero()
     dao.operatorFeeIncreaseLimit = BigInt.zero()
@@ -252,6 +260,8 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
     log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
+    dao.networkFeeIndex = BigInt.zero()
+    dao.networkFeeIndexBlockNumber = BigInt.zero()
     dao.liquidationThreshold = BigInt.zero()
     dao.minimumLiquidationCollateral = BigInt.zero()
     dao.operatorFeeIncreaseLimit = BigInt.zero()
@@ -261,6 +271,8 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
   }
   dao.updateType = "NETWORK_FEE"
   dao.networkFee = event.params.newFee
+  dao.networkFeeIndex = dao.networkFeeIndex.plus((event.block.number.minus(dao.networkFeeIndexBlockNumber)).times(dao.networkFee))
+  dao.networkFeeIndexBlockNumber = event.block.number
   dao.lastUpdateBlockNumber = event.block.number
   dao.lastUpdateBlockTimestamp = event.block.timestamp
   dao.lastUpdateTransactionHash = event.transaction.hash
@@ -286,6 +298,8 @@ export function handleOperatorFeeIncreaseLimitUpdated(
     log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
+    dao.networkFeeIndex = BigInt.zero()
+    dao.networkFeeIndexBlockNumber = BigInt.zero()
     dao.liquidationThreshold = BigInt.zero()
     dao.minimumLiquidationCollateral = BigInt.zero()
     dao.operatorFeeIncreaseLimit = BigInt.zero()
@@ -320,6 +334,8 @@ export function handleOperatorMaximumFeeUpdated(
     log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
+    dao.networkFeeIndex = BigInt.zero()
+    dao.networkFeeIndexBlockNumber = BigInt.zero()
     dao.liquidationThreshold = BigInt.zero()
     dao.minimumLiquidationCollateral = BigInt.zero()
     dao.operatorFeeIncreaseLimit = BigInt.zero()
