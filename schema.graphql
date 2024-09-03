@@ -57,6 +57,8 @@ type Account @entity(immutable: false) {
 type DAOValues @entity(immutable: false) {
   id: Bytes!
   networkFee: BigInt! # uint256
+  networkFeeIndex: BigInt! # uint256
+  networkFeeIndexBlockNumber: BigInt! # uint256
   liquidationThreshold: BigInt! # uint256
   minimumLiquidationCollateral: BigInt! # uint256
   operatorFeeIncreaseLimit: BigInt! # uint256

@@ -715,6 +715,32 @@ export class DAOValues extends Entity {
     this.set("networkFee", Value.fromBigInt(value));
   }
 
+  get networkFeeIndex(): BigInt {
+    let value = this.get("networkFeeIndex");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set networkFeeIndex(value: BigInt) {
+    this.set("networkFeeIndex", Value.fromBigInt(value));
+  }
+
+  get networkFeeIndexBlockNumber(): BigInt {
+    let value = this.get("networkFeeIndexBlockNumber");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set networkFeeIndexBlockNumber(value: BigInt) {
+    this.set("networkFeeIndexBlockNumber", Value.fromBigInt(value));
+  }
+
   get liquidationThreshold(): BigInt {
     let value = this.get("liquidationThreshold");
     if (!value || value.kind == ValueKind.NULL) {
