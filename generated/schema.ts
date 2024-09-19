@@ -441,6 +441,32 @@ export class Operator extends Entity {
     this.set("fee", Value.fromBigInt(value));
   }
 
+  get feeIndex(): BigInt {
+    let value = this.get("feeIndex");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set feeIndex(value: BigInt) {
+    this.set("feeIndex", Value.fromBigInt(value));
+  }
+
+  get feeIndexBlockNumber(): BigInt {
+    let value = this.get("feeIndexBlockNumber");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set feeIndexBlockNumber(value: BigInt) {
+    this.set("feeIndexBlockNumber", Value.fromBigInt(value));
+  }
+
   get previousFee(): BigInt {
     let value = this.get("previousFee");
     if (!value || value.kind == ValueKind.NULL) {

@@ -33,6 +33,8 @@ type Operator @entity(immutable: false) {
   publicKey: Bytes! # bytes
   activated: Boolean! # bool
   fee: BigInt! # uint256
+  feeIndex: BigInt! # uint256
+  feeIndexBlockNumber: BigInt! # uint256
   previousFee: BigInt! # uint256
   whitelisted: [Account!]!
   whitelistedContract: Bytes! #address

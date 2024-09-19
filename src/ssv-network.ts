@@ -788,6 +788,8 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.publicKey = event.params.publicKey
     operator.activated = true
     operator.fee = event.params.fee
+    operator.feeIndex = BigInt.zero()
+    operator.feeIndexBlockNumber = BigInt.zero()
     operator.previousFee = event.params.fee
     operator.whitelisted = []
     operator.isPrivate = false
@@ -923,6 +925,9 @@ export function handleOperatorFeeExecuted(
   else {
     operator.operatorId = event.params.operatorId
     operator.owner = owner.id
+    // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
+    operator.feeIndex = operator.feeIndex.plus(event.block.number.minus(operator.feeIndexBlockNumber).times(operator.previousFee))
+    operator.feeIndexBlockNumber = event.block.number
     operator.fee = event.params.fee
     operator.lastUpdateBlockNumber = event.block.number
     operator.lastUpdateBlockTimestamp = event.block.timestamp
