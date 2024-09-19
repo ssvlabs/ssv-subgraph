@@ -62,8 +62,6 @@ import {
 } from "../generated/schema"
 import { log } from "matchstick-as"
 
-const daoID = "DAOValues"
-
 // ###### DAO Events ######
 
 export function handleDeclareOperatorFeePeriodUpdated(
@@ -82,7 +80,7 @@ export function handleDeclareOperatorFeePeriodUpdated(
 
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -118,7 +116,7 @@ export function handleExecuteOperatorFeePeriodUpdated(
   
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -170,7 +168,7 @@ export function handleLiquidationThresholdPeriodUpdated(
   
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -206,7 +204,7 @@ export function handleMinimumLiquidationCollateralUpdated(
   
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -257,7 +255,7 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
   
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -270,9 +268,10 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
     dao.operatorMaximumFee = BigInt.zero()
   }
   dao.updateType = "NETWORK_FEE"
-  dao.networkFee = event.params.newFee
-  dao.networkFeeIndex = dao.networkFeeIndex.plus((event.block.number.minus(dao.networkFeeIndexBlockNumber)).times(dao.networkFee))
+  // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
+  dao.networkFeeIndex = dao.networkFeeIndex.plus(event.block.number.minus(dao.networkFeeIndexBlockNumber).times(dao.networkFee))
   dao.networkFeeIndexBlockNumber = event.block.number
+  dao.networkFee = event.params.newFee
   dao.lastUpdateBlockNumber = event.block.number
   dao.lastUpdateBlockTimestamp = event.block.timestamp
   dao.lastUpdateTransactionHash = event.transaction.hash
@@ -295,7 +294,7 @@ export function handleOperatorFeeIncreaseLimitUpdated(
   
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -331,7 +330,7 @@ export function handleOperatorMaximumFeeUpdated(
   
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${daoID} does not exist on the database, creating it`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -363,7 +362,7 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
   entity.cluster_validatorCount = event.params.cluster.validatorCount
   entity.cluster_networkFeeIndex = event.params.cluster.networkFeeIndex
   entity.cluster_index = event.params.cluster.index
-  entity.cluster_active = event.params.cluster.active
+  entity.cluster_activated = event.params.cluster.active
   entity.cluster_balance = event.params.cluster.balance
 
   entity.blockNumber = event.block.number
@@ -393,7 +392,7 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
   log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
-  cluster.active = event.params.cluster.active
+  cluster.activated = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
@@ -410,7 +409,7 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
   entity.cluster_validatorCount = event.params.cluster.validatorCount
   entity.cluster_networkFeeIndex = event.params.cluster.networkFeeIndex
   entity.cluster_index = event.params.cluster.index
-  entity.cluster_active = event.params.cluster.active
+  entity.cluster_activated = event.params.cluster.active
   entity.cluster_balance = event.params.cluster.balance
 
   entity.blockNumber = event.block.number
@@ -441,7 +440,7 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
   log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
-  cluster.active = event.params.cluster.active
+  cluster.activated = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
@@ -475,7 +474,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   entity.cluster_validatorCount = event.params.cluster.validatorCount
   entity.cluster_networkFeeIndex = event.params.cluster.networkFeeIndex
   entity.cluster_index = event.params.cluster.index
-  entity.cluster_active = event.params.cluster.active
+  entity.cluster_activated = event.params.cluster.active
   entity.cluster_balance = event.params.cluster.balance
 
   entity.blockNumber = event.block.number
@@ -506,7 +505,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
-  cluster.active = event.params.cluster.active
+  cluster.activated = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
@@ -540,7 +539,7 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
   entity.cluster_validatorCount = event.params.cluster.validatorCount
   entity.cluster_networkFeeIndex = event.params.cluster.networkFeeIndex
   entity.cluster_index = event.params.cluster.index
-  entity.cluster_active = event.params.cluster.active
+  entity.cluster_activated = event.params.cluster.active
   entity.cluster_balance = event.params.cluster.balance
 
   entity.blockNumber = event.block.number
@@ -570,7 +569,7 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
   log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
-  cluster.active = event.params.cluster.active
+  cluster.activated = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
@@ -589,7 +588,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   entity.cluster_validatorCount = event.params.cluster.validatorCount
   entity.cluster_networkFeeIndex = event.params.cluster.networkFeeIndex
   entity.cluster_index = event.params.cluster.index
-  entity.cluster_active = event.params.cluster.active
+  entity.cluster_activated = event.params.cluster.active
   entity.cluster_balance = event.params.cluster.balance
 
   entity.blockNumber = event.block.number
@@ -624,7 +623,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
-  cluster.active = event.params.cluster.active
+  cluster.activated = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
@@ -641,7 +640,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   validator.owner = owner.id // this does not sound right 🧐
   validator.operators = event.params.operatorIds.map<string>((id: BigInt) => id.toString())
   validator.cluster = cluster.id // this does not sound right 🧐
-  validator.active = event.params.cluster.active
+  validator.activated = event.params.cluster.active
   validator.shares = event.params.shares
   validator.lastUpdateBlockNumber = event.block.number
   validator.lastUpdateBlockTimestamp = event.block.timestamp
@@ -675,7 +674,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   entity.cluster_validatorCount = event.params.cluster.validatorCount
   entity.cluster_networkFeeIndex = event.params.cluster.networkFeeIndex
   entity.cluster_index = event.params.cluster.index
-  entity.cluster_active = event.params.cluster.active
+  entity.cluster_activated = event.params.cluster.active
   entity.cluster_balance = event.params.cluster.balance
 
   entity.blockNumber = event.block.number
@@ -710,7 +709,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
-  cluster.active = event.params.cluster.active
+  cluster.activated = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
@@ -726,7 +725,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   else {
     validator.operators = event.params.operatorIds.map<string>((id: BigInt) => id.toString())
     validator.owner = owner.id // this does not sound right 🧐
-    validator.active = false
+    validator.activated = false
     validator.lastUpdateBlockNumber = event.block.number
     validator.lastUpdateBlockTimestamp = event.block.timestamp
     validator.lastUpdateTransactionHash = event.transaction.hash
@@ -743,7 +742,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     else {
       // We only want to amend the validator details for this cluster if it is active
       // This keeps the data in line when liquidations/reactivation events are parsed
-      if(cluster.active) {
+      if(cluster.activated) {
         operator.operatorId = event.params.operatorIds[i]
         operator.validatorCount = operator.validatorCount.minus(BigInt.fromI32(1))
         operator.lastUpdateBlockNumber = event.block.number
@@ -787,7 +786,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.operatorId = event.params.operatorId
     operator.owner = owner.id
     operator.publicKey = event.params.publicKey
-    operator.active = true
+    operator.activated = true
     operator.fee = event.params.fee
     operator.previousFee = event.params.fee
     operator.whitelisted = []
@@ -952,7 +951,7 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
   }
   else {
     operator.operatorId = event.params.operatorId
-    operator.active = false
+    operator.activated = false
     operator.lastUpdateBlockNumber = event.block.number
     operator.validatorCount = new BigInt(0)
     operator.lastUpdateBlockTimestamp = event.block.timestamp
