@@ -6,7 +6,7 @@ type Cluster @entity(immutable: false) {
   validators: [Validator!] @derivedFrom(field: "cluster")
   networkFeeIndex: BigInt! # uint64
   index: BigInt! # uint64
-  activated: Boolean! # bool
+  active: Boolean! # bool
   balance: BigInt! # uint256
   lastUpdateBlockNumber: BigInt! # uint256
   lastUpdateBlockTimestamp: BigInt!
@@ -18,7 +18,7 @@ type Validator @entity(immutable: false) {
   owner: Account! # address
   operators: [Operator!]! # uint64[]
   cluster: Cluster!
-  activated: Boolean! # bool
+  removed: Boolean! # bool
   # publicKey: Bytes! # bytes
   shares: Bytes! # bytes
   lastUpdateBlockNumber: BigInt! # uint256
@@ -31,7 +31,7 @@ type Operator @entity(immutable: false) {
   operatorId: BigInt!
   owner: Account! # address
   publicKey: Bytes! # bytes
-  activated: Boolean! # bool
+  removed: Boolean! # bool
   fee: BigInt! # uint256
   feeIndex: BigInt! # uint256
   feeIndexBlockNumber: BigInt! # uint256
@@ -74,13 +74,13 @@ type DAOValues @entity(immutable: false) {
 }
 
 enum DAOUpdateTypes {
-  NETWORK_FEE,
-  LIQUIDATION_THRESHOLD,
-  MIN_LIQUIDATION_COLLATERAL,
-  OPERATOR_FEE_INCREASE_LIMIT,
-  DECLARE_OPERATOR_FEE_PERIOD,
-  EXECUTE_OPERATOR_FEE_PERIOD,
-  OPERATOR_MAX_FEE,
+  NETWORK_FEE
+  LIQUIDATION_THRESHOLD
+  MIN_LIQUIDATION_COLLATERAL
+  OPERATOR_FEE_INCREASE_LIMIT
+  DECLARE_OPERATOR_FEE_PERIOD
+  EXECUTE_OPERATOR_FEE_PERIOD
+  OPERATOR_MAX_FEE
 }
 
 type ClusterDeposited @entity(immutable: true) {
@@ -91,7 +91,7 @@ type ClusterDeposited @entity(immutable: true) {
   cluster_validatorCount: BigInt! # uint32
   cluster_networkFeeIndex: BigInt! # uint64
   cluster_index: BigInt! # uint64
-  cluster_activated: Boolean! # bool
+  cluster_active: Boolean! # bool
   cluster_balance: BigInt! # uint256
   blockNumber: BigInt!
   blockTimestamp: BigInt!
@@ -105,7 +105,7 @@ type ClusterLiquidated @entity(immutable: true) {
   cluster_validatorCount: BigInt! # uint32
   cluster_networkFeeIndex: BigInt! # uint64
   cluster_index: BigInt! # uint64
-  cluster_activated: Boolean! # bool
+  cluster_active: Boolean! # bool
   cluster_balance: BigInt! # uint256
   blockNumber: BigInt!
   blockTimestamp: BigInt!
@@ -119,7 +119,7 @@ type ClusterReactivated @entity(immutable: true) {
   cluster_validatorCount: BigInt! # uint32
   cluster_networkFeeIndex: BigInt! # uint64
   cluster_index: BigInt! # uint64
-  cluster_activated: Boolean! # bool
+  cluster_active: Boolean! # bool
   cluster_balance: BigInt! # uint256
   blockNumber: BigInt!
   blockTimestamp: BigInt!
@@ -134,7 +134,7 @@ type ClusterWithdrawn @entity(immutable: true) {
   cluster_validatorCount: BigInt! # uint32
   cluster_networkFeeIndex: BigInt! # uint64
   cluster_index: BigInt! # uint64
-  cluster_activated: Boolean! # bool
+  cluster_active: Boolean! # bool
   cluster_balance: BigInt! # uint256
   blockNumber: BigInt!
   blockTimestamp: BigInt!
@@ -328,7 +328,7 @@ type ValidatorAdded @entity(immutable: true) {
   cluster_validatorCount: BigInt! # uint32
   cluster_networkFeeIndex: BigInt! # uint64
   cluster_index: BigInt! # uint64
-  cluster_activated: Boolean! # bool
+  cluster_active: Boolean! # bool
   cluster_balance: BigInt! # uint256
   blockNumber: BigInt!
   blockTimestamp: BigInt!
@@ -343,7 +343,7 @@ type ValidatorRemoved @entity(immutable: true) {
   cluster_validatorCount: BigInt! # uint32
   cluster_networkFeeIndex: BigInt! # uint64
   cluster_index: BigInt! # uint64
-  cluster_activated: Boolean! # bool
+  cluster_active: Boolean! # bool
   cluster_balance: BigInt! # uint256
   blockNumber: BigInt!
   blockTimestamp: BigInt!

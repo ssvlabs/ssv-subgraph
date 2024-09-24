@@ -123,8 +123,8 @@ export class Cluster extends Entity {
     this.set("index", Value.fromBigInt(value));
   }
 
-  get activated(): boolean {
-    let value = this.get("activated");
+  get active(): boolean {
+    let value = this.get("active");
     if (!value || value.kind == ValueKind.NULL) {
       return false;
     } else {
@@ -132,8 +132,8 @@ export class Cluster extends Entity {
     }
   }
 
-  set activated(value: boolean) {
-    this.set("activated", Value.fromBoolean(value));
+  set active(value: boolean) {
+    this.set("active", Value.fromBoolean(value));
   }
 
   get balance(): BigInt {
@@ -271,8 +271,8 @@ export class Validator extends Entity {
     this.set("cluster", Value.fromString(value));
   }
 
-  get activated(): boolean {
-    let value = this.get("activated");
+  get removed(): boolean {
+    let value = this.get("removed");
     if (!value || value.kind == ValueKind.NULL) {
       return false;
     } else {
@@ -280,8 +280,8 @@ export class Validator extends Entity {
     }
   }
 
-  set activated(value: boolean) {
-    this.set("activated", Value.fromBoolean(value));
+  set removed(value: boolean) {
+    this.set("removed", Value.fromBoolean(value));
   }
 
   get shares(): Bytes {
@@ -415,8 +415,8 @@ export class Operator extends Entity {
     this.set("publicKey", Value.fromBytes(value));
   }
 
-  get activated(): boolean {
-    let value = this.get("activated");
+  get removed(): boolean {
+    let value = this.get("removed");
     if (!value || value.kind == ValueKind.NULL) {
       return false;
     } else {
@@ -424,8 +424,8 @@ export class Operator extends Entity {
     }
   }
 
-  set activated(value: boolean) {
-    this.set("activated", Value.fromBoolean(value));
+  set removed(value: boolean) {
+    this.set("removed", Value.fromBoolean(value));
   }
 
   get fee(): BigInt {
@@ -1019,8 +1019,8 @@ export class ClusterDeposited extends Entity {
     this.set("cluster_index", Value.fromBigInt(value));
   }
 
-  get cluster_activated(): boolean {
-    let value = this.get("cluster_activated");
+  get cluster_active(): boolean {
+    let value = this.get("cluster_active");
     if (!value || value.kind == ValueKind.NULL) {
       return false;
     } else {
@@ -1028,8 +1028,8 @@ export class ClusterDeposited extends Entity {
     }
   }
 
-  set cluster_activated(value: boolean) {
-    this.set("cluster_activated", Value.fromBoolean(value));
+  set cluster_active(value: boolean) {
+    this.set("cluster_active", Value.fromBoolean(value));
   }
 
   get cluster_balance(): BigInt {
@@ -1193,8 +1193,8 @@ export class ClusterLiquidated extends Entity {
     this.set("cluster_index", Value.fromBigInt(value));
   }
 
-  get cluster_activated(): boolean {
-    let value = this.get("cluster_activated");
+  get cluster_active(): boolean {
+    let value = this.get("cluster_active");
     if (!value || value.kind == ValueKind.NULL) {
       return false;
     } else {
@@ -1202,8 +1202,8 @@ export class ClusterLiquidated extends Entity {
     }
   }
 
-  set cluster_activated(value: boolean) {
-    this.set("cluster_activated", Value.fromBoolean(value));
+  set cluster_active(value: boolean) {
+    this.set("cluster_active", Value.fromBoolean(value));
   }
 
   get cluster_balance(): BigInt {
@@ -1367,8 +1367,8 @@ export class ClusterReactivated extends Entity {
     this.set("cluster_index", Value.fromBigInt(value));
   }
 
-  get cluster_activated(): boolean {
-    let value = this.get("cluster_activated");
+  get cluster_active(): boolean {
+    let value = this.get("cluster_active");
     if (!value || value.kind == ValueKind.NULL) {
       return false;
     } else {
@@ -1376,8 +1376,8 @@ export class ClusterReactivated extends Entity {
     }
   }
 
-  set cluster_activated(value: boolean) {
-    this.set("cluster_activated", Value.fromBoolean(value));
+  set cluster_active(value: boolean) {
+    this.set("cluster_active", Value.fromBoolean(value));
   }
 
   get cluster_balance(): BigInt {
@@ -1554,8 +1554,8 @@ export class ClusterWithdrawn extends Entity {
     this.set("cluster_index", Value.fromBigInt(value));
   }
 
-  get cluster_activated(): boolean {
-    let value = this.get("cluster_activated");
+  get cluster_active(): boolean {
+    let value = this.get("cluster_active");
     if (!value || value.kind == ValueKind.NULL) {
       return false;
     } else {
@@ -1563,8 +1563,8 @@ export class ClusterWithdrawn extends Entity {
     }
   }
 
-  set cluster_activated(value: boolean) {
-    this.set("cluster_activated", Value.fromBoolean(value));
+  set cluster_active(value: boolean) {
+    this.set("cluster_active", Value.fromBoolean(value));
   }
 
   get cluster_balance(): BigInt {
@@ -4004,8 +4004,8 @@ export class ValidatorAdded extends Entity {
     this.set("cluster_index", Value.fromBigInt(value));
   }
 
-  get cluster_activated(): boolean {
-    let value = this.get("cluster_activated");
+  get cluster_active(): boolean {
+    let value = this.get("cluster_active");
     if (!value || value.kind == ValueKind.NULL) {
       return false;
     } else {
@@ -4013,8 +4013,8 @@ export class ValidatorAdded extends Entity {
     }
   }
 
-  set cluster_activated(value: boolean) {
-    this.set("cluster_activated", Value.fromBoolean(value));
+  set cluster_active(value: boolean) {
+    this.set("cluster_active", Value.fromBoolean(value));
   }
 
   get cluster_balance(): BigInt {
@@ -4191,8 +4191,8 @@ export class ValidatorRemoved extends Entity {
     this.set("cluster_index", Value.fromBigInt(value));
   }
 
-  get cluster_activated(): boolean {
-    let value = this.get("cluster_activated");
+  get cluster_active(): boolean {
+    let value = this.get("cluster_active");
     if (!value || value.kind == ValueKind.NULL) {
       return false;
     } else {
@@ -4200,8 +4200,8 @@ export class ValidatorRemoved extends Entity {
     }
   }
 
-  set cluster_activated(value: boolean) {
-    this.set("cluster_activated", Value.fromBoolean(value));
+  set cluster_active(value: boolean) {
+    this.set("cluster_active", Value.fromBoolean(value));
   }
 
   get cluster_balance(): BigInt {
