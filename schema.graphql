@@ -67,6 +67,7 @@ type DAOValues @entity(immutable: false) {
   declareOperatorFeePeriod: BigInt! # uint256
   executeOperatorFeePeriod: BigInt! # uint256
   operatorMaximumFee: BigInt! # uint256
+  validatorsPerOperatorLimit: BigInt! 
   updateType: DAOUpdateTypes!
   lastUpdateBlockNumber: BigInt! # uint256
   lastUpdateBlockTimestamp: BigInt! # uint256
@@ -74,6 +75,7 @@ type DAOValues @entity(immutable: false) {
 }
 
 enum DAOUpdateTypes {
+  INITIALIZATION
   NETWORK_FEE
   LIQUIDATION_THRESHOLD
   MIN_LIQUIDATION_COLLATERAL

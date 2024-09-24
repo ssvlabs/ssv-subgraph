@@ -6,9 +6,9 @@ dataSources:
     name: SSVNetwork
     network: holesky
     source:
-      address: "0x38A4794cCEd47d3baf7370CcC43B560D3a1beEFA"
       abi: SSVNetwork
-      startBlock: 84598
+      address: "0x38A4794cCEd47d3baf7370CcC43B560D3a1beEFA"
+      startBlock: 181612
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -58,8 +58,9 @@ dataSources:
       abis:
         - name: SSVNetwork
           file: ./abis/SSVNetwork.json
-      # blockHandlers:
-      #   - handler: handleBlock
+      callHandlers:
+        - function: initialize(address,address,address,address,address,uint64,uint256,uint32,uint64,uint64,uint64)
+          handler: handleInitialize
       eventHandlers:
         # - event: Initialized(uint8)
         #   handler: handleInitialized
@@ -91,15 +92,20 @@ dataSources:
         # Cluster events
         - event: ClusterDeposited(indexed address,uint64[],uint256,(uint32,uint64,uint64,bool,uint256))
           handler: handleClusterDeposited
-        - event: ClusterLiquidated(indexed address,uint64[],(uint32,uint64,uint64,bool,uint256))
+        - event: ClusterLiquidated(indexed
+            address,uint64[],(uint32,uint64,uint64,bool,uint256))
           handler: handleClusterLiquidated
-        - event: ClusterReactivated(indexed address,uint64[],(uint32,uint64,uint64,bool,uint256))
+        - event: ClusterReactivated(indexed
+            address,uint64[],(uint32,uint64,uint64,bool,uint256))
           handler: handleClusterReactivated
-        - event: ClusterWithdrawn(indexed address,uint64[],uint256,(uint32,uint64,uint64,bool,uint256))
+        - event: ClusterWithdrawn(indexed
+            address,uint64[],uint256,(uint32,uint64,uint64,bool,uint256))
           handler: handleClusterWithdrawn
-        - event: ValidatorAdded(indexed address,uint64[],bytes,bytes,(uint32,uint64,uint64,bool,uint256))
+        - event: ValidatorAdded(indexed
+            address,uint64[],bytes,bytes,(uint32,uint64,uint64,bool,uint256))
           handler: handleValidatorAdded
-        - event: ValidatorRemoved(indexed address,uint64[],bytes,(uint32,uint64,uint64,bool,uint256))
+        - event: ValidatorRemoved(indexed
+            address,uint64[],bytes,(uint32,uint64,uint64,bool,uint256))
           handler: handleValidatorRemoved
         # Operator events
         - event: OperatorAdded(indexed uint64,indexed address,bytes,uint256)
