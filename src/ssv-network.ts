@@ -362,7 +362,7 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
   entity.cluster_validatorCount = event.params.cluster.validatorCount
   entity.cluster_networkFeeIndex = event.params.cluster.networkFeeIndex
   entity.cluster_index = event.params.cluster.index
-  entity.cluster_activated = event.params.cluster.active
+  entity.cluster_active = event.params.cluster.active
   entity.cluster_balance = event.params.cluster.balance
 
   entity.blockNumber = event.block.number
@@ -392,7 +392,7 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
   log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
-  cluster.activated = event.params.cluster.active
+  cluster.active = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
@@ -409,7 +409,7 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
   entity.cluster_validatorCount = event.params.cluster.validatorCount
   entity.cluster_networkFeeIndex = event.params.cluster.networkFeeIndex
   entity.cluster_index = event.params.cluster.index
-  entity.cluster_activated = event.params.cluster.active
+  entity.cluster_active = event.params.cluster.active
   entity.cluster_balance = event.params.cluster.balance
 
   entity.blockNumber = event.block.number
@@ -440,7 +440,7 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
   log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
-  cluster.activated = event.params.cluster.active
+  cluster.active = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
@@ -474,7 +474,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   entity.cluster_validatorCount = event.params.cluster.validatorCount
   entity.cluster_networkFeeIndex = event.params.cluster.networkFeeIndex
   entity.cluster_index = event.params.cluster.index
-  entity.cluster_activated = event.params.cluster.active
+  entity.cluster_active = event.params.cluster.active
   entity.cluster_balance = event.params.cluster.balance
 
   entity.blockNumber = event.block.number
@@ -505,7 +505,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
-  cluster.activated = event.params.cluster.active
+  cluster.active = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
@@ -539,7 +539,7 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
   entity.cluster_validatorCount = event.params.cluster.validatorCount
   entity.cluster_networkFeeIndex = event.params.cluster.networkFeeIndex
   entity.cluster_index = event.params.cluster.index
-  entity.cluster_activated = event.params.cluster.active
+  entity.cluster_active = event.params.cluster.active
   entity.cluster_balance = event.params.cluster.balance
 
   entity.blockNumber = event.block.number
@@ -569,7 +569,7 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
   log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
-  cluster.activated = event.params.cluster.active
+  cluster.active = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
@@ -588,7 +588,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   entity.cluster_validatorCount = event.params.cluster.validatorCount
   entity.cluster_networkFeeIndex = event.params.cluster.networkFeeIndex
   entity.cluster_index = event.params.cluster.index
-  entity.cluster_activated = event.params.cluster.active
+  entity.cluster_active = event.params.cluster.active
   entity.cluster_balance = event.params.cluster.balance
 
   entity.blockNumber = event.block.number
@@ -623,7 +623,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
-  cluster.activated = event.params.cluster.active
+  cluster.active = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
@@ -640,7 +640,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   validator.owner = owner.id // this does not sound right 🧐
   validator.operators = event.params.operatorIds.map<string>((id: BigInt) => id.toString())
   validator.cluster = cluster.id // this does not sound right 🧐
-  validator.activated = event.params.cluster.active
+  validator.removed = false
   validator.shares = event.params.shares
   validator.lastUpdateBlockNumber = event.block.number
   validator.lastUpdateBlockTimestamp = event.block.timestamp
@@ -674,7 +674,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   entity.cluster_validatorCount = event.params.cluster.validatorCount
   entity.cluster_networkFeeIndex = event.params.cluster.networkFeeIndex
   entity.cluster_index = event.params.cluster.index
-  entity.cluster_activated = event.params.cluster.active
+  entity.cluster_active = event.params.cluster.active
   entity.cluster_balance = event.params.cluster.balance
 
   entity.blockNumber = event.block.number
@@ -709,7 +709,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
   cluster.index = event.params.cluster.index
-  cluster.activated = event.params.cluster.active
+  cluster.active = event.params.cluster.active
   cluster.balance = event.params.cluster.balance
   cluster.lastUpdateBlockNumber = event.block.number
   cluster.lastUpdateBlockTimestamp = event.block.timestamp
@@ -725,7 +725,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   else {
     validator.operators = event.params.operatorIds.map<string>((id: BigInt) => id.toString())
     validator.owner = owner.id // this does not sound right 🧐
-    validator.activated = false
+    validator.removed = true
     validator.lastUpdateBlockNumber = event.block.number
     validator.lastUpdateBlockTimestamp = event.block.timestamp
     validator.lastUpdateTransactionHash = event.transaction.hash
@@ -742,7 +742,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     else {
       // We only want to amend the validator details for this cluster if it is active
       // This keeps the data in line when liquidations/reactivation events are parsed
-      if(cluster.activated) {
+      if(cluster.active) {
         operator.operatorId = event.params.operatorIds[i]
         operator.validatorCount = operator.validatorCount.minus(BigInt.fromI32(1))
         operator.lastUpdateBlockNumber = event.block.number
@@ -786,10 +786,10 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.operatorId = event.params.operatorId
     operator.owner = owner.id
     operator.publicKey = event.params.publicKey
-    operator.activated = true
+    operator.removed = false
     operator.fee = event.params.fee
     operator.feeIndex = BigInt.zero()
-    operator.feeIndexBlockNumber = BigInt.zero()
+    operator.feeIndexBlockNumber = event.block.number
     operator.previousFee = event.params.fee
     operator.whitelisted = []
     operator.isPrivate = false
@@ -956,7 +956,7 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
   }
   else {
     operator.operatorId = event.params.operatorId
-    operator.activated = false
+    operator.removed = true
     operator.lastUpdateBlockNumber = event.block.number
     operator.validatorCount = new BigInt(0)
     operator.lastUpdateBlockTimestamp = event.block.timestamp
