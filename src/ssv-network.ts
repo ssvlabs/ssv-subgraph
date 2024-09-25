@@ -66,7 +66,7 @@ import { log } from "matchstick-as"
 export function handleInitialize(
   call: InitializeCall
 ): void {
-  let daoValuesAddress = call.to
+  let daoValuesAddress = call.from
   // log.error(`New contract Initialized, DAO values store with ID ${daoValuesAddress.toHexString()} does not exist on the database, creating it. Initial liquidationThreshold: ${call.inputs.minimumBlocksBeforeLiquidation_}`, [])
   log.error(`New contract Initialized, DAO values store with ID ${daoValuesAddress.toHexString()} does not exist on the database, creating it. Update type: INITIALIZATION`, [])
   let dao = new DAOValues(daoValuesAddress)
@@ -81,6 +81,9 @@ export function handleInitialize(
   dao.executeOperatorFeePeriod = call.inputs.executeOperatorFeePeriod_
   dao.validatorsPerOperatorLimit = call.inputs.validatorsPerOperatorLimit_
   dao.operatorMaximumFee = BigInt.zero()
+  dao.lastUpdateBlockNumber = call.block.number
+  dao.lastUpdateBlockTimestamp = call.block.timestamp
+  dao.lastUpdateTransactionHash = call.transaction.hash
 
   dao.save()
 }
