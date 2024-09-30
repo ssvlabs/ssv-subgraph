@@ -467,8 +467,8 @@ export class Operator extends Entity {
     this.set("feeIndexBlockNumber", Value.fromBigInt(value));
   }
 
-  get previousFee(): BigInt {
-    let value = this.get("previousFee");
+  get declaredFee(): BigInt {
+    let value = this.get("declaredFee");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -476,8 +476,8 @@ export class Operator extends Entity {
     }
   }
 
-  set previousFee(value: BigInt) {
-    this.set("previousFee", Value.fromBigInt(value));
+  set declaredFee(value: BigInt) {
+    this.set("declaredFee", Value.fromBigInt(value));
   }
 
   get whitelisted(): Array<Bytes> {
