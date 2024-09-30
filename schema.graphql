@@ -35,7 +35,7 @@ type Operator @entity(immutable: false) {
   fee: BigInt! # uint256
   feeIndex: BigInt! # uint256
   feeIndexBlockNumber: BigInt! # uint256
-  previousFee: BigInt! # uint256
+  declaredFee: BigInt! # uint256
   whitelisted: [Account!]!
   whitelistedContract: Bytes! #address
   isPrivate: Boolean! # bool

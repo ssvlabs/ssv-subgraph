@@ -823,7 +823,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.fee = event.params.fee
     operator.feeIndex = BigInt.zero()
     operator.feeIndexBlockNumber = event.block.number
-    operator.previousFee = event.params.fee
+    operator.declaredFee = BigInt.zero()
     operator.whitelisted = []
     operator.isPrivate = false
     operator.whitelistedContract = Address.fromString('0x0000000000000000000000000000000000000000');
@@ -870,7 +870,7 @@ export function handleOperatorFeeDeclarationCancelled(
   else {
     operator.operatorId = event.params.operatorId
     operator.owner = owner.id
-    operator.fee = operator.previousFee // reset fee to previous one, as fee change was cancelled
+    operator.declaredFee = BigInt.zero()  // reset declared fee, as fee change was cancelled
     operator.lastUpdateBlockNumber = event.block.number
     operator.lastUpdateBlockTimestamp = event.block.timestamp
     operator.lastUpdateTransactionHash = event.transaction.hash
@@ -914,8 +914,7 @@ export function handleOperatorFeeDeclared(
   else {
     operator.operatorId = event.params.operatorId
     operator.owner = owner.id
-    operator.previousFee = operator.fee // storing current fee, in case fee change gets cancelled
-    operator.fee = event.params.fee
+    operator.declaredFee = event.params.fee // storing declared fee, in case fee change gets cancelled
     operator.lastUpdateBlockNumber = event.block.number
     operator.lastUpdateBlockTimestamp = event.block.timestamp
     operator.lastUpdateTransactionHash = event.transaction.hash
@@ -959,9 +958,10 @@ export function handleOperatorFeeExecuted(
     operator.operatorId = event.params.operatorId
     operator.owner = owner.id
     // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
-    operator.feeIndex = operator.feeIndex.plus(event.block.number.minus(operator.feeIndexBlockNumber).times(operator.previousFee))
+    operator.feeIndex = operator.feeIndex.plus(event.block.number.minus(operator.feeIndexBlockNumber).times(operator.fee))
     operator.feeIndexBlockNumber = event.block.number
     operator.fee = event.params.fee
+    operator.declaredFee = BigInt.zero() // reset declared fee, as fee change was executed
     operator.lastUpdateBlockNumber = event.block.number
     operator.lastUpdateBlockTimestamp = event.block.timestamp
     operator.lastUpdateTransactionHash = event.transaction.hash
