@@ -845,6 +845,19 @@ export class DAOValues extends Entity {
     this.set("operatorMaximumFee", Value.fromBigInt(value));
   }
 
+  get validatorsPerOperatorLimit(): BigInt {
+    let value = this.get("validatorsPerOperatorLimit");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set validatorsPerOperatorLimit(value: BigInt) {
+    this.set("validatorsPerOperatorLimit", Value.fromBigInt(value));
+  }
+
   get updateType(): string {
     let value = this.get("updateType");
     if (!value || value.kind == ValueKind.NULL) {

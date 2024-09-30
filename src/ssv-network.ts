@@ -25,7 +25,8 @@ import {
   OperatorPrivacyStatusUpdated as OperatorPrivacyStatusUpdatedEvent,
   OperatorWithdrawn as OperatorWithdrawnEvent,
   ValidatorAdded as ValidatorAddedEvent,
-  ValidatorRemoved as ValidatorRemovedEvent
+  ValidatorRemoved as ValidatorRemovedEvent,
+  InitializeCall
 } from "../generated/SSVNetwork/SSVNetwork"
 import {
   Validator,
@@ -62,6 +63,31 @@ import {
 } from "../generated/schema"
 import { log } from "matchstick-as"
 
+export function handleInitialize(
+  call: InitializeCall
+): void {
+  let daoValuesAddress = call.from
+  // log.error(`New contract Initialized, DAO values store with ID ${daoValuesAddress.toHexString()} does not exist on the database, creating it. Initial liquidationThreshold: ${call.inputs.minimumBlocksBeforeLiquidation_}`, [])
+  log.error(`New contract Initialized, DAO values store with ID ${daoValuesAddress.toHexString()} does not exist on the database, creating it. Update type: INITIALIZATION`, [])
+  let dao = new DAOValues(daoValuesAddress)
+  dao.updateType = "INITIALIZATION"
+  dao.networkFee = BigInt.zero()
+  dao.networkFeeIndex = BigInt.zero()
+  dao.networkFeeIndexBlockNumber = BigInt.zero()
+  dao.liquidationThreshold = call.inputs.minimumBlocksBeforeLiquidation_
+  dao.minimumLiquidationCollateral = call.inputs.minimumLiquidationCollateral_
+  dao.operatorFeeIncreaseLimit = call.inputs.operatorMaxFeeIncrease_
+  dao.declareOperatorFeePeriod = call.inputs.declareOperatorFeePeriod_
+  dao.executeOperatorFeePeriod = call.inputs.executeOperatorFeePeriod_
+  dao.validatorsPerOperatorLimit = call.inputs.validatorsPerOperatorLimit_
+  dao.operatorMaximumFee = BigInt.zero()
+  dao.lastUpdateBlockNumber = call.block.number
+  dao.lastUpdateBlockTimestamp = call.block.timestamp
+  dao.lastUpdateTransactionHash = call.transaction.hash
+
+  dao.save()
+}
+
 // ###### DAO Events ######
 
 export function handleDeclareOperatorFeePeriodUpdated(
@@ -80,7 +106,7 @@ export function handleDeclareOperatorFeePeriodUpdated(
 
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -91,6 +117,7 @@ export function handleDeclareOperatorFeePeriodUpdated(
     dao.declareOperatorFeePeriod = BigInt.zero()
     dao.executeOperatorFeePeriod = BigInt.zero()
     dao.operatorMaximumFee = BigInt.zero()
+    dao.validatorsPerOperatorLimit = BigInt.zero()
   }
   dao.updateType = "DECLARE_OPERATOR_FEE_PERIOD"
   dao.declareOperatorFeePeriod = event.params.value
@@ -116,7 +143,7 @@ export function handleExecuteOperatorFeePeriodUpdated(
   
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it. Update type: EXECUTE_OPERATOR_FEE_PERIOD`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -127,6 +154,7 @@ export function handleExecuteOperatorFeePeriodUpdated(
     dao.declareOperatorFeePeriod = BigInt.zero()
     dao.executeOperatorFeePeriod = BigInt.zero()
     dao.operatorMaximumFee = BigInt.zero()
+    dao.validatorsPerOperatorLimit = BigInt.zero()
   }
   dao.updateType = "EXECUTE_OPERATOR_FEE_PERIOD"
   dao.executeOperatorFeePeriod = event.params.value
@@ -168,7 +196,7 @@ export function handleLiquidationThresholdPeriodUpdated(
   
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it. Update type: LIQUIDATION_THRESHOLD`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -179,6 +207,7 @@ export function handleLiquidationThresholdPeriodUpdated(
     dao.declareOperatorFeePeriod = BigInt.zero()
     dao.executeOperatorFeePeriod = BigInt.zero()
     dao.operatorMaximumFee = BigInt.zero()
+    dao.validatorsPerOperatorLimit = BigInt.zero()
   }
   dao.updateType = "LIQUIDATION_THRESHOLD"
   dao.liquidationThreshold = event.params.value
@@ -204,7 +233,7 @@ export function handleMinimumLiquidationCollateralUpdated(
   
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it. Update type: MIN_LIQUIDATION_COLLATERAL`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -215,6 +244,7 @@ export function handleMinimumLiquidationCollateralUpdated(
     dao.declareOperatorFeePeriod = BigInt.zero()
     dao.executeOperatorFeePeriod = BigInt.zero()
     dao.operatorMaximumFee = BigInt.zero()
+    dao.validatorsPerOperatorLimit = BigInt.zero()
   }
   dao.updateType = "MIN_LIQUIDATION_COLLATERAL"
   dao.minimumLiquidationCollateral = event.params.value
@@ -255,7 +285,7 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
   
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it. Update type: NETWORK_FEE`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -266,6 +296,7 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
     dao.declareOperatorFeePeriod = BigInt.zero()
     dao.executeOperatorFeePeriod = BigInt.zero()
     dao.operatorMaximumFee = BigInt.zero()
+    dao.validatorsPerOperatorLimit = BigInt.zero()
   }
   dao.updateType = "NETWORK_FEE"
   // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
@@ -294,7 +325,7 @@ export function handleOperatorFeeIncreaseLimitUpdated(
   
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it. Update type: OPERATOR_FEE_INCREASE_LIMIT`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -305,6 +336,7 @@ export function handleOperatorFeeIncreaseLimitUpdated(
     dao.declareOperatorFeePeriod = BigInt.zero()
     dao.executeOperatorFeePeriod = BigInt.zero()
     dao.operatorMaximumFee = BigInt.zero()
+    dao.validatorsPerOperatorLimit = BigInt.zero()
   }
   dao.updateType = "OPERATOR_FEE_INCREASE_LIMIT"
   dao.operatorFeeIncreaseLimit = event.params.value
@@ -330,7 +362,7 @@ export function handleOperatorMaximumFeeUpdated(
   
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -341,6 +373,7 @@ export function handleOperatorMaximumFeeUpdated(
     dao.declareOperatorFeePeriod = BigInt.zero()
     dao.executeOperatorFeePeriod = BigInt.zero()
     dao.operatorMaximumFee = BigInt.zero()
+    dao.validatorsPerOperatorLimit = BigInt.zero()
   }
   dao.updateType = "DECLARE_OPERATOR_FEE_PERIOD"
   dao.operatorMaximumFee = event.params.maxFee
