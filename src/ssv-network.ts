@@ -94,7 +94,7 @@ export function handleDeclareOperatorFeePeriodUpdated(
   event: DeclareOperatorFeePeriodUpdatedEvent
 ): void {
   let entity = new DeclareOperatorFeePeriodUpdated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.value = event.params.value
 
@@ -131,7 +131,7 @@ export function handleExecuteOperatorFeePeriodUpdated(
   event: ExecuteOperatorFeePeriodUpdatedEvent
 ): void {
   let entity = new ExecuteOperatorFeePeriodUpdated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.value = event.params.value
 
@@ -168,7 +168,7 @@ export function handleFeeRecipientAddressUpdated(
   event: FeeRecipientAddressUpdatedEvent
 ): void {
   let entity = new FeeRecipientAddressUpdated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.owner = event.params.owner
   entity.recipientAddress = event.params.recipientAddress
@@ -184,7 +184,7 @@ export function handleLiquidationThresholdPeriodUpdated(
   event: LiquidationThresholdPeriodUpdatedEvent
 ): void {
   let entity = new LiquidationThresholdPeriodUpdated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.value = event.params.value
 
@@ -221,7 +221,7 @@ export function handleMinimumLiquidationCollateralUpdated(
   event: MinimumLiquidationCollateralUpdatedEvent
 ): void {
   let entity = new MinimumLiquidationCollateralUpdated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.value = event.params.value
 
@@ -258,7 +258,7 @@ export function handleNetworkEarningsWithdrawn(
   event: NetworkEarningsWithdrawnEvent
 ): void {
   let entity = new NetworkEarningsWithdrawn(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.value = event.params.value
   entity.recipient = event.params.recipient
@@ -272,7 +272,7 @@ export function handleNetworkEarningsWithdrawn(
 
 export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
   let entity = new NetworkFeeUpdated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.oldFee = event.params.oldFee
   entity.newFee = event.params.newFee
@@ -313,7 +313,7 @@ export function handleOperatorFeeIncreaseLimitUpdated(
   event: OperatorFeeIncreaseLimitUpdatedEvent
 ): void {
   let entity = new OperatorFeeIncreaseLimitUpdated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.value = event.params.value
 
@@ -350,7 +350,7 @@ export function handleOperatorMaximumFeeUpdated(
   event: OperatorMaximumFeeUpdatedEvent
 ): void {
   let entity = new OperatorMaximumFeeUpdated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.maxFee = event.params.maxFee
 
@@ -387,7 +387,7 @@ export function handleOperatorMaximumFeeUpdated(
 
 export function handleClusterDeposited(event: ClusterDepositedEvent): void {
   let entity = new ClusterDeposited(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.owner = event.params.owner
   entity.operatorIds = event.params.operatorIds
@@ -435,7 +435,7 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
 
 export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
   let entity = new ClusterLiquidated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.owner = event.params.owner
   entity.operatorIds = event.params.operatorIds
@@ -500,7 +500,7 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
 
 export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   let entity = new ClusterReactivated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.owner = event.params.owner
   entity.operatorIds = event.params.operatorIds
@@ -564,7 +564,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
 
 export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
   let entity = new ClusterWithdrawn(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.owner = event.params.owner
   entity.operatorIds = event.params.operatorIds
@@ -612,7 +612,7 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
 
 export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   let entity = new ValidatorAdded(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.owner = event.params.owner
   entity.operatorIds = event.params.operatorIds
@@ -699,7 +699,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
 
 export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   let entity = new ValidatorRemoved(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.owner = event.params.owner
   entity.operatorIds = event.params.operatorIds
@@ -791,7 +791,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
 
 export function handleOperatorAdded(event: OperatorAddedEvent): void {
   let entity = new OperatorAdded(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.operatorId = event.params.operatorId
   entity.owner = event.params.owner
@@ -841,7 +841,7 @@ export function handleOperatorFeeDeclarationCancelled(
   event: OperatorFeeDeclarationCancelledEvent
 ): void {
   let entity = new OperatorFeeDeclarationCancelled(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.owner = event.params.owner
   entity.operatorId = event.params.operatorId
@@ -883,7 +883,7 @@ export function handleOperatorFeeDeclared(
   event: OperatorFeeDeclaredEvent
 ): void {
   let entity = new OperatorFeeDeclared(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.owner = event.params.owner
   entity.operatorId = event.params.operatorId
@@ -926,7 +926,7 @@ export function handleOperatorFeeExecuted(
   event: OperatorFeeExecutedEvent
 ): void {
   let entity = new OperatorFeeExecuted(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.owner = event.params.owner
   entity.operatorId = event.params.operatorId
@@ -971,7 +971,7 @@ export function handleOperatorFeeExecuted(
 
 export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
   let entity = new OperatorRemoved(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.operatorId = event.params.operatorId
 
@@ -1002,7 +1002,7 @@ export function handleOperatorWhitelistUpdated(
   event: OperatorWhitelistUpdatedEvent
 ): void {
   let entity = new OperatorWhitelistUpdated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.operatorId = event.params.operatorId
   entity.whitelisted = event.params.whitelisted
@@ -1049,7 +1049,7 @@ export function handleOperatorMultipleWhitelistUpdated(
   event: OperatorMultipleWhitelistUpdatedEvent
 ): void {
   let entity = new OperatorMultipleWhitelistUpdated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
 
   entity.operatorIds = event.params.operatorIds
@@ -1099,7 +1099,7 @@ export function handleOperatorMultipleWhitelistRemoved(
   event: OperatorMultipleWhitelistRemovedEvent
 ): void {
   let entity = new OperatorMultipleWhitelistRemoved(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.operatorIds = event.params.operatorIds
   entity.whitelistAddresses = changetype<Bytes[]>(event.params.whitelistAddresses)
@@ -1156,7 +1156,7 @@ export function handleOperatorWhitelistingContractUpdated(
   event: OperatorWhitelistingContractUpdatedEvent
 ): void {
   let entity = new OperatorWhitelistingContractUpdated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
 
   entity.operatorIds = event.params.operatorIds
@@ -1192,7 +1192,7 @@ export function handleOperatorPrivacyStatusUpdated(
   event: OperatorPrivacyStatusUpdatedEvent
 ): void {
   let entity = new OperatorPrivacyStatusUpdated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
 
   entity.operatorIds = event.params.operatorIds
@@ -1227,7 +1227,7 @@ export function handleOperatorPrivacyStatusUpdated(
 
 export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
   let entity = new OperatorWithdrawn(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
   )
   entity.owner = event.params.owner
   entity.operatorId = event.params.operatorId
