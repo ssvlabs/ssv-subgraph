@@ -86,7 +86,7 @@ enum DAOUpdateTypes {
 }
 
 type ClusterDeposited @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   owner: Bytes! # address
   operatorIds: [BigInt!]! # uint64[]
   value: BigInt! # uint256
@@ -101,7 +101,7 @@ type ClusterDeposited @entity(immutable: true) {
 }
 
 type ClusterLiquidated @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   owner: Bytes! # address
   operatorIds: [BigInt!]! # uint64[]
   cluster_validatorCount: BigInt! # uint32
@@ -115,7 +115,7 @@ type ClusterLiquidated @entity(immutable: true) {
 }
 
 type ClusterReactivated @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   owner: Bytes! # address
   operatorIds: [BigInt!]! # uint64[]
   cluster_validatorCount: BigInt! # uint32
@@ -129,7 +129,7 @@ type ClusterReactivated @entity(immutable: true) {
 }
 
 type ClusterWithdrawn @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   owner: Bytes! # address
   operatorIds: [BigInt!]! # uint64[]
   value: BigInt! # uint256
@@ -144,7 +144,7 @@ type ClusterWithdrawn @entity(immutable: true) {
 }
 
 type DeclareOperatorFeePeriodUpdated @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   value: BigInt! # uint64
   blockNumber: BigInt!
   blockTimestamp: BigInt!
@@ -152,7 +152,7 @@ type DeclareOperatorFeePeriodUpdated @entity(immutable: true) {
 }
 
 type ExecuteOperatorFeePeriodUpdated @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   value: BigInt! # uint64
   blockNumber: BigInt!
   blockTimestamp: BigInt!
@@ -160,7 +160,7 @@ type ExecuteOperatorFeePeriodUpdated @entity(immutable: true) {
 }
 
 type FeeRecipientAddressUpdated @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   owner: Bytes! # address
   recipientAddress: Bytes! # address
   blockNumber: BigInt!
@@ -169,7 +169,7 @@ type FeeRecipientAddressUpdated @entity(immutable: true) {
 }
 
 type LiquidationThresholdPeriodUpdated @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   value: BigInt! # uint64
   blockNumber: BigInt!
   blockTimestamp: BigInt!
@@ -177,7 +177,7 @@ type LiquidationThresholdPeriodUpdated @entity(immutable: true) {
 }
 
 type MinimumLiquidationCollateralUpdated @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   value: BigInt! # uint256
   blockNumber: BigInt!
   blockTimestamp: BigInt!
@@ -185,7 +185,7 @@ type MinimumLiquidationCollateralUpdated @entity(immutable: true) {
 }
 
 type NetworkEarningsWithdrawn @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   value: BigInt! # uint256
   recipient: Bytes! # address
   blockNumber: BigInt!
@@ -194,7 +194,7 @@ type NetworkEarningsWithdrawn @entity(immutable: true) {
 }
 
 type NetworkFeeUpdated @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   oldFee: BigInt! # uint256
   newFee: BigInt! # uint256
   blockNumber: BigInt!
@@ -203,7 +203,7 @@ type NetworkFeeUpdated @entity(immutable: true) {
 }
 
 type OperatorAdded @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   operatorId: BigInt! # uint64
   owner: Bytes! # address
   publicKey: Bytes! # bytes
@@ -214,7 +214,7 @@ type OperatorAdded @entity(immutable: true) {
 }
 
 type OperatorFeeDeclarationCancelled @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   owner: Bytes! # address
   operatorId: BigInt! # uint64
   blockNumber: BigInt!
@@ -223,7 +223,7 @@ type OperatorFeeDeclarationCancelled @entity(immutable: true) {
 }
 
 type OperatorFeeDeclared @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   owner: Bytes! # address
   operatorId: BigInt! # uint64
   blockNumber: BigInt! # uint256
@@ -233,7 +233,7 @@ type OperatorFeeDeclared @entity(immutable: true) {
 }
 
 type OperatorFeeExecuted @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   owner: Bytes! # address
   operatorId: BigInt! # uint64
   blockNumber: BigInt! # uint256
@@ -243,7 +243,7 @@ type OperatorFeeExecuted @entity(immutable: true) {
 }
 
 type OperatorFeeIncreaseLimitUpdated @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   value: BigInt! # uint64
   blockNumber: BigInt!
   blockTimestamp: BigInt!
@@ -251,7 +251,7 @@ type OperatorFeeIncreaseLimitUpdated @entity(immutable: true) {
 }
 
 type OperatorMaximumFeeUpdated @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   maxFee: BigInt! # uint64
   blockNumber: BigInt!
   blockTimestamp: BigInt!
@@ -259,7 +259,7 @@ type OperatorMaximumFeeUpdated @entity(immutable: true) {
 }
 
 type OperatorRemoved @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   operatorId: BigInt! # uint64
   blockNumber: BigInt!
   blockTimestamp: BigInt!
@@ -267,7 +267,7 @@ type OperatorRemoved @entity(immutable: true) {
 }
 
 type OperatorWhitelistUpdated @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   operatorId: BigInt! # uint64
   whitelisted: Bytes! # address
   blockNumber: BigInt!
@@ -276,7 +276,7 @@ type OperatorWhitelistUpdated @entity(immutable: true) {
 }
 
 type OperatorMultipleWhitelistUpdated @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   operatorIds: [BigInt!]! # uint64[]
   whitelistAddresses: [Bytes!] # address[]
   blockNumber: BigInt!
@@ -285,7 +285,7 @@ type OperatorMultipleWhitelistUpdated @entity(immutable: true) {
 }
 
 type OperatorMultipleWhitelistRemoved @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   operatorIds: [BigInt!]! # uint64[]
   whitelistAddresses: [Bytes!] # address[]
   blockNumber: BigInt!
@@ -294,7 +294,7 @@ type OperatorMultipleWhitelistRemoved @entity(immutable: true) {
 }
 
 type OperatorWhitelistingContractUpdated @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   operatorIds: [BigInt!]! # uint64[]
   whitelistingContract: Bytes! # address
   blockNumber: BigInt!
@@ -303,7 +303,7 @@ type OperatorWhitelistingContractUpdated @entity(immutable: true) {
 }
 
 type OperatorPrivacyStatusUpdated @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   operatorIds: [BigInt!]! # uint64[]
   toPrivate: Boolean! # bool
   blockNumber: BigInt!
@@ -312,7 +312,7 @@ type OperatorPrivacyStatusUpdated @entity(immutable: true) {
 }
 
 type OperatorWithdrawn @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   owner: Bytes! # address
   operatorId: BigInt! # uint64
   value: BigInt! # uint256
@@ -322,7 +322,7 @@ type OperatorWithdrawn @entity(immutable: true) {
 }
 
 type ValidatorAdded @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   owner: Bytes! # address
   operatorIds: [BigInt!]! # uint64[]
   publicKey: Bytes! # bytes
@@ -338,7 +338,7 @@ type ValidatorAdded @entity(immutable: true) {
 }
 
 type ValidatorRemoved @entity(immutable: true) {
-  id: Bytes!
+  id: String!
   owner: Bytes! # address
   operatorIds: [BigInt!]! # uint64[]
   publicKey: Bytes! # bytes
