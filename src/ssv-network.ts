@@ -178,6 +178,18 @@ export function handleFeeRecipientAddressUpdated(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  let owner = Account.load(event.params.owner)
+  if (!owner){
+    owner = new Account(event.params.owner)
+    owner.nonce = BigInt.zero()
+    owner.validatorCount = BigInt.zero()
+    owner.feeRecipient = event.params.recipientAddress
+    owner.save()
+  } else {
+    owner.feeRecipient = event.params.recipientAddress
+    owner.save()
+  }
 }
 
 export function handleLiquidationThresholdPeriodUpdated(
@@ -409,6 +421,7 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
+    owner.feeRecipient = event.params.owner
     owner.save()
   }
 
@@ -456,6 +469,7 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
+    owner.feeRecipient = event.params.owner
   }
   owner.validatorCount = owner.validatorCount.minus(event.params.cluster.validatorCount)
   owner.save()
@@ -521,6 +535,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
+    owner.feeRecipient = event.params.owner
   }
   owner.validatorCount = owner.validatorCount.plus(event.params.cluster.validatorCount)
   owner.save()
@@ -586,6 +601,7 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
+    owner.feeRecipient = event.params.owner
     owner.save()
   }
 
@@ -636,6 +652,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     log.info(`New Address ${owner.id.toHexString()} is adding a validator, creating new Account`, []);
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
+    owner.feeRecipient = event.params.owner
   }
   log.info(`Old nonce of Account ${owner.id.toHexString()}: ${owner.nonce}`, []);
   owner.nonce = owner.nonce.plus(BigInt.fromI32(1))
@@ -721,6 +738,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
+    owner.feeRecipient = event.params.owner
   }
   // update owner validator count if the cluster is active
   // (avoid double counting if already liquidated/inactive)
@@ -809,6 +827,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
+    owner.feeRecipient = event.params.owner
     owner.save()
   }
 
@@ -858,6 +877,7 @@ export function handleOperatorFeeDeclarationCancelled(
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
+    owner.feeRecipient = event.params.owner
     owner.save()
   }
 
@@ -902,6 +922,7 @@ export function handleOperatorFeeDeclared(
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
+    owner.feeRecipient = event.params.owner
     owner.save()
   }
 
@@ -945,6 +966,7 @@ export function handleOperatorFeeExecuted(
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
+    owner.feeRecipient = event.params.owner
     owner.save()
   }
 
@@ -1019,6 +1041,7 @@ export function handleOperatorWhitelistUpdated(
     whitelisted = new Account(event.params.whitelisted)
     whitelisted.nonce = BigInt.zero()
     whitelisted.validatorCount = BigInt.zero()
+    whitelisted.feeRecipient = event.params.whitelisted
     whitelisted.save()
   }
   let operatorId = event.params.operatorId.toString()
@@ -1069,6 +1092,7 @@ export function handleOperatorMultipleWhitelistUpdated(
       whitelisted = new Account(event.params.whitelistAddresses[i])
       whitelisted.nonce = BigInt.zero()
       whitelisted.validatorCount = BigInt.zero()
+      whitelisted.feeRecipient = event.params.whitelistAddresses[i]
       whitelisted.save()
     }
     whitelistIDList.push(whitelisted.id)
@@ -1245,6 +1269,7 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
+    owner.feeRecipient = event.params.owner
     owner.save()
   }
 

@@ -683,6 +683,19 @@ export class Account extends Entity {
       "operators",
     );
   }
+
+  get feeRecipient(): Bytes {
+    let value = this.get("feeRecipient");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set feeRecipient(value: Bytes) {
+    this.set("feeRecipient", Value.fromBytes(value));
+  }
 }
 
 export class DAOValues extends Entity {
