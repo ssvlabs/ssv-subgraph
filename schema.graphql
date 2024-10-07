@@ -54,6 +54,7 @@ type Account @entity(immutable: false) {
   clusters: [Cluster!] @derivedFrom(field: "owner")
   validators: [Validator!] @derivedFrom(field: "owner")
   operators: [Operator!] @derivedFrom(field: "owner")
+  feeRecipient: Bytes! #address
 }
 
 type DAOValues @entity(immutable: false) {
