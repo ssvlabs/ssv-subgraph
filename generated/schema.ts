@@ -884,6 +884,97 @@ export class DAOValues extends Entity {
     this.set("updateType", Value.fromString(value));
   }
 
+  get totalAccounts(): BigInt {
+    let value = this.get("totalAccounts");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalAccounts(value: BigInt) {
+    this.set("totalAccounts", Value.fromBigInt(value));
+  }
+
+  get totalValidators(): BigInt {
+    let value = this.get("totalValidators");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalValidators(value: BigInt) {
+    this.set("totalValidators", Value.fromBigInt(value));
+  }
+
+  get totalOperators(): BigInt {
+    let value = this.get("totalOperators");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalOperators(value: BigInt) {
+    this.set("totalOperators", Value.fromBigInt(value));
+  }
+
+  get validatorsAdded(): BigInt {
+    let value = this.get("validatorsAdded");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set validatorsAdded(value: BigInt) {
+    this.set("validatorsAdded", Value.fromBigInt(value));
+  }
+
+  get validatorsRemoved(): BigInt {
+    let value = this.get("validatorsRemoved");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set validatorsRemoved(value: BigInt) {
+    this.set("validatorsRemoved", Value.fromBigInt(value));
+  }
+
+  get operatorsAdded(): BigInt {
+    let value = this.get("operatorsAdded");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set operatorsAdded(value: BigInt) {
+    this.set("operatorsAdded", Value.fromBigInt(value));
+  }
+
+  get operatorsRemoved(): BigInt {
+    let value = this.get("operatorsRemoved");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set operatorsRemoved(value: BigInt) {
+    this.set("operatorsRemoved", Value.fromBigInt(value));
+  }
+
   get lastUpdateBlockNumber(): BigInt {
     let value = this.get("lastUpdateBlockNumber");
     if (!value || value.kind == ValueKind.NULL) {

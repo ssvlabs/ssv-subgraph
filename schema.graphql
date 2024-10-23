@@ -68,8 +68,15 @@ type DAOValues @entity(immutable: false) {
   declareOperatorFeePeriod: BigInt! # uint256
   executeOperatorFeePeriod: BigInt! # uint256
   operatorMaximumFee: BigInt! # uint256
-  validatorsPerOperatorLimit: BigInt! 
+  validatorsPerOperatorLimit: BigInt!
   updateType: DAOUpdateTypes!
+  totalAccounts: BigInt!
+  totalValidators: BigInt!
+  totalOperators: BigInt!
+  validatorsAdded: BigInt!
+  validatorsRemoved: BigInt!
+  operatorsAdded: BigInt!
+  operatorsRemoved: BigInt!
   lastUpdateBlockNumber: BigInt! # uint256
   lastUpdateBlockTimestamp: BigInt! # uint256
   lastUpdateTransactionHash: Bytes! # uint256
@@ -84,6 +91,10 @@ enum DAOUpdateTypes {
   DECLARE_OPERATOR_FEE_PERIOD
   EXECUTE_OPERATOR_FEE_PERIOD
   OPERATOR_MAX_FEE
+  VALIDATOR_ADDED
+  VALIDATOR_REMOVED
+  OPERATOR_ADDED
+  OPERATOR_REMOVED
 }
 
 type ClusterDeposited @entity(immutable: true) {

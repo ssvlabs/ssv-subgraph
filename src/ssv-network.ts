@@ -66,8 +66,13 @@ import { log } from "matchstick-as"
 export function handleInitialize(
   call: InitializeCall
 ): void {
+  if (!call.from.toHexString().toLowerCase().includes("0x38a4794cced47d3baf7370ccc43b560d3a1beefa") && !call.from.toHexString().toLowerCase().includes("0xdd9bc35ae942ef0cFa76930954a156b3ff30a4e1"))
+  {
+    log.error(`Caller is ${call.from.toHexString()}, but we only expect 0x38a4794cced47d3baf7370ccc43b560d3a1beefa`,[])
+    return
+  }
+
   let daoValuesAddress = call.from
-  // log.error(`New contract Initialized, DAO values store with ID ${daoValuesAddress.toHexString()} does not exist on the database, creating it. Initial liquidationThreshold: ${call.inputs.minimumBlocksBeforeLiquidation_}`, [])
   log.error(`New contract Initialized, DAO values store with ID ${daoValuesAddress.toHexString()} does not exist on the database, creating it. Update type: INITIALIZATION`, [])
   let dao = new DAOValues(daoValuesAddress)
   dao.updateType = "INITIALIZATION"
@@ -80,6 +85,13 @@ export function handleInitialize(
   dao.declareOperatorFeePeriod = call.inputs.declareOperatorFeePeriod_
   dao.executeOperatorFeePeriod = call.inputs.executeOperatorFeePeriod_
   dao.validatorsPerOperatorLimit = call.inputs.validatorsPerOperatorLimit_
+  dao.totalAccounts = BigInt.zero()
+  dao.totalOperators = BigInt.zero()
+  dao.totalValidators = BigInt.zero()
+  dao.validatorsAdded = BigInt.zero()
+  dao.validatorsRemoved = BigInt.zero()
+  dao.operatorsAdded = BigInt.zero()
+  dao.operatorsRemoved = BigInt.zero()
   dao.operatorMaximumFee = BigInt.zero()
   dao.lastUpdateBlockNumber = call.block.number
   dao.lastUpdateBlockTimestamp = call.block.timestamp
@@ -106,7 +118,7 @@ export function handleDeclareOperatorFeePeriodUpdated(
 
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -118,6 +130,13 @@ export function handleDeclareOperatorFeePeriodUpdated(
     dao.executeOperatorFeePeriod = BigInt.zero()
     dao.operatorMaximumFee = BigInt.zero()
     dao.validatorsPerOperatorLimit = BigInt.zero()
+    dao.totalAccounts = BigInt.zero()
+    dao.totalOperators = BigInt.zero()
+    dao.totalValidators = BigInt.zero()
+    dao.validatorsAdded = BigInt.zero()
+    dao.validatorsRemoved = BigInt.zero()
+    dao.operatorsAdded = BigInt.zero()
+    dao.operatorsRemoved = BigInt.zero()
   }
   dao.updateType = "DECLARE_OPERATOR_FEE_PERIOD"
   dao.declareOperatorFeePeriod = event.params.value
@@ -140,10 +159,10 @@ export function handleExecuteOperatorFeePeriodUpdated(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
-  
+
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it. Update type: EXECUTE_OPERATOR_FEE_PERIOD`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: EXECUTE_OPERATOR_FEE_PERIOD`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -155,6 +174,13 @@ export function handleExecuteOperatorFeePeriodUpdated(
     dao.executeOperatorFeePeriod = BigInt.zero()
     dao.operatorMaximumFee = BigInt.zero()
     dao.validatorsPerOperatorLimit = BigInt.zero()
+    dao.totalAccounts = BigInt.zero()
+    dao.totalOperators = BigInt.zero()
+    dao.totalValidators = BigInt.zero()
+    dao.validatorsAdded = BigInt.zero()
+    dao.validatorsRemoved = BigInt.zero()
+    dao.operatorsAdded = BigInt.zero()
+    dao.operatorsRemoved = BigInt.zero()
   }
   dao.updateType = "EXECUTE_OPERATOR_FEE_PERIOD"
   dao.executeOperatorFeePeriod = event.params.value
@@ -180,7 +206,7 @@ export function handleFeeRecipientAddressUpdated(
   entity.save()
 
   let owner = Account.load(event.params.owner)
-  if (!owner){
+  if (!owner) {
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
@@ -205,10 +231,10 @@ export function handleLiquidationThresholdPeriodUpdated(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
-  
+
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it. Update type: LIQUIDATION_THRESHOLD`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: LIQUIDATION_THRESHOLD`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -220,6 +246,13 @@ export function handleLiquidationThresholdPeriodUpdated(
     dao.executeOperatorFeePeriod = BigInt.zero()
     dao.operatorMaximumFee = BigInt.zero()
     dao.validatorsPerOperatorLimit = BigInt.zero()
+    dao.totalAccounts = BigInt.zero()
+    dao.totalOperators = BigInt.zero()
+    dao.totalValidators = BigInt.zero()
+    dao.validatorsAdded = BigInt.zero()
+    dao.validatorsRemoved = BigInt.zero()
+    dao.operatorsAdded = BigInt.zero()
+    dao.operatorsRemoved = BigInt.zero()
   }
   dao.updateType = "LIQUIDATION_THRESHOLD"
   dao.liquidationThreshold = event.params.value
@@ -242,10 +275,10 @@ export function handleMinimumLiquidationCollateralUpdated(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
-  
+
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it. Update type: MIN_LIQUIDATION_COLLATERAL`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: MIN_LIQUIDATION_COLLATERAL`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -257,6 +290,13 @@ export function handleMinimumLiquidationCollateralUpdated(
     dao.executeOperatorFeePeriod = BigInt.zero()
     dao.operatorMaximumFee = BigInt.zero()
     dao.validatorsPerOperatorLimit = BigInt.zero()
+    dao.totalAccounts = BigInt.zero()
+    dao.totalOperators = BigInt.zero()
+    dao.totalValidators = BigInt.zero()
+    dao.validatorsAdded = BigInt.zero()
+    dao.validatorsRemoved = BigInt.zero()
+    dao.operatorsAdded = BigInt.zero()
+    dao.operatorsRemoved = BigInt.zero()
   }
   dao.updateType = "MIN_LIQUIDATION_COLLATERAL"
   dao.minimumLiquidationCollateral = event.params.value
@@ -294,10 +334,10 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
   entity.transactionHash = event.transaction.hash
 
   entity.save()
-  
+
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it. Update type: NETWORK_FEE`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: NETWORK_FEE`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -309,6 +349,13 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
     dao.executeOperatorFeePeriod = BigInt.zero()
     dao.operatorMaximumFee = BigInt.zero()
     dao.validatorsPerOperatorLimit = BigInt.zero()
+    dao.totalAccounts = BigInt.zero()
+    dao.totalOperators = BigInt.zero()
+    dao.totalValidators = BigInt.zero()
+    dao.validatorsAdded = BigInt.zero()
+    dao.validatorsRemoved = BigInt.zero()
+    dao.operatorsAdded = BigInt.zero()
+    dao.operatorsRemoved = BigInt.zero()
   }
   dao.updateType = "NETWORK_FEE"
   // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
@@ -334,10 +381,10 @@ export function handleOperatorFeeIncreaseLimitUpdated(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
-  
+
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it. Update type: OPERATOR_FEE_INCREASE_LIMIT`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: OPERATOR_FEE_INCREASE_LIMIT`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -349,6 +396,13 @@ export function handleOperatorFeeIncreaseLimitUpdated(
     dao.executeOperatorFeePeriod = BigInt.zero()
     dao.operatorMaximumFee = BigInt.zero()
     dao.validatorsPerOperatorLimit = BigInt.zero()
+    dao.totalAccounts = BigInt.zero()
+    dao.totalOperators = BigInt.zero()
+    dao.totalValidators = BigInt.zero()
+    dao.validatorsAdded = BigInt.zero()
+    dao.validatorsRemoved = BigInt.zero()
+    dao.operatorsAdded = BigInt.zero()
+    dao.operatorsRemoved = BigInt.zero()
   }
   dao.updateType = "OPERATOR_FEE_INCREASE_LIMIT"
   dao.operatorFeeIncreaseLimit = event.params.value
@@ -371,10 +425,10 @@ export function handleOperatorMaximumFeeUpdated(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
-  
+
   let dao = DAOValues.load(event.address)
   if (!dao) {
-    log.error(`New DAO Event, DAO values store with ID ${event.address} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`, [])
+    log.error(`New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`, [])
     dao = new DAOValues(event.address)
     dao.networkFee = BigInt.zero()
     dao.networkFeeIndex = BigInt.zero()
@@ -386,6 +440,13 @@ export function handleOperatorMaximumFeeUpdated(
     dao.executeOperatorFeePeriod = BigInt.zero()
     dao.operatorMaximumFee = BigInt.zero()
     dao.validatorsPerOperatorLimit = BigInt.zero()
+    dao.totalAccounts = BigInt.zero()
+    dao.totalOperators = BigInt.zero()
+    dao.totalValidators = BigInt.zero()
+    dao.validatorsAdded = BigInt.zero()
+    dao.validatorsRemoved = BigInt.zero()
+    dao.operatorsAdded = BigInt.zero()
+    dao.operatorsRemoved = BigInt.zero()
   }
   dao.updateType = "DECLARE_OPERATOR_FEE_PERIOD"
   dao.operatorMaximumFee = event.params.maxFee
@@ -417,7 +478,7 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
   entity.save()
 
   let owner = Account.load(event.params.owner)
-  if (!owner){
+  if (!owner) {
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
@@ -426,7 +487,7 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
   }
 
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
-  let cluster = Cluster.load(clusterId) 
+  let cluster = Cluster.load(clusterId)
   if (!cluster) {
     log.error(`Cluster ${clusterId} is being deposited, but it does not exist on the database`, [])
     cluster = new Cluster(clusterId)
@@ -465,7 +526,7 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
   entity.save()
 
   let owner = Account.load(event.params.owner)
-  if (!owner){
+  if (!owner) {
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
@@ -473,9 +534,9 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
   }
   owner.validatorCount = owner.validatorCount.minus(event.params.cluster.validatorCount)
   owner.save()
-  
+
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
-  let cluster = Cluster.load(clusterId) 
+  let cluster = Cluster.load(clusterId)
   if (!cluster) {
     log.error(`Cluster ${clusterId} is being liquidated, but it does not exist on the database`, [])
     cluster = new Cluster(clusterId)
@@ -494,9 +555,9 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
   cluster.lastUpdateTransactionHash = event.transaction.hash
   cluster.save()
 
-  for (var i=0; i < event.params.operatorIds.length; i++) {
+  for (var i = 0; i < event.params.operatorIds.length; i++) {
     let operatorId = event.params.operatorIds[i].toString()
-    let operator = Operator.load(operatorId) 
+    let operator = Operator.load(operatorId)
     if (!operator) {
       log.error(`Removing validator data for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`, [])
       log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
@@ -531,7 +592,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   entity.save()
 
   let owner = Account.load(event.params.owner)
-  if (!owner){
+  if (!owner) {
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
@@ -541,7 +602,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   owner.save()
 
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
-  let cluster = Cluster.load(clusterId) 
+  let cluster = Cluster.load(clusterId)
   if (!cluster) {
     log.error(`Cluster ${clusterId} is being reactivated, but it does not exist on the database`, [])
     cluster = new Cluster(clusterId)
@@ -560,9 +621,9 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   cluster.lastUpdateTransactionHash = event.transaction.hash
   cluster.save()
 
-  for (var i=0; i < event.params.operatorIds.length; i++) {
+  for (var i = 0; i < event.params.operatorIds.length; i++) {
     let operatorId = event.params.operatorIds[i].toString()
-    let operator = Operator.load(operatorId) 
+    let operator = Operator.load(operatorId)
     if (!operator) {
       log.error(`Adding validator data for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`, [])
       log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
@@ -597,7 +658,7 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
   entity.save()
 
   let owner = Account.load(event.params.owner)
-  if (!owner){
+  if (!owner) {
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
@@ -606,7 +667,7 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
   }
 
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
-  let cluster = Cluster.load(clusterId) 
+  let cluster = Cluster.load(clusterId)
   if (!cluster) {
     log.error(`Cluster ${clusterId} is being withdrawn, but it does not exist on the database`, [])
     cluster = new Cluster(clusterId)
@@ -646,13 +707,45 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
 
   entity.save()
 
+  let dao = DAOValues.load(event.address)
+  if (!dao) {
+    log.error(`New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`, [])
+    dao = new DAOValues(event.address)
+    dao.updateType = "VALIDATOR_ADDED"
+
+    dao.networkFee = BigInt.zero()
+    dao.networkFeeIndex = BigInt.zero()
+    dao.networkFeeIndexBlockNumber = BigInt.zero()
+    dao.liquidationThreshold = BigInt.zero()
+    dao.minimumLiquidationCollateral = BigInt.zero()
+    dao.operatorFeeIncreaseLimit = BigInt.zero()
+    dao.declareOperatorFeePeriod = BigInt.zero()
+    dao.executeOperatorFeePeriod = BigInt.zero()
+    dao.operatorMaximumFee = BigInt.zero()
+    dao.validatorsPerOperatorLimit = BigInt.zero()
+    dao.totalAccounts = BigInt.zero()
+    dao.totalOperators = BigInt.zero()
+    dao.totalValidators = BigInt.zero()
+    dao.validatorsAdded = BigInt.zero()
+    dao.validatorsRemoved = BigInt.zero()
+    dao.operatorsAdded = BigInt.zero()
+    dao.operatorsRemoved = BigInt.zero()
+    dao.operatorMaximumFee = BigInt.zero()
+    dao.lastUpdateBlockNumber = event.block.number
+    dao.lastUpdateBlockTimestamp = event.block.timestamp
+    dao.lastUpdateTransactionHash = event.transaction.hash
+  }
+  dao.validatorsAdded = dao.validatorsAdded.plus(BigInt.fromI32(1))
+
   let owner = Account.load(event.params.owner)
-  if (!owner){
+  if (!owner) {
     owner = new Account(event.params.owner)
     log.info(`New Address ${owner.id.toHexString()} is adding a validator, creating new Account`, []);
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
     owner.feeRecipient = event.params.owner
+    // if it's a new account, also increase total counter
+    dao.totalAccounts = dao.totalAccounts.plus(BigInt.fromI32(1))
   }
   log.info(`Old nonce of Account ${owner.id.toHexString()}: ${owner.nonce}`, []);
   owner.nonce = owner.nonce.plus(BigInt.fromI32(1))
@@ -661,7 +754,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   owner.save()
 
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
-  let cluster = Cluster.load(clusterId) 
+  let cluster = Cluster.load(clusterId)
   if (!cluster) {
     log.info(`Validator ${event.params.publicKey.toHexString()} is being added to new Cluster ${clusterId}`, [])
     cluster = new Cluster(clusterId)
@@ -681,10 +774,12 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   cluster.save()
 
   let validatorId = event.params.publicKey
-  let validator = Validator.load(validatorId) 
+  let validator = Validator.load(validatorId)
   if (!validator) {
     log.info(`new Validator ${event.params.publicKey.toHexString()} being added to Cluster ${clusterId}`, [])
     validator = new Validator(validatorId)
+    // if it's a new validator, also increase total counter
+    dao.totalValidators = dao.totalValidators.plus(BigInt.fromI32(1))
   }
 
   validator.owner = owner.id // this does not sound right 🧐
@@ -697,9 +792,9 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   validator.lastUpdateTransactionHash = event.transaction.hash
   validator.save()
 
-  for (var i=0; i < event.params.operatorIds.length; i++) {
+  for (var i = 0; i < event.params.operatorIds.length; i++) {
     let operatorId = event.params.operatorIds[i].toString()
-    let operator = Operator.load(operatorId) 
+    let operator = Operator.load(operatorId)
     if (!operator) {
       log.error(`Adding validator data for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`, [])
       log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
@@ -712,6 +807,9 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
       operator.save()
     }
   }
+  // always save dao counters
+  log.info(`Dao Values update type: ${dao.updateType}, validator count: ${dao.totalValidators}`, [])
+  dao.save()
 }
 
 export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
@@ -733,8 +831,38 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
 
   entity.save()
 
+  let dao = DAOValues.load(event.address)
+  if (!dao) {
+    log.error(`New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`, [])
+    dao = new DAOValues(event.address)
+    dao.updateType = "VALIDATOR_REMOVED"
+
+    dao.networkFee = BigInt.zero()
+    dao.networkFeeIndex = BigInt.zero()
+    dao.networkFeeIndexBlockNumber = BigInt.zero()
+    dao.liquidationThreshold = BigInt.zero()
+    dao.minimumLiquidationCollateral = BigInt.zero()
+    dao.operatorFeeIncreaseLimit = BigInt.zero()
+    dao.declareOperatorFeePeriod = BigInt.zero()
+    dao.executeOperatorFeePeriod = BigInt.zero()
+    dao.operatorMaximumFee = BigInt.zero()
+    dao.validatorsPerOperatorLimit = BigInt.zero()
+    dao.totalAccounts = BigInt.zero()
+    dao.totalOperators = BigInt.zero()
+    dao.totalValidators = BigInt.zero()
+    dao.validatorsAdded = BigInt.zero()
+    dao.validatorsRemoved = BigInt.zero()
+    dao.operatorsAdded = BigInt.zero()
+    dao.operatorsRemoved = BigInt.zero()
+    dao.operatorMaximumFee = BigInt.zero()
+    dao.lastUpdateBlockNumber = event.block.number
+    dao.lastUpdateBlockTimestamp = event.block.timestamp
+    dao.lastUpdateTransactionHash = event.transaction.hash
+  }
+  dao.validatorsRemoved = dao.validatorsRemoved.plus(BigInt.fromI32(1))
+
   let owner = Account.load(event.params.owner)
-  if (!owner){
+  if (!owner) {
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
@@ -742,13 +870,13 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   }
   // update owner validator count if the cluster is active
   // (avoid double counting if already liquidated/inactive)
-  if (event.params.cluster.active){
+  if (event.params.cluster.active) {
     owner.validatorCount = owner.validatorCount.minus(BigInt.fromI32(1))
   }
   owner.save()
 
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
-  let cluster = Cluster.load(clusterId) 
+  let cluster = Cluster.load(clusterId)
   if (!cluster) {
     log.error(`Validator ${event.params.publicKey.toHexString()} is being removed from Cluster ${clusterId} which does not exist on DB`, [])
     cluster = new Cluster(clusterId)
@@ -768,7 +896,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   cluster.save()
 
   let validatorId = event.params.publicKey
-  let validator = Validator.load(validatorId) 
+  let validator = Validator.load(validatorId)
   if (!validator) {
     log.info(`new Validator ${event.params.publicKey.toHexString()} being added to Cluster ${clusterId}`, [])
     log.error(`Could not create ${event.params.publicKey.toHexString()} on the database, because of missing shares information`, [])
@@ -783,9 +911,9 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     validator.save()
   }
 
-  for (var i=0; i < event.params.operatorIds.length; i++ ) {
+  for (var i = 0; i < event.params.operatorIds.length; i++) {
     let operatorId = event.params.operatorIds[i].toString()
-    let operator = Operator.load(operatorId) 
+    let operator = Operator.load(operatorId)
     if (!operator) {
       log.error(`Removing validator data for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`, [])
       log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
@@ -793,7 +921,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     else {
       // We only want to amend the validator details for this cluster if it is active
       // This keeps the data in line when liquidations/reactivation events are parsed
-      if(cluster.active) {
+      if (cluster.active) {
         operator.operatorId = event.params.operatorIds[i]
         operator.validatorCount = operator.validatorCount.minus(BigInt.fromI32(1))
         operator.lastUpdateBlockNumber = event.block.number
@@ -803,6 +931,9 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
       }
     }
   }
+  // always save dao totals counter
+  log.info(`Dao Values update type: ${dao.updateType}, validator count: ${dao.totalValidators}`, [])
+  dao.save()
 }
 
 // ###### Operator Events ######
@@ -822,17 +953,49 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
 
   entity.save()
 
+  let dao = DAOValues.load(event.address)
+  if (!dao) {
+    log.error(`New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`, [])
+    dao = new DAOValues(event.address)
+    dao.updateType = "OPERATOR_ADDED"
+
+    dao.networkFee = BigInt.zero()
+    dao.networkFeeIndex = BigInt.zero()
+    dao.networkFeeIndexBlockNumber = BigInt.zero()
+    dao.liquidationThreshold = BigInt.zero()
+    dao.minimumLiquidationCollateral = BigInt.zero()
+    dao.operatorFeeIncreaseLimit = BigInt.zero()
+    dao.declareOperatorFeePeriod = BigInt.zero()
+    dao.executeOperatorFeePeriod = BigInt.zero()
+    dao.operatorMaximumFee = BigInt.zero()
+    dao.validatorsPerOperatorLimit = BigInt.zero()
+    dao.totalAccounts = BigInt.zero()
+    dao.totalOperators = BigInt.zero()
+    dao.totalValidators = BigInt.zero()
+    dao.validatorsAdded = BigInt.zero()
+    dao.validatorsRemoved = BigInt.zero()
+    dao.operatorsAdded = BigInt.zero()
+    dao.operatorsRemoved = BigInt.zero()
+    dao.operatorMaximumFee = BigInt.zero()
+    dao.lastUpdateBlockNumber = event.block.number
+    dao.lastUpdateBlockTimestamp = event.block.timestamp
+    dao.lastUpdateTransactionHash = event.transaction.hash
+  }
+  dao.operatorsAdded = dao.operatorsAdded.plus(BigInt.fromI32(1))
+
   let owner = Account.load(event.params.owner)
-  if (!owner){
+  if (!owner) {
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
     owner.feeRecipient = event.params.owner
     owner.save()
+    // if it's a new account, also update total counter
+    dao.totalAccounts = dao.totalAccounts.plus(BigInt.fromI32(1))
   }
 
   let operatorId = event.params.operatorId.toString()
-  let operator = Operator.load(operatorId) 
+  let operator = Operator.load(operatorId)
   if (!operator) {
     operator = new Operator(operatorId)
     operator.operatorId = event.params.operatorId
@@ -848,12 +1011,18 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.whitelistedContract = Address.fromString('0x0000000000000000000000000000000000000000');
     operator.totalWithdrawn = BigInt.zero()
     operator.validatorCount = BigInt.zero()
+
+    // if it's a new operator, also increase total counter
+    dao.totalOperators = dao.totalOperators.plus(BigInt.fromI32(1))
   }
-  
+
   operator.lastUpdateBlockNumber = event.block.number
   operator.lastUpdateBlockTimestamp = event.block.timestamp
   operator.lastUpdateTransactionHash = event.transaction.hash
   operator.save()
+
+  log.info(`Dao Values update type: ${dao.updateType}, operator count: ${dao.totalOperators}`, [])
+  dao.save()
 }
 
 export function handleOperatorFeeDeclarationCancelled(
@@ -872,7 +1041,7 @@ export function handleOperatorFeeDeclarationCancelled(
   entity.save()
 
   let owner = Account.load(event.params.owner)
-  if (!owner){
+  if (!owner) {
     log.error(`Cancelling fee declaration for Operator ${event.params.operatorId}, but Owner ${event.params.owner.toHexString()} did not exist on the database`, [])
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
@@ -882,7 +1051,7 @@ export function handleOperatorFeeDeclarationCancelled(
   }
 
   let operatorId = event.params.operatorId.toString()
-  let operator = Operator.load(operatorId) 
+  let operator = Operator.load(operatorId)
   if (!operator) {
     log.error(`Cancelling fee declaration for Operator ${event.params.operatorId}, but it does not exist on the database`, [])
     log.error(`Could not create ${operatorId} on the database, because of missing publicKey and fee information`, [])
@@ -917,7 +1086,7 @@ export function handleOperatorFeeDeclared(
   entity.save()
 
   let owner = Account.load(event.params.owner)
-  if (!owner){
+  if (!owner) {
     log.error(`Declaring fees for Operator ${event.params.operatorId}, but Owner ${event.params.owner.toHexString()} did not exist on the database`, [])
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
@@ -927,7 +1096,7 @@ export function handleOperatorFeeDeclared(
   }
 
   let operatorId = event.params.operatorId.toString()
-  let operator = Operator.load(operatorId) 
+  let operator = Operator.load(operatorId)
   if (!operator) {
     log.error(`Declaring fees for Operator ${event.params.operatorId}, but it does not exist on the database`, [])
     log.error(`Could not create ${operatorId} on the database, because of missing publicKey and fee information`, [])
@@ -961,7 +1130,7 @@ export function handleOperatorFeeExecuted(
   entity.save()
 
   let owner = Account.load(event.params.owner)
-  if (!owner){
+  if (!owner) {
     log.error(`Executing fees change for Operator ${event.params.operatorId}, but Owner ${event.params.owner.toHexString()} did not exist on the database`, [])
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
@@ -971,7 +1140,7 @@ export function handleOperatorFeeExecuted(
   }
 
   let operatorId = event.params.operatorId.toString()
-  let operator = Operator.load(operatorId) 
+  let operator = Operator.load(operatorId)
   if (!operator) {
     log.error(`Executing fees change for Operator ${event.params.operatorId}, but it does not exist on the database`, [])
     log.error(`Could not create ${operatorId} on the database, because of missing publicKey information`, [])
@@ -1003,8 +1172,38 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
 
   entity.save()
 
+  let dao = DAOValues.load(event.address)
+  if (!dao) {
+    log.error(`New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`, [])
+    dao = new DAOValues(event.address)
+    dao.updateType = "OPERATOR_REMOVED"
+
+    dao.networkFee = BigInt.zero()
+    dao.networkFeeIndex = BigInt.zero()
+    dao.networkFeeIndexBlockNumber = BigInt.zero()
+    dao.liquidationThreshold = BigInt.zero()
+    dao.minimumLiquidationCollateral = BigInt.zero()
+    dao.operatorFeeIncreaseLimit = BigInt.zero()
+    dao.declareOperatorFeePeriod = BigInt.zero()
+    dao.executeOperatorFeePeriod = BigInt.zero()
+    dao.operatorMaximumFee = BigInt.zero()
+    dao.validatorsPerOperatorLimit = BigInt.zero()
+    dao.totalAccounts = BigInt.zero()
+    dao.totalOperators = BigInt.zero()
+    dao.totalValidators = BigInt.zero()
+    dao.validatorsAdded = BigInt.zero()
+    dao.validatorsRemoved = BigInt.zero()
+    dao.operatorsAdded = BigInt.zero()
+    dao.operatorsRemoved = BigInt.zero()
+    dao.operatorMaximumFee = BigInt.zero()
+    dao.lastUpdateBlockNumber = event.block.number
+    dao.lastUpdateBlockTimestamp = event.block.timestamp
+    dao.lastUpdateTransactionHash = event.transaction.hash
+  }
+  dao.operatorsRemoved = dao.operatorsRemoved.plus(BigInt.fromI32(1))
+
   let operatorId = event.params.operatorId.toString()
-  let operator = Operator.load(operatorId) 
+  let operator = Operator.load(operatorId)
   if (!operator) {
     log.error(`Operator ${operatorId} is being removed, but it does not exist on the database`, [])
     log.error(`Could not create ${operatorId} on the database, because of missing owner information`, [])
@@ -1018,6 +1217,9 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
     operator.lastUpdateTransactionHash = event.transaction.hash
     operator.save()
   }
+
+  log.info(`Dao Values update type: ${dao.updateType}, validator count: ${dao.totalOperators}`, [])
+  dao.save()
 }
 
 export function handleOperatorWhitelistUpdated(
@@ -1036,7 +1238,7 @@ export function handleOperatorWhitelistUpdated(
   entity.save()
 
   let whitelisted = Account.load(event.params.whitelisted)
-  if (!whitelisted && (event.params.whitelisted != Address.fromString('0x0000000000000000000000000000000000000000'))){
+  if (!whitelisted && (event.params.whitelisted != Address.fromString('0x0000000000000000000000000000000000000000'))) {
     log.info(`Adding new whitelisted address ${event.params.whitelisted.toHexString()} to Operator ${event.params.operatorId}, this is a new Account`, [])
     whitelisted = new Account(event.params.whitelisted)
     whitelisted.nonce = BigInt.zero()
@@ -1045,22 +1247,22 @@ export function handleOperatorWhitelistUpdated(
     whitelisted.save()
   }
   let operatorId = event.params.operatorId.toString()
-  let operator = Operator.load(operatorId) 
+  let operator = Operator.load(operatorId)
   if (!operator) {
     log.error(`Executing fees change for Operator ${event.params.operatorId}, but it does not exist on the database`, [])
     log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
   }
   else {
     if (whitelisted) {
-    operator.operatorId = event.params.operatorId
-    if (event.params.whitelisted == Address.fromString('0x0000000000000000000000000000000000000000')){
-      operator.isPrivate = false;
-      operator.whitelisted = [];
-    } else {
-      operator.isPrivate = true;
-      operator.whitelisted = [whitelisted.id]
+      operator.operatorId = event.params.operatorId
+      if (event.params.whitelisted == Address.fromString('0x0000000000000000000000000000000000000000')) {
+        operator.isPrivate = false;
+        operator.whitelisted = [];
+      } else {
+        operator.isPrivate = true;
+        operator.whitelisted = [whitelisted.id]
+      }
     }
-  }
     operator.lastUpdateBlockNumber = event.block.number
     operator.lastUpdateBlockTimestamp = event.block.timestamp
     operator.lastUpdateTransactionHash = event.transaction.hash
@@ -1085,9 +1287,9 @@ export function handleOperatorMultipleWhitelistUpdated(
   entity.save()
 
   let whitelistIDList: Bytes[] = [];
-  for (var i=0; i < event.params.whitelistAddresses.length; i++ ) {
+  for (var i = 0; i < event.params.whitelistAddresses.length; i++) {
     let whitelisted = Account.load(event.params.whitelistAddresses[i])
-    if (!whitelisted){
+    if (!whitelisted) {
       log.info(`Adding new whitelisted address ${event.params.whitelistAddresses[i].toHexString()} to Multiple Operators: ${event.params.operatorIds}}, this is a new Account`, [])
       whitelisted = new Account(event.params.whitelistAddresses[i])
       whitelisted.nonce = BigInt.zero()
@@ -1100,7 +1302,7 @@ export function handleOperatorMultipleWhitelistUpdated(
 
   for (let j = 0; j < event.params.operatorIds.length; j++) {
     let operatorId = event.params.operatorIds[j].toString()
-    let operator = Operator.load(operatorId) 
+    let operator = Operator.load(operatorId)
     if (!operator) {
       log.error(`Executing whitelist additions for Operator ${event.params.operatorIds[j]}, but it does not exist on the database`, [])
       log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
@@ -1133,10 +1335,10 @@ export function handleOperatorMultipleWhitelistRemoved(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
-  
+
   let whitelistAddressSet = new Set<Bytes>()
   for (let i = 0; i < event.params.whitelistAddresses.length; i++) {
-    let address = event.params.whitelistAddresses[i]    
+    let address = event.params.whitelistAddresses[i]
     let whitelisted = Account.load(address)
     if (!whitelisted) {
       log.info(`Removing whitelisted address ${address.toHexString()} to Multiple Operators: ${event.params.operatorIds}, this is a new Account`, [])
@@ -1191,7 +1393,7 @@ export function handleOperatorWhitelistingContractUpdated(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
-  for (var i=0; i < event.params.operatorIds.length; i++) {
+  for (var i = 0; i < event.params.operatorIds.length; i++) {
     let operatorId = event.params.operatorIds[i].toString()
     let operator = Operator.load(operatorId)
     if (!operator) {
@@ -1228,9 +1430,9 @@ export function handleOperatorPrivacyStatusUpdated(
 
   entity.save()
 
-  for (var i=0; i < event.params.operatorIds.length; i++ ) {
+  for (var i = 0; i < event.params.operatorIds.length; i++) {
     let operatorId = event.params.operatorIds[i].toString()
-    let operator = Operator.load(operatorId) 
+    let operator = Operator.load(operatorId)
     if (!operator) {
       log.error(`Executing privacy status updates for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`, [])
       log.error(`Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`, [])
@@ -1264,7 +1466,7 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
   entity.save()
 
   let owner = Account.load(event.params.owner)
-  if (!owner){
+  if (!owner) {
     log.error(`Executing fees change for Operator ${event.params.operatorId}, but Owner ${event.params.owner.toHexString()} did not exist on the database`, [])
     owner = new Account(event.params.owner)
     owner.nonce = BigInt.zero()
@@ -1274,7 +1476,7 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
   }
 
   let operatorId = event.params.operatorId.toString()
-  let operator = Operator.load(operatorId) 
+  let operator = Operator.load(operatorId)
   if (!operator) {
     log.error(`Executing fees change for Operator ${event.params.operatorId}, but it does not exist on the database`, [])
     log.error(`Could not create ${operatorId} on the database, because of missing publicKey and fee information`, [])

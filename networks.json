@@ -6,7 +6,27 @@
     },
     "SSVNetworkImpl": {
       "address": "0x116522F4D00b42Efce0aA77f7ddAd1d27705F36b",
+      "startBlock": 84598
+    }
+  },
+  "holesky-prod": {
+    "SSVNetwork": {
+      "address": "0x38A4794cCEd47d3baf7370CcC43B560D3a1beEFA",
       "startBlock": 181612
+    },
+    "SSVNetworkImpl": {
+      "address": "0x116522F4D00b42Efce0aA77f7ddAd1d27705F36b",
+      "startBlock": 84598
+    }
+  },
+  "holesky-stage": {
+    "SSVNetwork": {
+      "address": "0x0d33801785340072C452b994496B19f196b7eE15",
+      "startBlock": 84599
+    },
+    "SSVNetworkImpl": {
+      "address": "0x116522F4D00b42Efce0aA77f7ddAd1d27705F36b",
+      "startBlock": 84598
     }
   },
   "mainnet": {
