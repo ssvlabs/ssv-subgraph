@@ -1133,19 +1133,23 @@ export function handleOperatorMultipleWhitelistRemoved(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
-  
-  let whitelistAddressSet = new Set<Bytes>()
+
+  let whitelistAddressSet: Bytes[] = [];
   for (let i = 0; i < event.params.whitelistAddresses.length; i++) {
-    let address = event.params.whitelistAddresses[i]    
+    let address = event.params.whitelistAddresses[i]
     let whitelisted = Account.load(address)
     if (!whitelisted) {
-      log.info(`Removing whitelisted address ${address.toHexString()} to Multiple Operators: ${event.params.operatorIds}, this is a new Account`, [])
+      log.info(
+        `Removing whitelisted address ${address.toHexString()} to Multiple Operators: ${event.params.operatorIds}, this is a new Account`,
+        []
+      );
       whitelisted = new Account(address)
       whitelisted.nonce = BigInt.zero()
       whitelisted.validatorCount = BigInt.zero()
+      whitelisted.feeRecipient = whitelisted.id
       whitelisted.save()
     }
-    whitelistAddressSet.add(whitelisted.id)
+    whitelistAddressSet.push(whitelisted.id as Bytes);
   }
 
   for (let j = 0; j < event.params.operatorIds.length; j++) {
@@ -1161,13 +1165,21 @@ export function handleOperatorMultipleWhitelistRemoved(
 
       operator.operatorId = event.params.operatorIds[j]
 
-      let whitelistArray = operator.whitelisted;
-      for (let k = 0; k < whitelistArray.length; k++) {
-        if (whitelistAddressSet.has(whitelistArray[k])) {
-          whitelistArray.splice(k, 1);
+      let whitelistArray = operator.whitelisted
+      let indexesToRemove: i32[] = []
+      for (let k = whitelistArray.length - 1; k >= 0; k--) {
+        for (let l = 0; l < whitelistAddressSet.length; l++) {
+          if (whitelistAddressSet[l] ==  whitelistArray[k]) {
+            indexesToRemove.push(k);
+          }
         }
       }
-      operator.whitelisted = whitelistArray;
+
+      for (let m = 0; m < indexesToRemove.length; m++) {
+        whitelistArray.splice(indexesToRemove[m], 1);
+      }
+
+      operator.whitelisted = whitelistArray
       operator.lastUpdateBlockNumber = event.block.number
       operator.lastUpdateBlockTimestamp = event.block.timestamp
       operator.lastUpdateTransactionHash = event.transaction.hash
