@@ -860,6 +860,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     dao.lastUpdateTransactionHash = event.transaction.hash
   }
   dao.validatorsRemoved = dao.validatorsRemoved.plus(BigInt.fromI32(1))
+  dao.totalValidators = dao.totalValidators.minus(BigInt.fromI32(1))
 
   let owner = Account.load(event.params.owner)
   if (!owner) {
@@ -1201,6 +1202,7 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
     dao.lastUpdateTransactionHash = event.transaction.hash
   }
   dao.operatorsRemoved = dao.operatorsRemoved.plus(BigInt.fromI32(1))
+  dao.totalOperators = dao.totalOperators.minus(BigInt.fromI32(1))
 
   let operatorId = event.params.operatorId.toString()
   let operator = Operator.load(operatorId)
