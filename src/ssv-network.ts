@@ -736,6 +736,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     dao.lastUpdateTransactionHash = event.transaction.hash
   }
   dao.validatorsAdded = dao.validatorsAdded.plus(BigInt.fromI32(1))
+  dao.totalValidators = dao.totalValidators.plus(BigInt.fromI32(1))
 
   let owner = Account.load(event.params.owner)
   if (!owner) {
@@ -778,8 +779,6 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   if (!validator) {
     log.info(`new Validator ${event.params.publicKey.toHexString()} being added to Cluster ${clusterId}`, [])
     validator = new Validator(validatorId)
-    // if it's a new validator, also increase total counter
-    dao.totalValidators = dao.totalValidators.plus(BigInt.fromI32(1))
   }
 
   validator.owner = owner.id // this does not sound right 🧐
