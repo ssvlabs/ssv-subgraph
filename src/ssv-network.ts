@@ -1212,6 +1212,9 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
   else {
     operator.operatorId = event.params.operatorId
     operator.removed = true
+    operator.feeIndex = operator.feeIndex.plus(event.block.number.minus(operator.feeIndexBlockNumber).times(operator.fee))
+    operator.feeIndexBlockNumber = event.block.number
+    operator.fee = new BigInt(0)
     operator.lastUpdateBlockNumber = event.block.number
     operator.validatorCount = new BigInt(0)
     operator.lastUpdateBlockTimestamp = event.block.timestamp
