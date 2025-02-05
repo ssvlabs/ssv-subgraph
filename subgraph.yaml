@@ -1,21 +1,22 @@
-specVersion: 0.0.5
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum
     name: SSVNetworkImpl
-    network: mainnet
+    network: holesky
     source:
       abi: SSVNetwork
-      address: "0xdc1e8e50673b893c16c18d88e81e13b4415f6292"
-      startBlock: 17507480
+      address: "0x116522F4D00b42Efce0aA77f7ddAd1d27705F36b"
+      startBlock: 84598
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - NewGravatar
-        - UpdatedGravatar
+        - DAOValues
       abis:
         - name: SSVNetwork
           file: ./abis/SSVNetwork.json
@@ -24,47 +25,151 @@ dataSources:
           handler: handleInitialize
       file: ./src/ssv-network.ts
   - kind: ethereum
-    name: SSVNetwork
-    network: mainnet
+    name: BasedAppManagerImpl
+    network: holesky
     source:
-      abi: SSVNetwork
-      address: "0xDD9BC35aE942eF0cFa76930954a156B3fF30a4E1"
-      startBlock: 17507480
+      abi: BasedAppManager
+      address: "0x590C093AbF6489289741E8aC119d1c91b06500C5"
+      startBlock: 3250994
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - Cluster
-        - Validator
-        - Operator
-        - Account
-        - DeclareOperatorFeePeriodUpdated
-        - ExecuteOperatorFeePeriodUpdated
-        - FeeRecipientAddressUpdated
-        - LiquidationThresholdPeriodUpdated
-        - MinimumLiquidationCollateralUpdated
-        - NetworkEarningsWithdrawn
-        - NetworkFeeUpdated
+        - DAOValues
+      abis:
+        - name: BasedAppManager
+          file: ./abis/BasedAppManager.json
+      callHandlers:
+        - function: initialize(address,uint32)
+          handler: handleInitialize
+      file: ./src/based-app-manager.ts
+  - kind: ethereum
+    name: BasedAppManager
+    network: holesky
+    source:
+      abi: BasedAppManager
+      address: "0x9B3345F3B1Ce2d8655FC4B6e2ed39322d52aA317"
+      startBlock: 3250994
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - BAppMetadataURIUpdated
+        - BAppOptedInByStrategy
+        - BAppRegistered
+        - BAppTokensCreated
+        - BAppTokensUpdated
+        - DelegationCreated
+        - DelegationRemoved
+        - DelegationUpdated
+        - Initialized
+        - MaxFeeIncrementSet
+        - ObligationCreated
+        - ObligationUpdateProposed
+        - ObligationUpdated
+        - OwnershipTransferred
+        - StrategyCreated
+        - StrategyDeposit
+        - StrategyFeeUpdateProposed
+        - StrategyFeeUpdated
+        - StrategyWithdrawal
+        - StrategyWithdrawalProposed
+        - Upgraded
+      abis:
+        - name: BasedAppManager
+          file: ./abis/BasedAppManager.json
+      eventHandlers:
+        - event: BAppMetadataURIUpdated(indexed address,string)
+          handler: handleBAppMetadataURIUpdated
+        - event: BAppOptedInByStrategy(indexed uint256,indexed
+            address,bytes,address[],uint32[])
+          handler: handleBAppOptedInByStrategy
+        - event: BAppRegistered(indexed address,indexed address,address[],uint32[],string)
+          handler: handleBAppRegistered
+        - event: BAppTokensCreated(indexed address,address[],uint32[])
+          handler: handleBAppTokensCreated
+        - event: BAppTokensUpdated(indexed address,address[],uint32[])
+          handler: handleBAppTokensUpdated
+        - event: DelegationCreated(indexed address,indexed address,uint32)
+          handler: handleDelegationCreated
+        - event: DelegationRemoved(indexed address,indexed address)
+          handler: handleDelegationRemoved
+        - event: DelegationUpdated(indexed address,indexed address,uint32)
+          handler: handleDelegationUpdated
+        - event: Initialized(uint64)
+          handler: handleInitialized
+        - event: MaxFeeIncrementSet(uint32)
+          handler: handleMaxFeeIncrementSet
+        - event: ObligationCreated(indexed uint256,indexed address,address,uint256)
+          handler: handleObligationCreated
+        - event: ObligationUpdateProposed(indexed uint256,indexed address,address,uint32)
+          handler: handleObligationUpdateProposed
+        - event: ObligationUpdated(indexed uint256,indexed address,address,uint256,bool)
+          handler: handleObligationUpdated
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: StrategyCreated(indexed uint256,indexed address,uint32)
+          handler: handleStrategyCreated
+        - event: StrategyDeposit(indexed uint256,indexed address,address,uint256)
+          handler: handleStrategyDeposit
+        - event: StrategyFeeUpdateProposed(indexed uint256,address,uint32,uint32)
+          handler: handleStrategyFeeUpdateProposed
+        - event: StrategyFeeUpdated(indexed uint256,address,uint32,uint32)
+          handler: handleStrategyFeeUpdated
+        - event: StrategyWithdrawal(indexed uint256,indexed address,address,uint256,bool)
+          handler: handleStrategyWithdrawal
+        - event: StrategyWithdrawalProposed(indexed uint256,indexed
+            address,address,uint256)
+          handler: handleStrategyWithdrawalProposed
+      file: ./src/based-app-manager.ts
+  - kind: ethereum
+    name: SSVNetwork
+    network: holesky
+    source:
+      abi: SSVNetwork
+      address: "0x0d33801785340072C452b994496B19f196b7eE15"
+      startBlock: 181612
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - AdminChanged
+        - BeaconUpgraded
         - ClusterDeposited
         - ClusterLiquidated
         - ClusterReactivated
         - ClusterWithdrawn
-        - ValidatorAdded
-        - ValidatorRemoved
+        - DeclareOperatorFeePeriodUpdated
+        - ExecuteOperatorFeePeriodUpdated
+        - FeeRecipientAddressUpdated
+        - SSVNetworkInitialized
+        - LiquidationThresholdPeriodUpdated
+        - MinimumLiquidationCollateralUpdated
+        - ModuleUpgraded
+        - NetworkEarningsWithdrawn
+        - NetworkFeeUpdated
         - OperatorAdded
         - OperatorFeeDeclarationCancelled
         - OperatorFeeDeclared
         - OperatorFeeExecuted
         - OperatorFeeIncreaseLimitUpdated
         - OperatorMaximumFeeUpdated
-        - OperatorRemoved
-        - OperatorWithdrawn
         - OperatorWhitelistUpdated
         - OperatorMultipleWhitelistRemoved
         - OperatorMultipleWhitelistUpdated
-        - OperatorWhitelistingContractUpdated
         - OperatorPrivacyStatusUpdated
+        - OperatorRemoved
+        - OperatorWhitelistingContractUpdated
+        - OperatorWithdrawn
+        - OwnershipTransferStarted
+        - SSVNetworkOwnershipTransferred
+        - SSVNetworkUpgraded
+        - ValidatorAdded
+        - ValidatorExited
+        - ValidatorRemoved
       abis:
         - name: SSVNetwork
           file: ./abis/SSVNetwork.json
