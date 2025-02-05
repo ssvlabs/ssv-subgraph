@@ -1,3 +1,313 @@
+type BApp @entity(immutable: false) {
+  id: Bytes! # address
+  owner: Account! # address
+  bAppTokens: [BAppToken!]! @derivedFrom(field: "bApp")
+  metadataURI: String
+  strategies: [StrategyBAppOptIn!]! @derivedFrom(field: "bApp")
+}
+
+type BAppToken @entity(immutable: false) {
+  id: String! # Set to `bApp.id.concat(token.id);`
+  bApp: BApp!
+  token: Bytes!
+  sharedRiskLevel: BigInt!
+  totalObligatedBalance: BigInt!
+}
+
+type Strategy @entity(immutable: false) {
+  id: String! # uint256
+  strategyId: BigInt! # uint256
+  owner: Account! # address
+  fee: BigInt! # uint256
+  feeProposed: BigInt! # uint256
+  feeProposedTimestamp: BigInt! # uint256
+  bApps: [StrategyBAppOptIn!]! @derivedFrom(field: "strategy")
+  deposits: [StrategyUserBalance!]! @derivedFrom(field: "strategy")
+  balances: [StrategyTokenBalance!]! @derivedFrom(field: "strategy")
+}
+
+type StrategyBAppOptIn @entity(immutable: false) {
+  id: String! # Set to `strategy.id.concat(bApp.id)`
+  strategy: Strategy!
+  bApp: BApp!
+  obligations: [Obligation!]! @derivedFrom(field: "strategyBAppOptIn")
+}
+
+type Obligation @entity(immutable: false) {
+  id: String! # Set to `StrategyBAppOptIn.id.concat(token.id)`
+  token: Bytes! # address
+  obligatedBalance: BigInt!
+  percentage: BigInt!
+  percentageProposed: BigInt!
+  percentageProposedTimestamp: BigInt! # uint256
+  strategyBAppOptIn: StrategyBAppOptIn!
+}
+
+type StrategyUserBalance @entity(immutable: false) {
+  id: String! # Set to `strategy.id.concat(account.id.concat(token.id))`
+  contributor: Account!
+  strategy: Strategy!
+  token: Bytes! # address
+  depositAmount: BigInt!
+  proposedWithdrawal: BigInt!
+  proposedWithdrawalTimestamp: BigInt!
+}
+
+type StrategyTokenBalance @entity(immutable: false) {
+  id: String! # Set to `strategy.id.concat(token.id))`
+  strategy: Strategy!
+  token: Bytes! # address
+  balance: BigInt!
+  riskValue: BigInt!
+}
+
+type Account @entity(immutable: false) {
+  id: Bytes! # address
+  # DVT stuff 🔥
+  nonce: BigInt!
+  validatorCount: BigInt! # uint256
+  clusters: [Cluster!] @derivedFrom(field: "owner")
+  validators: [Validator!] @derivedFrom(field: "owner")
+  operators: [Operator!] @derivedFrom(field: "owner")
+  feeRecipient: Bytes! #address
+  # BApp stuff 😎
+  bApps: [BApp!]! @derivedFrom(field: "owner")
+  strategies: [Strategy!]! @derivedFrom(field: "owner")
+  totalDelegatedPercentage: BigInt! # uint256
+  delegators: [Delegation!]! @derivedFrom(field: "receiver")
+  receivers: [Delegation!]! @derivedFrom(field: "delegator")
+  deposits: [StrategyUserBalance!]! @derivedFrom(field: "contributor")
+}
+
+type BAppConstants @entity(immutable: false) {
+  id: Bytes! # address
+  _maxFeeIncrement: BigInt!
+  totalAccounts: BigInt!
+  totalBApps: BigInt!
+  totalStrategies: BigInt!
+}
+
+type Delegation @entity(immutable: false) {
+  id: String! # Set to `account.id.concat(account.id)` (delegator => receiver)
+  delegator: Account!
+  receiver: Account!
+  percentage: BigInt!
+}
+
+type BAppMetadataURIUpdated @entity(immutable: true) {
+  id: Bytes!
+  bAppAddress: Bytes! # address
+  metadataURI: String! # string
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type BAppOptedInByStrategy @entity(immutable: true) {
+  id: Bytes!
+  strategyId: BigInt! # uint256
+  bApp: Bytes! # address
+  data: Bytes! # bytes
+  tokens: [Bytes!]! # address[]
+  obligationPercentages: [BigInt!]! # uint32[]
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type BAppRegistered @entity(immutable: true) {
+  id: Bytes!
+  bAppAddress: Bytes! # address
+  owner: Bytes! # address
+  tokens: [Bytes!]! # address[]
+  sharedRiskLevel: [BigInt!]! # uint32[]
+  metadataURI: String! # string
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type BAppTokensCreated @entity(immutable: true) {
+  id: Bytes!
+  bAppAddress: Bytes! # address
+  tokens: [Bytes!]! # address[]
+  sharedRiskLevels: [BigInt!]! # uint32[]
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type BAppTokensUpdated @entity(immutable: true) {
+  id: Bytes!
+  bAppAddress: Bytes! # address
+  tokens: [Bytes!]! # address[]
+  sharedRiskLevels: [BigInt!]! # uint32[]
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type DelegationCreated @entity(immutable: true) {
+  id: Bytes!
+  delegator: Bytes! # address
+  receiver: Bytes! # address
+  percentage: BigInt! # uint32
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type DelegationRemoved @entity(immutable: true) {
+  id: Bytes!
+  delegator: Bytes! # address
+  receiver: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type DelegationUpdated @entity(immutable: true) {
+  id: Bytes!
+  delegator: Bytes! # address
+  receiver: Bytes! # address
+  percentage: BigInt! # uint32
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Initialized @entity(immutable: true) {
+  id: Bytes!
+  version: BigInt! # uint64
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type MaxFeeIncrementSet @entity(immutable: true) {
+  id: Bytes!
+  newMaxFeeIncrement: BigInt! # uint32
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ObligationCreated @entity(immutable: true) {
+  id: Bytes!
+  strategyId: BigInt! # uint256
+  bApp: Bytes! # address
+  token: Bytes! # address
+  obligationPercentage: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ObligationUpdateProposed @entity(immutable: true) {
+  id: Bytes!
+  strategyId: BigInt! # uint256
+  bApp: Bytes! # address
+  token: Bytes! # address
+  percentage: BigInt! # uint32
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ObligationUpdated @entity(immutable: true) {
+  id: Bytes!
+  strategyId: BigInt! # uint256
+  bApp: Bytes! # address
+  token: Bytes! # address
+  percentage: BigInt! # uint256
+  isFast: Boolean! # bool
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OwnershipTransferred @entity(immutable: true) {
+  id: Bytes!
+  previousOwner: Bytes! # address
+  newOwner: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type StrategyCreated @entity(immutable: true) {
+  id: Bytes!
+  strategyId: BigInt! # uint256
+  owner: Bytes! # address
+  fee: BigInt! # uint32
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type StrategyDeposit @entity(immutable: true) {
+  id: Bytes!
+  strategyId: BigInt! # uint256
+  contributor: Bytes! # address
+  token: Bytes! # address
+  amount: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type StrategyFeeUpdateProposed @entity(immutable: true) {
+  id: Bytes!
+  strategyId: BigInt! # uint256
+  owner: Bytes! # address
+  proposedFee: BigInt! # uint32
+  fee: BigInt! # uint32
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type StrategyFeeUpdated @entity(immutable: true) {
+  id: Bytes!
+  strategyId: BigInt! # uint256
+  owner: Bytes! # address
+  fee: BigInt! # uint32
+  oldFee: BigInt! # uint32
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type StrategyWithdrawal @entity(immutable: true) {
+  id: Bytes!
+  strategyId: BigInt! # uint256
+  contributor: Bytes! # address
+  token: Bytes! # address
+  amount: BigInt! # uint256
+  isFast: Boolean! # bool
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type StrategyWithdrawalProposed @entity(immutable: true) {
+  id: Bytes!
+  strategyId: BigInt! # uint256
+  account: Bytes! # address
+  token: Bytes! # address
+  amount: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Upgraded @entity(immutable: true) {
+  id: Bytes!
+  implementation: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
 type Cluster @entity(immutable: false) {
   id: String! # concat owner + operatorIds ?
   owner: Account! # address
@@ -47,15 +357,15 @@ type Operator @entity(immutable: false) {
   validators: [Validator!] @derivedFrom(field: "operators")
 }
 
-type Account @entity(immutable: false) {
-  id: Bytes! # address
-  nonce: BigInt!
-  validatorCount: BigInt! # uint256
-  clusters: [Cluster!] @derivedFrom(field: "owner")
-  validators: [Validator!] @derivedFrom(field: "owner")
-  operators: [Operator!] @derivedFrom(field: "owner")
-  feeRecipient: Bytes! #address
-}
+# type Account @entity(immutable: false) {
+#   id: Bytes! # address
+#   nonce: BigInt!
+#   validatorCount: BigInt! # uint256
+#   clusters: [Cluster!] @derivedFrom(field: "owner")
+#   validators: [Validator!] @derivedFrom(field: "owner")
+#   operators: [Operator!] @derivedFrom(field: "owner")
+#   feeRecipient: Bytes! #address
+# }
 
 type DAOValues @entity(immutable: false) {
   id: Bytes!

@@ -1,17 +1,21 @@
 {
-  "name": "ssv-network",
+  "name": "ssv-bapps-subgraph",
   "license": "UNLICENSED",
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node http://localhost:8020 ssv-network",
-    "create-local": "graph create --node http://localhost:8020/ ssv-network",
-    "remove-local": "graph remove --node http://localhost:8020/ ssv-network",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 ssv-network",
+    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ ssv-bapps-subgraph",
+    "create-local": "graph create --node http://localhost:8020/ ssv-bapps-subgraph",
+    "remove-local": "graph remove --node http://localhost:8020/ ssv-bapps-subgraph",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 ssv-bapps-subgraph",
     "test": "graph test"
   },
   "dependencies": {
-    "@graphprotocol/graph-ts": "0.35.0"
+    "@docusaurus/plugin-google-gtag": "^3.7.0",
+    "@graphprotocol/graph-cli": "0.82.0",
+    "@graphprotocol/graph-ts": "0.32.0"
   },
-  "devDependencies": { "matchstick-as": "0.5.0" }
+  "devDependencies": {
+    "matchstick-as": "0.5.0"
+  }
 }

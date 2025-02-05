@@ -13,6 +13,7 @@ import {
   Initialized,
   LiquidationThresholdPeriodUpdated,
   MinimumLiquidationCollateralUpdated,
+  ModuleUpgraded,
   NetworkEarningsWithdrawn,
   NetworkFeeUpdated,
   OperatorAdded,
@@ -21,13 +22,18 @@ import {
   OperatorFeeExecuted,
   OperatorFeeIncreaseLimitUpdated,
   OperatorMaximumFeeUpdated,
-  OperatorRemoved,
   OperatorWhitelistUpdated,
+  OperatorMultipleWhitelistRemoved,
+  OperatorMultipleWhitelistUpdated,
+  OperatorPrivacyStatusUpdated,
+  OperatorRemoved,
+  OperatorWhitelistingContractUpdated,
   OperatorWithdrawn,
   OwnershipTransferStarted,
   OwnershipTransferred,
   Upgraded,
   ValidatorAdded,
+  ValidatorExited,
   ValidatorRemoved
 } from "../generated/SSVNetwork/SSVNetwork"
 
@@ -175,9 +181,8 @@ export function createClusterWithdrawnEvent(
 export function createDeclareOperatorFeePeriodUpdatedEvent(
   value: BigInt
 ): DeclareOperatorFeePeriodUpdated {
-  let declareOperatorFeePeriodUpdatedEvent = changetype<
-    DeclareOperatorFeePeriodUpdated
-  >(newMockEvent())
+  let declareOperatorFeePeriodUpdatedEvent =
+    changetype<DeclareOperatorFeePeriodUpdated>(newMockEvent())
 
   declareOperatorFeePeriodUpdatedEvent.parameters = new Array()
 
@@ -191,9 +196,8 @@ export function createDeclareOperatorFeePeriodUpdatedEvent(
 export function createExecuteOperatorFeePeriodUpdatedEvent(
   value: BigInt
 ): ExecuteOperatorFeePeriodUpdated {
-  let executeOperatorFeePeriodUpdatedEvent = changetype<
-    ExecuteOperatorFeePeriodUpdated
-  >(newMockEvent())
+  let executeOperatorFeePeriodUpdatedEvent =
+    changetype<ExecuteOperatorFeePeriodUpdated>(newMockEvent())
 
   executeOperatorFeePeriodUpdatedEvent.parameters = new Array()
 
@@ -208,9 +212,8 @@ export function createFeeRecipientAddressUpdatedEvent(
   owner: Address,
   recipientAddress: Address
 ): FeeRecipientAddressUpdated {
-  let feeRecipientAddressUpdatedEvent = changetype<FeeRecipientAddressUpdated>(
-    newMockEvent()
-  )
+  let feeRecipientAddressUpdatedEvent =
+    changetype<FeeRecipientAddressUpdated>(newMockEvent())
 
   feeRecipientAddressUpdatedEvent.parameters = new Array()
 
@@ -245,9 +248,8 @@ export function createInitializedEvent(version: i32): Initialized {
 export function createLiquidationThresholdPeriodUpdatedEvent(
   value: BigInt
 ): LiquidationThresholdPeriodUpdated {
-  let liquidationThresholdPeriodUpdatedEvent = changetype<
-    LiquidationThresholdPeriodUpdated
-  >(newMockEvent())
+  let liquidationThresholdPeriodUpdatedEvent =
+    changetype<LiquidationThresholdPeriodUpdated>(newMockEvent())
 
   liquidationThresholdPeriodUpdatedEvent.parameters = new Array()
 
@@ -261,9 +263,8 @@ export function createLiquidationThresholdPeriodUpdatedEvent(
 export function createMinimumLiquidationCollateralUpdatedEvent(
   value: BigInt
 ): MinimumLiquidationCollateralUpdated {
-  let minimumLiquidationCollateralUpdatedEvent = changetype<
-    MinimumLiquidationCollateralUpdated
-  >(newMockEvent())
+  let minimumLiquidationCollateralUpdatedEvent =
+    changetype<MinimumLiquidationCollateralUpdated>(newMockEvent())
 
   minimumLiquidationCollateralUpdatedEvent.parameters = new Array()
 
@@ -274,13 +275,36 @@ export function createMinimumLiquidationCollateralUpdatedEvent(
   return minimumLiquidationCollateralUpdatedEvent
 }
 
+export function createModuleUpgradedEvent(
+  moduleId: i32,
+  moduleAddress: Address
+): ModuleUpgraded {
+  let moduleUpgradedEvent = changetype<ModuleUpgraded>(newMockEvent())
+
+  moduleUpgradedEvent.parameters = new Array()
+
+  moduleUpgradedEvent.parameters.push(
+    new ethereum.EventParam(
+      "moduleId",
+      ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(moduleId))
+    )
+  )
+  moduleUpgradedEvent.parameters.push(
+    new ethereum.EventParam(
+      "moduleAddress",
+      ethereum.Value.fromAddress(moduleAddress)
+    )
+  )
+
+  return moduleUpgradedEvent
+}
+
 export function createNetworkEarningsWithdrawnEvent(
   value: BigInt,
   recipient: Address
 ): NetworkEarningsWithdrawn {
-  let networkEarningsWithdrawnEvent = changetype<NetworkEarningsWithdrawn>(
-    newMockEvent()
-  )
+  let networkEarningsWithdrawnEvent =
+    changetype<NetworkEarningsWithdrawn>(newMockEvent())
 
   networkEarningsWithdrawnEvent.parameters = new Array()
 
@@ -345,9 +369,8 @@ export function createOperatorFeeDeclarationCancelledEvent(
   owner: Address,
   operatorId: BigInt
 ): OperatorFeeDeclarationCancelled {
-  let operatorFeeDeclarationCancelledEvent = changetype<
-    OperatorFeeDeclarationCancelled
-  >(newMockEvent())
+  let operatorFeeDeclarationCancelledEvent =
+    changetype<OperatorFeeDeclarationCancelled>(newMockEvent())
 
   operatorFeeDeclarationCancelledEvent.parameters = new Array()
 
@@ -431,9 +454,8 @@ export function createOperatorFeeExecutedEvent(
 export function createOperatorFeeIncreaseLimitUpdatedEvent(
   value: BigInt
 ): OperatorFeeIncreaseLimitUpdated {
-  let operatorFeeIncreaseLimitUpdatedEvent = changetype<
-    OperatorFeeIncreaseLimitUpdated
-  >(newMockEvent())
+  let operatorFeeIncreaseLimitUpdatedEvent =
+    changetype<OperatorFeeIncreaseLimitUpdated>(newMockEvent())
 
   operatorFeeIncreaseLimitUpdatedEvent.parameters = new Array()
 
@@ -447,9 +469,8 @@ export function createOperatorFeeIncreaseLimitUpdatedEvent(
 export function createOperatorMaximumFeeUpdatedEvent(
   maxFee: BigInt
 ): OperatorMaximumFeeUpdated {
-  let operatorMaximumFeeUpdatedEvent = changetype<OperatorMaximumFeeUpdated>(
-    newMockEvent()
-  )
+  let operatorMaximumFeeUpdatedEvent =
+    changetype<OperatorMaximumFeeUpdated>(newMockEvent())
 
   operatorMaximumFeeUpdatedEvent.parameters = new Array()
 
@@ -458,6 +479,103 @@ export function createOperatorMaximumFeeUpdatedEvent(
   )
 
   return operatorMaximumFeeUpdatedEvent
+}
+
+export function createOperatorWhitelistUpdatedEvent(
+  operatorId: BigInt,
+  whitelisted: Address
+): OperatorWhitelistUpdated {
+  let operatorWhitelistUpdatedEvent =
+    changetype<OperatorWhitelistUpdated>(newMockEvent())
+
+  operatorWhitelistUpdatedEvent.parameters = new Array()
+
+  operatorWhitelistUpdatedEvent.parameters.push(
+    new ethereum.EventParam(
+      "operatorId",
+      ethereum.Value.fromUnsignedBigInt(operatorId)
+    )
+  )
+  operatorWhitelistUpdatedEvent.parameters.push(
+    new ethereum.EventParam(
+      "whitelisted",
+      ethereum.Value.fromAddress(whitelisted)
+    )
+  )
+
+  return operatorWhitelistUpdatedEvent
+}
+
+export function createOperatorMultipleWhitelistRemovedEvent(
+  operatorIds: Array<BigInt>,
+  whitelistAddresses: Array<Address>
+): OperatorMultipleWhitelistRemoved {
+  let operatorMultipleWhitelistRemovedEvent =
+    changetype<OperatorMultipleWhitelistRemoved>(newMockEvent())
+
+  operatorMultipleWhitelistRemovedEvent.parameters = new Array()
+
+  operatorMultipleWhitelistRemovedEvent.parameters.push(
+    new ethereum.EventParam(
+      "operatorIds",
+      ethereum.Value.fromUnsignedBigIntArray(operatorIds)
+    )
+  )
+  operatorMultipleWhitelistRemovedEvent.parameters.push(
+    new ethereum.EventParam(
+      "whitelistAddresses",
+      ethereum.Value.fromAddressArray(whitelistAddresses)
+    )
+  )
+
+  return operatorMultipleWhitelistRemovedEvent
+}
+
+export function createOperatorMultipleWhitelistUpdatedEvent(
+  operatorIds: Array<BigInt>,
+  whitelistAddresses: Array<Address>
+): OperatorMultipleWhitelistUpdated {
+  let operatorMultipleWhitelistUpdatedEvent =
+    changetype<OperatorMultipleWhitelistUpdated>(newMockEvent())
+
+  operatorMultipleWhitelistUpdatedEvent.parameters = new Array()
+
+  operatorMultipleWhitelistUpdatedEvent.parameters.push(
+    new ethereum.EventParam(
+      "operatorIds",
+      ethereum.Value.fromUnsignedBigIntArray(operatorIds)
+    )
+  )
+  operatorMultipleWhitelistUpdatedEvent.parameters.push(
+    new ethereum.EventParam(
+      "whitelistAddresses",
+      ethereum.Value.fromAddressArray(whitelistAddresses)
+    )
+  )
+
+  return operatorMultipleWhitelistUpdatedEvent
+}
+
+export function createOperatorPrivacyStatusUpdatedEvent(
+  operatorIds: Array<BigInt>,
+  toPrivate: boolean
+): OperatorPrivacyStatusUpdated {
+  let operatorPrivacyStatusUpdatedEvent =
+    changetype<OperatorPrivacyStatusUpdated>(newMockEvent())
+
+  operatorPrivacyStatusUpdatedEvent.parameters = new Array()
+
+  operatorPrivacyStatusUpdatedEvent.parameters.push(
+    new ethereum.EventParam(
+      "operatorIds",
+      ethereum.Value.fromUnsignedBigIntArray(operatorIds)
+    )
+  )
+  operatorPrivacyStatusUpdatedEvent.parameters.push(
+    new ethereum.EventParam("toPrivate", ethereum.Value.fromBoolean(toPrivate))
+  )
+
+  return operatorPrivacyStatusUpdatedEvent
 }
 
 export function createOperatorRemovedEvent(
@@ -477,30 +595,29 @@ export function createOperatorRemovedEvent(
   return operatorRemovedEvent
 }
 
-export function createOperatorWhitelistUpdatedEvent(
-  operatorId: BigInt,
-  whitelisted: Address
-): OperatorWhitelistUpdated {
-  let operatorWhitelistUpdatedEvent = changetype<OperatorWhitelistUpdated>(
-    newMockEvent()
-  )
+export function createOperatorWhitelistingContractUpdatedEvent(
+  operatorIds: Array<BigInt>,
+  whitelistingContract: Address
+): OperatorWhitelistingContractUpdated {
+  let operatorWhitelistingContractUpdatedEvent =
+    changetype<OperatorWhitelistingContractUpdated>(newMockEvent())
 
-  operatorWhitelistUpdatedEvent.parameters = new Array()
+  operatorWhitelistingContractUpdatedEvent.parameters = new Array()
 
-  operatorWhitelistUpdatedEvent.parameters.push(
+  operatorWhitelistingContractUpdatedEvent.parameters.push(
     new ethereum.EventParam(
-      "operatorId",
-      ethereum.Value.fromUnsignedBigInt(operatorId)
+      "operatorIds",
+      ethereum.Value.fromUnsignedBigIntArray(operatorIds)
     )
   )
-  operatorWhitelistUpdatedEvent.parameters.push(
+  operatorWhitelistingContractUpdatedEvent.parameters.push(
     new ethereum.EventParam(
-      "whitelisted",
-      ethereum.Value.fromAddress(whitelisted)
+      "whitelistingContract",
+      ethereum.Value.fromAddress(whitelistingContract)
     )
   )
 
-  return operatorWhitelistUpdatedEvent
+  return operatorWhitelistingContractUpdatedEvent
 }
 
 export function createOperatorWithdrawnEvent(
@@ -532,9 +649,8 @@ export function createOwnershipTransferStartedEvent(
   previousOwner: Address,
   newOwner: Address
 ): OwnershipTransferStarted {
-  let ownershipTransferStartedEvent = changetype<OwnershipTransferStarted>(
-    newMockEvent()
-  )
+  let ownershipTransferStartedEvent =
+    changetype<OwnershipTransferStarted>(newMockEvent())
 
   ownershipTransferStartedEvent.parameters = new Array()
 
@@ -555,9 +671,8 @@ export function createOwnershipTransferredEvent(
   previousOwner: Address,
   newOwner: Address
 ): OwnershipTransferred {
-  let ownershipTransferredEvent = changetype<OwnershipTransferred>(
-    newMockEvent()
-  )
+  let ownershipTransferredEvent =
+    changetype<OwnershipTransferred>(newMockEvent())
 
   ownershipTransferredEvent.parameters = new Array()
 
@@ -620,6 +735,31 @@ export function createValidatorAddedEvent(
   )
 
   return validatorAddedEvent
+}
+
+export function createValidatorExitedEvent(
+  owner: Address,
+  operatorIds: Array<BigInt>,
+  publicKey: Bytes
+): ValidatorExited {
+  let validatorExitedEvent = changetype<ValidatorExited>(newMockEvent())
+
+  validatorExitedEvent.parameters = new Array()
+
+  validatorExitedEvent.parameters.push(
+    new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner))
+  )
+  validatorExitedEvent.parameters.push(
+    new ethereum.EventParam(
+      "operatorIds",
+      ethereum.Value.fromUnsignedBigIntArray(operatorIds)
+    )
+  )
+  validatorExitedEvent.parameters.push(
+    new ethereum.EventParam("publicKey", ethereum.Value.fromBytes(publicKey))
+  )
+
+  return validatorExitedEvent
 }
 
 export function createValidatorRemovedEvent(

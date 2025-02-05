@@ -1,7 +1,15 @@
 {
   "holesky": {
+    "BasedAppManager": {
+      "address": "0x9B3345F3B1Ce2d8655FC4B6e2ed39322d52aA317",
+      "startBlock": 3250994
+    },
+    "BasedAppManagerImpl": {
+      "address": "0x590C093AbF6489289741E8aC119d1c91b06500C5",
+      "startBlock": 3250994
+    },
     "SSVNetwork": {
-      "address": "0x38A4794cCEd47d3baf7370CcC43B560D3a1beEFA",
+      "address": "0x0d33801785340072C452b994496B19f196b7eE15",
       "startBlock": 181612
     },
     "SSVNetworkImpl": {
@@ -10,6 +18,14 @@
     }
   },
   "holesky-prod": {
+    "BasedAppManager": {
+      "address": "0x9a09A49870353867b0ce9901B44E84C32B2A47AC",
+      "startBlock": 3250994
+    },
+    "BasedAppManagerImpl": {
+      "address": "0x1Bd6ceB98Daf7FfEB590236b720F81b65213836A",
+      "startBlock": 3250994
+    },
     "SSVNetwork": {
       "address": "0x38A4794cCEd47d3baf7370CcC43B560D3a1beEFA",
       "startBlock": 181612
@@ -20,6 +36,14 @@
     }
   },
   "holesky-stage": {
+    "BasedAppManager": {
+      "address": "0x9B3345F3B1Ce2d8655FC4B6e2ed39322d52aA317",
+      "startBlock": 3250994
+    },
+    "BasedAppManagerImpl": {
+      "address": "0x590C093AbF6489289741E8aC119d1c91b06500C5",
+      "startBlock": 3250994
+    },
     "SSVNetwork": {
       "address": "0x0d33801785340072C452b994496B19f196b7eE15",
       "startBlock": 84599
@@ -30,6 +54,10 @@
     }
   },
   "mainnet": {
+    "BasedAppManager": {
+      "address": "0xa8D6b028c6A48eCaf5558358A17824D1493D5B0a",
+      "startBlock": 3250994
+    },
     "SSVNetwork": {
       "address": "0xDD9BC35aE942eF0cFa76930954a156B3fF30a4E1",
       "startBlock": 17507480
