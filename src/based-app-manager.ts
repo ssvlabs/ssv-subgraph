@@ -594,8 +594,6 @@ export function handleBAppTokensUpdated(event: BAppTokensUpdatedEvent): void {
     bAppToken.save();
   }
 
-  // // remove the representation of the token (and risk) for this bapp, no longer needed.
-  // store.remove("BAppToken", bappTokenId);
   let bApp = BApp.load(event.params.bApp);
   if (!bApp) {
     log.error(
@@ -604,9 +602,9 @@ export function handleBAppTokensUpdated(event: BAppTokensUpdatedEvent): void {
     );
     return;
   }
-
+  
+  // // remove the representation of the token (and risk) for this bapp, no longer needed.
   let bAppTokens = bApp.bAppTokens.load();
-
   if (!bAppTokens) {
     log.info(
       `Trying to adjust the list of tokens accepted by BApp ${event.params.bApp}, but the list is empty`,
@@ -619,7 +617,7 @@ export function handleBAppTokensUpdated(event: BAppTokensUpdatedEvent): void {
     let bappToken = bAppTokens[j];
     if (!newTokensAddresses.has(bappToken.token)) {
       store.remove(
-        "Transfer",
+        "BAppToken",
         event.params.bApp.toHexString().concat(bappToken.token.toHexString())
       );
     }
