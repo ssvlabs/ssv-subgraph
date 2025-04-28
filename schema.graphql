@@ -1,6 +1,5 @@
 type BApp @entity(immutable: false) {
   id: Bytes! # address
-  owner: Account! # address
   bAppTokens: [BAppToken!]! @derivedFrom(field: "bApp")
   metadataURI: String
   strategies: [StrategyBAppOptIn!]! @derivedFrom(field: "bApp")
@@ -17,6 +16,7 @@ type BAppToken @entity(immutable: false) {
 type Strategy @entity(immutable: false) {
   id: String! # uint256
   strategyId: BigInt! # uint256
+  metadataURI: String
   owner: Account! # address
   fee: BigInt! # uint256
   feeProposed: BigInt! # uint256
@@ -71,7 +71,7 @@ type Account @entity(immutable: false) {
   operators: [Operator!] @derivedFrom(field: "owner")
   feeRecipient: Bytes! #address
   # BApp stuff 😎
-  bApps: [BApp!]! @derivedFrom(field: "owner")
+  metadataURI: String
   strategies: [Strategy!]! @derivedFrom(field: "owner")
   totalDelegatedPercentage: BigInt! # uint256
   delegators: [Delegation!]! @derivedFrom(field: "receiver")
@@ -81,7 +81,14 @@ type Account @entity(immutable: false) {
 
 type BAppConstants @entity(immutable: false) {
   id: Bytes! # address
-  _maxFeeIncrement: BigInt!
+  _feeExpireTime: BigInt!
+  _feeTimelockPeriod: BigInt!
+  _obligationExpireTime: BigInt!
+  _obligationTimelockPeriod: BigInt!
+  _strategyMaxFeeIncrement: BigInt!
+  _strategyMaxShares: BigInt!
+  _withdrawalExpireTime: BigInt!
+  _withdrawalTimelockPeriod: BigInt!
   totalAccounts: BigInt!
   totalBApps: BigInt!
   totalStrategies: BigInt!
@@ -92,6 +99,70 @@ type Delegation @entity(immutable: false) {
   delegator: Account!
   receiver: Account!
   percentage: BigInt!
+}
+
+type FeeExpireTimeUpdated @entity(immutable: true) {
+  id: Bytes!
+  feeExpireTime: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type FeeTimelockPeriodUpdated @entity(immutable: true) {
+  id: Bytes!
+  feeTimelockPeriod: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ObligationExpireTimeUpdated @entity(immutable: true) {
+  id: Bytes!
+  obligationExpireTime: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ObligationTimelockPeriodUpdated @entity(immutable: true) {
+  id: Bytes!
+  obligationTimelockPeriod: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type StrategyMaxFeeIncrementUpdated @entity(immutable: true) {
+  id: Bytes!
+  strategyMaxFeeIncrement: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type StrategyMaxSharesUpdated @entity(immutable: true) {
+  id: Bytes!
+  strategyMaxShares: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type WithdrawalTimelockPeriodUpdated @entity(immutable: true) {
+  id: Bytes!
+  withdrawalTimelockPeriod: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type WithdrawalExpireTimeUpdated @entity(immutable: true) {
+  id: Bytes!
+  withdrawalExpireTime: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
 }
 
 type BAppMetadataURIUpdated @entity(immutable: true) {
@@ -118,7 +189,6 @@ type BAppOptedInByStrategy @entity(immutable: true) {
 type BAppRegistered @entity(immutable: true) {
   id: Bytes!
   bAppAddress: Bytes! # address
-  owner: Bytes! # address
   tokens: [Bytes!]! # address[]
   sharedRiskLevel: [BigInt!]! # uint32[]
   metadataURI: String! # string
@@ -132,6 +202,15 @@ type BAppTokensCreated @entity(immutable: true) {
   bAppAddress: Bytes! # address
   tokens: [Bytes!]! # address[]
   sharedRiskLevels: [BigInt!]! # uint32[]
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type BAppTokensRemoved @entity(immutable: true) {
+  id: Bytes!
+  bAppAddress: Bytes! # address
+  tokens: [Bytes!]! # address[]
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
@@ -235,11 +314,21 @@ type OwnershipTransferred @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+type SlashingFundWithdrawn @entity(immutable: true) {
+  id: Bytes!
+  token: Bytes! # address
+  amount: BigInt! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
 type StrategyCreated @entity(immutable: true) {
   id: Bytes!
   strategyId: BigInt! # uint256
   owner: Bytes! # address
   fee: BigInt! # uint32
+  metadataURI: String
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
@@ -261,7 +350,6 @@ type StrategyFeeUpdateProposed @entity(immutable: true) {
   strategyId: BigInt! # uint256
   owner: Bytes! # address
   proposedFee: BigInt! # uint32
-  fee: BigInt! # uint32
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
@@ -272,7 +360,19 @@ type StrategyFeeUpdated @entity(immutable: true) {
   strategyId: BigInt! # uint256
   owner: Bytes! # address
   fee: BigInt! # uint32
-  oldFee: BigInt! # uint32
+  isFast: Boolean!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type StrategySlashed @entity(immutable: true) {
+  id: Bytes!
+  strategyId: BigInt! # uint256
+  bAppAddress: Bytes! # address
+  token: Bytes! # address
+  percentage: BigInt!
+  receiver: Bytes! # address
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
@@ -301,6 +401,24 @@ type StrategyWithdrawalProposed @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+type StrategyMetadataURIUpdated @entity(immutable: true) {
+  id: Bytes!
+  strategyId: BigInt! # uint32
+  metadataURI: String!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type AccountMetadataURIUpdated @entity(immutable: true) {
+  id: Bytes!
+  account: Bytes! # address
+  metadataURI: String!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
 type Upgraded @entity(immutable: true) {
   id: Bytes!
   implementation: Bytes! # address
@@ -308,6 +426,7 @@ type Upgraded @entity(immutable: true) {
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
+
 type Cluster @entity(immutable: false) {
   id: String! # concat owner + operatorIds ?
   owner: Account! # address

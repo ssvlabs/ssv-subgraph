@@ -1,15 +1,23 @@
-import { BigInt, Bytes, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, log, store } from "@graphprotocol/graph-ts";
 import {
+  AccountMetadataURIUpdated as AccountMetadataURIUpdatedEvent,
   BAppMetadataURIUpdated as BAppMetadataURIUpdatedEvent,
   BAppOptedInByStrategy as BAppOptedInByStrategyEvent,
   BAppRegistered as BAppRegisteredEvent,
-  BAppTokensCreated as BAppTokensCreatedEvent,
   BAppTokensUpdated as BAppTokensUpdatedEvent,
   DelegationCreated as DelegationCreatedEvent,
   DelegationRemoved as DelegationRemovedEvent,
   DelegationUpdated as DelegationUpdatedEvent,
-  InitializeCall,
   Initialized as InitializedEvent,
+  FeeExpireTimeUpdated as FeeExpireTimeUpdatedEvent,
+  FeeTimelockPeriodUpdated as FeeTimelockPeriodUpdatedEvent,
+  ObligationExpireTimeUpdated as ObligationExpireTimeUpdatedEvent,
+  ObligationTimelockPeriodUpdated as ObligationTimelockPeriodUpdatedEvent,
+  StrategyMaxFeeIncrementUpdated as StrategyMaxFeeIncrementUpdatedEvent,
+  StrategyMaxSharesUpdated as StrategyMaxSharesUpdatedEvent,
+  WithdrawalTimelockPeriodUpdated as WithdrawalTimelockPeriodUpdatedEvent,
+  WithdrawalExpireTimeUpdated as WithdrawalExpireTimeUpdatedEvent,
+  SlashingFundWithdrawn as SlashingFundWithdrawnEvent,
   MaxFeeIncrementSet as MaxFeeIncrementSetEvent,
   ObligationCreated as ObligationCreatedEvent,
   ObligationUpdateProposed as ObligationUpdateProposedEvent,
@@ -19,17 +27,19 @@ import {
   StrategyDeposit as StrategyDepositEvent,
   StrategyFeeUpdateProposed as StrategyFeeUpdateProposedEvent,
   StrategyFeeUpdated as StrategyFeeUpdatedEvent,
+  StrategySlashed as StrategySlashedEvent,
+  StrategyMetadataURIUpdated as StrategyMetadataURIUpdatedEvent,
   StrategyWithdrawal as StrategyWithdrawalEvent,
   StrategyWithdrawalProposed as StrategyWithdrawalProposedEvent,
 } from "../generated/BasedAppManager/BasedAppManager";
 import {
   Account,
+  AccountMetadataURIUpdated,
   BApp,
   BAppConstants,
   BAppMetadataURIUpdated,
   BAppOptedInByStrategy,
   BAppRegistered,
-  BAppTokensCreated,
   BAppTokensUpdated,
   Delegation,
   DelegationCreated,
@@ -50,41 +60,356 @@ import {
   StrategyFeeUpdateProposed,
   StrategyFeeUpdated,
   StrategyUserBalance,
+  StrategyMetadataURIUpdated,
   StrategyWithdrawal,
   StrategyWithdrawalProposed,
   StrategyTokenBalance,
+  FeeExpireTimeUpdated,
+  FeeTimelockPeriodUpdated,
+  ObligationExpireTimeUpdated,
+  ObligationTimelockPeriodUpdated,
+  StrategyMaxFeeIncrementUpdated,
+  StrategyMaxSharesUpdated,
+  WithdrawalTimelockPeriodUpdated,
+  WithdrawalExpireTimeUpdated,
+  SlashingFundWithdrawn,
+  StrategySlashed,
 } from "../generated/schema";
 
-export function handleInitialize(call: InitializeCall): void {
-  let proxyContract = call.from;
-  if (
-    !proxyContract
-      .toHexString()
-      .toLowerCase()
-      .includes("0x9b3345f3b1ce2d8655fc4b6e2ed39322d52aa317") &&
-    !proxyContract
-      .toHexString()
-      .toLowerCase()
-      .includes("0x9a09a49870353867b0ce9901b44e84c32b2a47ac")
-  ) {
+// export function handleInitialize(call: InitializeCall): void {
+//   let proxyContract = call.from;
+//   if (
+//     !proxyContract
+//       .toHexString()
+//       .toLowerCase()
+//       .includes("0x1bd6ceb98daf7ffeb590236b720f81b65213836a")
+//   ) {
+//     log.error(
+//       `Caller is ${proxyContract.toHexString()}, but we only expect 0x1bd6ceb98daf7ffeb590236b720f81b65213836a`,
+//       []
+//     );
+//     return;
+//   }
+
+//   log.info(
+//     `New contract ${call.to.toHexString()} Initialized, Bapp Constant values stored with ID ${proxyContract.toHexString()} Updating maxFeeIncrement constant`,
+//     []
+//   );
+
+//   let bAppConstants = BAppConstants.load(proxyContract);
+//   if (!bAppConstants) {
+
+//     log.warning(
+//       `Contract ${call.to.toHexString()} is a new implementation, but the Bapp Constant values with ID ${proxyContract.toHexString()} does not exist on the database, creating it`,
+//       []
+//     );
+
+//     bAppConstants = new BAppConstants(proxyContract);
+//     bAppConstants.totalAccounts = BigInt.zero();
+//     bAppConstants.totalBApps = BigInt.zero();
+//     bAppConstants.totalStrategies = BigInt.zero();
+//   }
+
+//   bAppConstants._maxFeeIncrement = call.inputs._maxFeeIncrement;
+
+//   bAppConstants.save();
+// }
+
+export function handleFeeExpireTimeUpdated(
+  event: FeeExpireTimeUpdatedEvent
+): void {
+  let entity = new FeeExpireTimeUpdated(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  );
+  entity.feeExpireTime = event.params.feeExpireTime;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+
+  let bAppConstants = BAppConstants.load(event.address);
+  if (!bAppConstants) {
     log.error(
-      `Caller is ${proxyContract.toHexString()}, but we only expect 0x9b3345f3b1ce2d8655fc4b6e2ed39322d52aa317 or 0x9a09a49870353867b0ce9901b44e84c32b2a47ac`,
+      "Trying to adjust total Accounts, but constant entry does not exist, and cannot be created",
       []
     );
-    return;
+    bAppConstants = new BAppConstants(event.address);
+    bAppConstants._feeExpireTime = BigInt.fromI32(1);
+    bAppConstants._feeTimelockPeriod = BigInt.fromI32(7);
+    bAppConstants._obligationExpireTime = BigInt.fromI32(3);
+    bAppConstants._obligationTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants._strategyMaxFeeIncrement = BigInt.fromI32(500);
+    bAppConstants._strategyMaxShares = BigInt.fromI32(10000);
+    bAppConstants._withdrawalExpireTime = BigInt.fromI32(3);
+    bAppConstants._withdrawalTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants.totalAccounts = BigInt.zero();
+    bAppConstants.totalBApps = BigInt.zero();
+    bAppConstants.totalStrategies = BigInt.zero();
   }
+  bAppConstants._feeExpireTime = event.params.feeExpireTime;
+  bAppConstants.save();
+}
 
-  log.info(
-    `New contract Initialized, Bapp Constant values stored with ID ${proxyContract.toHexString()} does not exist on the database, creating it. Update type: INITIALIZATION`,
-    []
+export function handleFeeTimelockPeriodUpdated(
+  event: FeeTimelockPeriodUpdatedEvent
+): void {
+  let entity = new FeeTimelockPeriodUpdated(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
   );
-  let bAppConstants = new BAppConstants(proxyContract);
-  bAppConstants._maxFeeIncrement = call.inputs._maxFeeIncrement;
+  entity.feeTimelockPeriod = event.params.feeTimelockPeriod;
 
-  bAppConstants.totalAccounts = BigInt.zero();
-  bAppConstants.totalBApps = BigInt.zero();
-  bAppConstants.totalStrategies = BigInt.zero();
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
 
+  entity.save();
+
+  let bAppConstants = BAppConstants.load(event.address);
+  if (!bAppConstants) {
+    log.error(
+      "Trying to adjust total Accounts, but constant entry does not exist, and cannot be created",
+      []
+    );
+    bAppConstants = new BAppConstants(event.address);
+    bAppConstants._feeExpireTime = BigInt.fromI32(1);
+    bAppConstants._feeTimelockPeriod = BigInt.fromI32(7);
+    bAppConstants._obligationExpireTime = BigInt.fromI32(3);
+    bAppConstants._obligationTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants._strategyMaxFeeIncrement = BigInt.fromI32(500);
+    bAppConstants._strategyMaxShares = BigInt.fromI32(10000);
+    bAppConstants._withdrawalExpireTime = BigInt.fromI32(3);
+    bAppConstants._withdrawalTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants.totalAccounts = BigInt.zero();
+    bAppConstants.totalBApps = BigInt.zero();
+    bAppConstants.totalStrategies = BigInt.zero();
+  }
+  bAppConstants._feeTimelockPeriod = event.params.feeTimelockPeriod;
+  bAppConstants.save();
+}
+
+export function handleObligationExpireTimeUpdated(
+  event: ObligationExpireTimeUpdatedEvent
+): void {
+  let entity = new ObligationExpireTimeUpdated(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  );
+  entity.obligationExpireTime = event.params.obligationExpireTime;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+
+  let bAppConstants = BAppConstants.load(event.address);
+  if (!bAppConstants) {
+    log.error(
+      "Trying to adjust total Accounts, but constant entry does not exist, and cannot be created",
+      []
+    );
+    bAppConstants = new BAppConstants(event.address);
+    bAppConstants._feeExpireTime = BigInt.fromI32(1);
+    bAppConstants._feeTimelockPeriod = BigInt.fromI32(7);
+    bAppConstants._obligationExpireTime = BigInt.fromI32(3);
+    bAppConstants._obligationTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants._strategyMaxFeeIncrement = BigInt.fromI32(500);
+    bAppConstants._strategyMaxShares = BigInt.fromI32(10000);
+    bAppConstants._withdrawalExpireTime = BigInt.fromI32(3);
+    bAppConstants._withdrawalTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants.totalAccounts = BigInt.zero();
+    bAppConstants.totalBApps = BigInt.zero();
+    bAppConstants.totalStrategies = BigInt.zero();
+  }
+  bAppConstants._obligationExpireTime = event.params.obligationExpireTime;
+  bAppConstants.save();
+}
+
+export function handleObligationTimelockPeriodUpdated(
+  event: ObligationTimelockPeriodUpdatedEvent
+): void {
+  let entity = new ObligationTimelockPeriodUpdated(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  );
+  entity.obligationTimelockPeriod = event.params.obligationTimelockPeriod;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+
+  let bAppConstants = BAppConstants.load(event.address);
+  if (!bAppConstants) {
+    log.error(
+      "Trying to adjust total Accounts, but constant entry does not exist, and cannot be created",
+      []
+    );
+    bAppConstants = new BAppConstants(event.address);
+    bAppConstants._feeExpireTime = BigInt.fromI32(1);
+    bAppConstants._feeTimelockPeriod = BigInt.fromI32(7);
+    bAppConstants._obligationExpireTime = BigInt.fromI32(3);
+    bAppConstants._obligationTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants._strategyMaxFeeIncrement = BigInt.fromI32(500);
+    bAppConstants._strategyMaxShares = BigInt.fromI32(10000);
+    bAppConstants._withdrawalExpireTime = BigInt.fromI32(3);
+    bAppConstants._withdrawalTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants.totalAccounts = BigInt.zero();
+    bAppConstants.totalBApps = BigInt.zero();
+    bAppConstants.totalStrategies = BigInt.zero();
+  }
+  bAppConstants._obligationTimelockPeriod =
+    event.params.obligationTimelockPeriod;
+  bAppConstants.save();
+}
+
+export function handleStrategyMaxFeeIncrementUpdated(
+  event: StrategyMaxFeeIncrementUpdatedEvent
+): void {
+  let entity = new StrategyMaxFeeIncrementUpdated(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  );
+  entity.strategyMaxFeeIncrement = event.params.maxFeeIncrement;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+
+  let bAppConstants = BAppConstants.load(event.address);
+  if (!bAppConstants) {
+    log.error(
+      "Trying to adjust total Accounts, but constant entry does not exist, and cannot be created",
+      []
+    );
+    bAppConstants = new BAppConstants(event.address);
+    bAppConstants._feeExpireTime = BigInt.fromI32(1);
+    bAppConstants._feeTimelockPeriod = BigInt.fromI32(7);
+    bAppConstants._obligationExpireTime = BigInt.fromI32(3);
+    bAppConstants._obligationTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants._strategyMaxFeeIncrement = BigInt.fromI32(500);
+    bAppConstants._strategyMaxShares = BigInt.fromI32(10000);
+    bAppConstants._withdrawalExpireTime = BigInt.fromI32(3);
+    bAppConstants._withdrawalTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants.totalAccounts = BigInt.zero();
+    bAppConstants.totalBApps = BigInt.zero();
+    bAppConstants.totalStrategies = BigInt.zero();
+  }
+  bAppConstants._strategyMaxFeeIncrement = event.params.maxFeeIncrement;
+  bAppConstants.save();
+}
+
+export function handleStrategyMaxSharesUpdated(
+  event: StrategyMaxSharesUpdatedEvent
+): void {
+  let entity = new StrategyMaxSharesUpdated(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  );
+  entity.strategyMaxShares = event.params.maxShares;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+
+  let bAppConstants = BAppConstants.load(event.address);
+  if (!bAppConstants) {
+    log.error(
+      "Trying to adjust total Accounts, but constant entry does not exist, and cannot be created",
+      []
+    );
+    bAppConstants = new BAppConstants(event.address);
+    bAppConstants._feeExpireTime = BigInt.fromI32(1);
+    bAppConstants._feeTimelockPeriod = BigInt.fromI32(7);
+    bAppConstants._obligationExpireTime = BigInt.fromI32(3);
+    bAppConstants._obligationTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants._strategyMaxFeeIncrement = BigInt.fromI32(500);
+    bAppConstants._strategyMaxShares = BigInt.fromI32(10000);
+    bAppConstants._withdrawalExpireTime = BigInt.fromI32(3);
+    bAppConstants._withdrawalTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants.totalAccounts = BigInt.zero();
+    bAppConstants.totalBApps = BigInt.zero();
+    bAppConstants.totalStrategies = BigInt.zero();
+  }
+  bAppConstants._strategyMaxShares = event.params.maxShares;
+  bAppConstants.save();
+}
+
+export function handleWithdrawalTimelockPeriodUpdated(
+  event: WithdrawalTimelockPeriodUpdatedEvent
+): void {
+  let entity = new WithdrawalTimelockPeriodUpdated(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  );
+  entity.withdrawalTimelockPeriod = event.params.withdrawalTimelockPeriod;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+
+  let bAppConstants = BAppConstants.load(event.address);
+  if (!bAppConstants) {
+    log.error(
+      "Trying to adjust total Accounts, but constant entry does not exist, and cannot be created",
+      []
+    );
+    bAppConstants = new BAppConstants(event.address);
+    bAppConstants._feeExpireTime = BigInt.fromI32(1);
+    bAppConstants._feeTimelockPeriod = BigInt.fromI32(7);
+    bAppConstants._obligationExpireTime = BigInt.fromI32(3);
+    bAppConstants._obligationTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants._strategyMaxFeeIncrement = BigInt.fromI32(500);
+    bAppConstants._strategyMaxShares = BigInt.fromI32(10000);
+    bAppConstants._withdrawalExpireTime = BigInt.fromI32(3);
+    bAppConstants._withdrawalTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants.totalAccounts = BigInt.zero();
+    bAppConstants.totalBApps = BigInt.zero();
+    bAppConstants.totalStrategies = BigInt.zero();
+  }
+  bAppConstants._withdrawalTimelockPeriod =
+    event.params.withdrawalTimelockPeriod;
+  bAppConstants.save();
+}
+
+export function handleWithdrawalExpireTimeUpdated(
+  event: WithdrawalExpireTimeUpdatedEvent
+): void {
+  let entity = new WithdrawalExpireTimeUpdated(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  );
+  entity.withdrawalExpireTime = event.params.withdrawalExpireTime;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+
+  let bAppConstants = BAppConstants.load(event.address);
+  if (!bAppConstants) {
+    log.error(
+      "Trying to adjust total Accounts, but constant entry does not exist, and cannot be created",
+      []
+    );
+    bAppConstants = new BAppConstants(event.address);
+    bAppConstants._feeExpireTime = BigInt.fromI32(1);
+    bAppConstants._feeTimelockPeriod = BigInt.fromI32(7);
+    bAppConstants._obligationExpireTime = BigInt.fromI32(3);
+    bAppConstants._obligationTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants._strategyMaxFeeIncrement = BigInt.fromI32(500);
+    bAppConstants._strategyMaxShares = BigInt.fromI32(10000);
+    bAppConstants._withdrawalExpireTime = BigInt.fromI32(3);
+    bAppConstants._withdrawalTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants.totalAccounts = BigInt.zero();
+    bAppConstants.totalBApps = BigInt.zero();
+    bAppConstants.totalStrategies = BigInt.zero();
+  }
+  bAppConstants._withdrawalExpireTime = event.params.withdrawalExpireTime;
   bAppConstants.save();
 }
 
@@ -94,7 +419,7 @@ export function handleBAppMetadataURIUpdated(
   let entity = new BAppMetadataURIUpdated(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   );
-  entity.bAppAddress = event.params.bAppAddress;
+  entity.bAppAddress = event.params.bApp;
   entity.metadataURI = event.params.metadataURI;
 
   entity.blockNumber = event.block.number;
@@ -103,10 +428,10 @@ export function handleBAppMetadataURIUpdated(
 
   entity.save();
 
-  let bApp = BApp.load(event.params.bAppAddress);
+  let bApp = BApp.load(event.params.bApp);
   if (!bApp) {
     log.error(
-      `New BApp Event, BApp address ${event.params.bAppAddress.toHexString()} does not exist on the database, and it can't be created`,
+      `New BApp Event, BApp address ${event.params.bApp.toHexString()} does not exist on the database, and it can't be created`,
       []
     );
   } else {
@@ -163,8 +488,7 @@ export function handleBAppRegistered(event: BAppRegisteredEvent): void {
   let entity = new BAppRegistered(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   );
-  entity.bAppAddress = event.params.bAppAddress;
-  entity.owner = event.params.owner;
+  entity.bAppAddress = event.params.bApp;
   entity.tokens = changetype<Bytes[]>(event.params.tokens);
   entity.sharedRiskLevel = event.params.sharedRiskLevel;
   entity.metadataURI = event.params.metadataURI;
@@ -175,33 +499,16 @@ export function handleBAppRegistered(event: BAppRegisteredEvent): void {
 
   entity.save();
 
-  let newAccountsCount = 0;
-  let owner = Account.load(event.params.owner);
-  if (!owner) {
-    log.info(
-      `Trying to create new BApp but owner account ${event.params.owner.toHexString()} does not exist, creating it`,
-      []
-    );
-    owner = new Account(event.params.owner);
-    owner.nonce = BigInt.zero();
-    owner.validatorCount = BigInt.zero();
-    owner.feeRecipient = event.params.owner;
-    owner.totalDelegatedPercentage = BigInt.zero();
-    newAccountsCount += 1;
-  }
-  owner.save();
-
-  let bApp = BApp.load(event.params.bAppAddress);
+  let bApp = BApp.load(event.params.bApp);
   if (!bApp) {
-    bApp = new BApp(event.params.bAppAddress);
+    bApp = new BApp(event.params.bApp);
     log.info(
-      `New BApp Event, BApp address ${event.params.bAppAddress.toHexString()} does not exist on the database, creating a new entity`,
+      `New BApp Event, BApp address ${event.params.bApp.toHexString()} does not exist on the database, creating a new entity`,
       []
     );
   }
 
   bApp.metadataURI = event.params.metadataURI;
-  bApp.owner = event.params.owner;
   for (var i = 0; i < event.params.tokens.length; i++) {
     let token = event.params.tokens[i];
     let sharedRiskLevelValue = event.params.sharedRiskLevel[i];
@@ -209,7 +516,7 @@ export function handleBAppRegistered(event: BAppRegisteredEvent): void {
     let bAppToken = BAppToken.load(sharedRiskLevelId);
     if (!bAppToken) {
       log.info(
-        `New BAppToken created ${sharedRiskLevelId} as BApp ${event.params.bAppAddress.toHexString()} is created, and supports token ${token.toHexString()}`,
+        `New BAppToken created ${sharedRiskLevelId} as BApp ${event.params.bApp.toHexString()} is created, and supports token ${token.toHexString()}`,
         []
       );
       bAppToken = new BAppToken(sharedRiskLevelId);
@@ -228,58 +535,34 @@ export function handleBAppRegistered(event: BAppRegisteredEvent): void {
       "Trying to adjust total Accounts, but constant entry does not exist, and cannot be created",
       []
     );
-    return;
+    bAppConstants = new BAppConstants(event.address);
+    bAppConstants._feeExpireTime = BigInt.fromI32(1);
+    bAppConstants._feeTimelockPeriod = BigInt.fromI32(7);
+    bAppConstants._obligationExpireTime = BigInt.fromI32(3);
+    bAppConstants._obligationTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants._strategyMaxFeeIncrement = BigInt.fromI32(500);
+    bAppConstants._strategyMaxShares = BigInt.fromI32(10000);
+    bAppConstants._withdrawalExpireTime = BigInt.fromI32(3);
+    bAppConstants._withdrawalTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants.totalAccounts = BigInt.zero();
+    bAppConstants.totalBApps = BigInt.zero();
+    bAppConstants.totalStrategies = BigInt.zero();
   }
-  bAppConstants.totalAccounts = bAppConstants.totalAccounts.plus(
-    BigInt.fromI32(newAccountsCount)
-  );
   bAppConstants.totalBApps = bAppConstants.totalBApps.plus(BigInt.fromI32(1));
   bAppConstants.save();
-}
-
-export function handleBAppTokensCreated(event: BAppTokensCreatedEvent): void {
-  let entity = new BAppTokensCreated(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  );
-  entity.bAppAddress = event.params.bAppAddress;
-  entity.tokens = changetype<Bytes[]>(event.params.tokens);
-  entity.sharedRiskLevels = event.params.sharedRiskLevels;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
-
-  for (var i = 0; i < event.params.tokens.length; i++) {
-    let token = event.params.tokens[i];
-    let sharedRiskLevelValue = event.params.sharedRiskLevels[i];
-    let sharedRiskLevelId = event.params.bAppAddress
-      .toHexString()
-      .concat(token.toHexString());
-    let bAppToken = BAppToken.load(sharedRiskLevelId);
-    if (!bAppToken) {
-      log.info(
-        `New BAppToken created ${sharedRiskLevelId} as new token ${token.toHexString()} is supported by BApp ${event.params.bAppAddress.toHexString()}`,
-        []
-      );
-      bAppToken = new BAppToken(sharedRiskLevelId);
-      bAppToken.totalObligatedBalance = BigInt.zero();
-    }
-    bAppToken.bApp = event.params.bAppAddress;
-    bAppToken.token = token;
-    bAppToken.sharedRiskLevel = sharedRiskLevelValue;
-    bAppToken.save();
-  }
 }
 
 export function handleBAppTokensUpdated(event: BAppTokensUpdatedEvent): void {
   let entity = new BAppTokensUpdated(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   );
-  entity.bAppAddress = event.params.bAppAddress;
-  entity.tokens = changetype<Bytes[]>(event.params.tokens);
-  entity.sharedRiskLevels = event.params.sharedRiskLevels;
+  entity.bAppAddress = event.params.bApp;
+  entity.tokens = changetype<Bytes[]>(
+    event.params.tokenConfigs.map<Address>((tokenConfig) => tokenConfig.token)
+  );
+  entity.sharedRiskLevels = event.params.tokenConfigs.map<BigInt>(
+    (tokenConfig) => tokenConfig.sharedRiskLevel
+  );
 
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
@@ -287,22 +570,58 @@ export function handleBAppTokensUpdated(event: BAppTokensUpdatedEvent): void {
 
   entity.save();
 
-  for (var i = 0; i < event.params.tokens.length; i++) {
-    let token = event.params.tokens[i];
-    let sharedRiskLevelValue = event.params.sharedRiskLevels[i];
-    let sharedRiskLevelId = event.params.bAppAddress
+  let newTokensAddresses = new Set<Bytes>();
+
+  for (var i = 0; i < event.params.tokenConfigs.length; i++) {
+    let token = event.params.tokenConfigs[i].token;
+    newTokensAddresses.add(token);
+    let sharedRiskLevelValue = event.params.tokenConfigs[i].sharedRiskLevel;
+    let bAppTokenId = event.params.bApp
       .toHexString()
       .concat(token.toHexString());
-    let sharedRiskLevel = BAppToken.load(sharedRiskLevelId);
-    if (!sharedRiskLevel) {
-      log.error(
-        `Trying to update BAppToken ${sharedRiskLevelId} for BApp ${event.params.bAppAddress.toHexString()}, as token ${token.toHexString()} risk level has changed, but BAppToken does not exist and cannot be created`,
+    let bAppToken = BAppToken.load(bAppTokenId);
+    if (!bAppToken) {
+      log.info(
+        `New BAppToken created ${bAppTokenId} as new token ${token.toHexString()} is supported by BApp ${event.params.bApp.toHexString()}`,
         []
       );
-    } else {
-      sharedRiskLevel.token = token;
-      sharedRiskLevel.sharedRiskLevel = sharedRiskLevelValue;
-      sharedRiskLevel.save();
+      bAppToken = new BAppToken(bAppTokenId);
+      bAppToken.totalObligatedBalance = BigInt.zero();
+    }
+    bAppToken.bApp = event.params.bApp;
+    bAppToken.token = token;
+    bAppToken.sharedRiskLevel = sharedRiskLevelValue;
+    bAppToken.save();
+  }
+
+  // // remove the representation of the token (and risk) for this bapp, no longer needed.
+  // store.remove("BAppToken", bappTokenId);
+  let bApp = BApp.load(event.params.bApp);
+  if (!bApp) {
+    log.error(
+      `Trying to adjust the list of tokens accepted by BApp ${event.params.bApp}, but the enitity does not exist`,
+      []
+    );
+    return;
+  }
+
+  let bAppTokens = bApp.bAppTokens.load();
+
+  if (!bAppTokens) {
+    log.info(
+      `Trying to adjust the list of tokens accepted by BApp ${event.params.bApp}, but the list is empty`,
+      []
+    );
+    return;
+  }
+
+  for (var j = 0; j < bAppTokens.length; j++) {
+    let bappToken = bAppTokens[j];
+    if (!newTokensAddresses.has(bappToken.token)) {
+      store.remove(
+        "Transfer",
+        event.params.bApp.toHexString().concat(bappToken.token.toHexString())
+      );
     }
   }
 }
@@ -361,7 +680,18 @@ export function handleDelegationCreated(event: DelegationCreatedEvent): void {
       "Trying to adjust total Accounts, but constant entry does not exist, and cannot be created",
       []
     );
-    return;
+    bAppConstants = new BAppConstants(event.address);
+    bAppConstants._feeExpireTime = BigInt.fromI32(1);
+    bAppConstants._feeTimelockPeriod = BigInt.fromI32(7);
+    bAppConstants._obligationExpireTime = BigInt.fromI32(3);
+    bAppConstants._obligationTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants._strategyMaxFeeIncrement = BigInt.fromI32(500);
+    bAppConstants._strategyMaxShares = BigInt.fromI32(10000);
+    bAppConstants._withdrawalExpireTime = BigInt.fromI32(3);
+    bAppConstants._withdrawalTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants.totalAccounts = BigInt.zero();
+    bAppConstants.totalBApps = BigInt.zero();
+    bAppConstants.totalStrategies = BigInt.zero();
   }
   bAppConstants.totalAccounts = bAppConstants.totalAccounts.plus(
     BigInt.fromI32(newAccountsCount)
@@ -588,7 +918,8 @@ export function handleObligationCreated(event: ObligationCreatedEvent): void {
     return;
   }
   // new obligation created, add new obligated balance
-  bAppToken.totalObligatedBalance = bAppToken.totalObligatedBalance.plus(obligatedBalance);
+  bAppToken.totalObligatedBalance =
+    bAppToken.totalObligatedBalance.plus(obligatedBalance);
   bAppToken.save();
 
   // update obligated balance, along other things
@@ -645,7 +976,6 @@ export function handleObligationUpdated(event: ObligationUpdatedEvent): void {
   entity.bApp = event.params.bApp;
   entity.token = event.params.token;
   entity.percentage = event.params.percentage;
-  entity.isFast = event.params.isFast;
 
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
@@ -730,6 +1060,22 @@ export function handleOwnershipTransferred(
   entity.save();
 }
 
+export function handleSlashingFundWithdrawn(
+  event: SlashingFundWithdrawnEvent
+): void {
+  let entity = new SlashingFundWithdrawn(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  );
+  entity.token = event.params.token;
+  entity.amount = event.params.amount;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+}
+
 export function handleStrategyCreated(event: StrategyCreatedEvent): void {
   let entity = new StrategyCreated(
     event.transaction.hash.concatI32(event.logIndex.toI32())
@@ -737,7 +1083,7 @@ export function handleStrategyCreated(event: StrategyCreatedEvent): void {
   entity.strategyId = event.params.strategyId;
   entity.owner = event.params.owner;
   entity.fee = event.params.fee;
-
+  entity.metadataURI = event.params.metadataURI;
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
@@ -769,6 +1115,7 @@ export function handleStrategyCreated(event: StrategyCreatedEvent): void {
   strategy.owner = event.params.owner;
   strategy.strategyId = event.params.strategyId;
   strategy.fee = event.params.fee;
+  strategy.metadataURI = event.params.metadataURI;
   strategy.feeProposed = event.params.fee;
   strategy.feeProposedTimestamp = event.block.timestamp;
   strategy.save();
@@ -779,7 +1126,18 @@ export function handleStrategyCreated(event: StrategyCreatedEvent): void {
       "Trying to adjust total Accounts, but constant entry does not exist, and cannot be created",
       []
     );
-    return;
+    bAppConstants = new BAppConstants(event.address);
+    bAppConstants._feeExpireTime = BigInt.fromI32(1);
+    bAppConstants._feeTimelockPeriod = BigInt.fromI32(7);
+    bAppConstants._obligationExpireTime = BigInt.fromI32(3);
+    bAppConstants._obligationTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants._strategyMaxFeeIncrement = BigInt.fromI32(500);
+    bAppConstants._strategyMaxShares = BigInt.fromI32(10000);
+    bAppConstants._withdrawalExpireTime = BigInt.fromI32(3);
+    bAppConstants._withdrawalTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants.totalAccounts = BigInt.zero();
+    bAppConstants.totalBApps = BigInt.zero();
+    bAppConstants.totalStrategies = BigInt.zero();
   }
   bAppConstants.totalAccounts = bAppConstants.totalAccounts.plus(
     BigInt.fromI32(newAccountsCount)
@@ -827,7 +1185,18 @@ export function handleStrategyDeposit(event: StrategyDepositEvent): void {
       "Trying to adjust total Accounts, but constant entry does not exist, and cannot be created",
       []
     );
-    return;
+    bAppConstants = new BAppConstants(event.address);
+    bAppConstants._feeExpireTime = BigInt.fromI32(1);
+    bAppConstants._feeTimelockPeriod = BigInt.fromI32(7);
+    bAppConstants._obligationExpireTime = BigInt.fromI32(3);
+    bAppConstants._obligationTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants._strategyMaxFeeIncrement = BigInt.fromI32(500);
+    bAppConstants._strategyMaxShares = BigInt.fromI32(10000);
+    bAppConstants._withdrawalExpireTime = BigInt.fromI32(3);
+    bAppConstants._withdrawalTimelockPeriod = BigInt.fromI32(14);
+    bAppConstants.totalAccounts = BigInt.zero();
+    bAppConstants.totalBApps = BigInt.zero();
+    bAppConstants.totalStrategies = BigInt.zero();
   }
   bAppConstants.totalAccounts = bAppConstants.totalAccounts.plus(
     BigInt.fromI32(newAccountsCount)
@@ -863,7 +1232,9 @@ export function handleStrategyDeposit(event: StrategyDepositEvent): void {
     strategyUserBalance.proposedWithdrawal = BigInt.zero();
     strategyUserBalance.proposedWithdrawalTimestamp = BigInt.zero();
   }
-  strategyUserBalance.depositAmount = strategyUserBalance.depositAmount.plus(event.params.amount);
+  strategyUserBalance.depositAmount = strategyUserBalance.depositAmount.plus(
+    event.params.amount
+  );
   strategyUserBalance.save();
 
   let strategyBAppOptIns = strategy.bApps.load();
@@ -922,15 +1293,19 @@ export function handleStrategyDeposit(event: StrategyDepositEvent): void {
       );
       return;
     }
-    let oldValue = bAppToken.totalObligatedBalance
-    let newValue = oldValue.plus(obligatedBalanceDelta)
+    let oldValue = bAppToken.totalObligatedBalance;
+    let newValue = oldValue.plus(obligatedBalanceDelta);
     log.info(
       `updating the BAppToken entity ${strategyBAppOptIn.bApp
         .toHexString()
-        .concat(token.toHexString())}. Old value: ${oldValue}, new value: ${newValue}`,
-        []
-      );
-    bAppToken.totalObligatedBalance = bAppToken.totalObligatedBalance.plus(obligatedBalanceDelta);
+        .concat(
+          token.toHexString()
+        )}. Old value: ${oldValue}, new value: ${newValue}`,
+      []
+    );
+    bAppToken.totalObligatedBalance = bAppToken.totalObligatedBalance.plus(
+      obligatedBalanceDelta
+    );
     bAppToken.save();
   }
 }
@@ -944,7 +1319,6 @@ export function handleStrategyFeeUpdateProposed(
   entity.strategyId = event.params.strategyId;
   entity.owner = event.params.owner;
   entity.proposedFee = event.params.proposedFee;
-  entity.fee = event.params.fee;
 
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
@@ -972,8 +1346,8 @@ export function handleStrategyFeeUpdated(event: StrategyFeeUpdatedEvent): void {
   );
   entity.strategyId = event.params.strategyId;
   entity.owner = event.params.owner;
-  entity.fee = event.params.fee;
-  entity.oldFee = event.params.oldFee;
+  entity.fee = event.params.newFee;
+  entity.isFast = event.params.isFast;
 
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
@@ -990,10 +1364,113 @@ export function handleStrategyFeeUpdated(event: StrategyFeeUpdatedEvent): void {
     );
     return;
   }
-  strategy.fee = event.params.fee;
-  strategy.feeProposed = event.params.fee;
+  strategy.fee = event.params.newFee;
+  strategy.feeProposed = event.params.newFee;
   strategy.feeProposedTimestamp = BigInt.zero();
   strategy.save();
+}
+
+export function handleStrategySlashed(event: StrategySlashedEvent): void {
+  let entity = new StrategySlashed(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  );
+  entity.strategyId = event.params.strategyId;
+  entity.percentage = event.params.percentage;
+  entity.bAppAddress = event.params.bApp;
+  entity.token = event.params.token;
+  entity.receiver = event.params.receiver;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+
+  let strategy = Strategy.load(event.params.strategyId.toString());
+  if (!strategy) {
+    log.error(
+      `Trying to withdraw from StrategyUserBalance but receiving Strategy ${event.params.strategyId} does not exist, and cannot be created`,
+      []
+    );
+    return;
+  }
+
+  let token = event.params.token;
+
+  let strategyBAppOptIns = strategy.bApps.load();
+
+  let strategyTokenBalanceId = strategy.id.concat(token.toHexString());
+  let strategyTokenBalance = StrategyTokenBalance.load(strategyTokenBalanceId);
+  if (!strategyTokenBalance) {
+    log.error(
+      `Strategy ${strategy.id} is being slashed of ${
+        event.params.percentage
+      } % of token ${token.toHexString()} by BApp ${
+        event.params.bApp
+      }, but the StrategyTokenBalance entity does not exist, and can't be created`,
+      []
+    );
+    return;
+  }
+  const slashedStrategyTokenBalance = event.params.percentage.times(
+    strategyTokenBalance.balance
+  );
+  strategyTokenBalance.balance = strategyTokenBalance.balance.minus(
+    slashedStrategyTokenBalance
+  );
+  strategyTokenBalance.save();
+
+  // Iterate through all the BApps this strategy has opted in
+  for (var i = 0; i < strategyBAppOptIns.length; i++) {
+    let strategyBAppOptIn = strategyBAppOptIns[i];
+    // find all of its obligations
+    let obligations = strategyBAppOptIn.obligations.load();
+
+    for (let j = 0; j < obligations.length; j++) {
+      let obligation = obligations[j];
+      // find the obligations that use the same token
+      if (obligation.token == token) {
+        // update the obligated balance by keeping the same %, but using the new token balance for this strategy
+        obligation.obligatedBalance = strategyTokenBalance.balance.times(
+          obligation.percentage
+        );
+        obligation.save();
+      }
+    }
+
+    let bAppToken = BAppToken.load(
+      strategyBAppOptIn.bApp.toHexString().concat(token.toHexString())
+    );
+    if (!bAppToken) {
+      log.info(
+        `Strategy ${strategy.id} is being slashed of ${
+          event.params.percentage
+        } tokens ${token.toHexString()} by BApp ${
+          event.params.bApp
+        }. Trying to update the total balance obligated to BApp ${strategyBAppOptIn.bApp.toHexString()} but the BAppToken entity ${strategyBAppOptIn.bApp
+          .toHexString()
+          .concat(
+            token.toHexString()
+          )} does not exist. Likely means this token is not accepted by the BApp, so skipping it`,
+        []
+      );
+      return;
+    }
+    let oldValue = bAppToken.totalObligatedBalance;
+    let newValue = oldValue.minus(slashedStrategyTokenBalance);
+    log.info(
+      `updating the BAppToken entity ${strategyBAppOptIn.bApp
+        .toHexString()
+        .concat(
+          token.toHexString()
+        )}. Old value: ${oldValue}, new value: ${newValue}`,
+      []
+    );
+    bAppToken.totalObligatedBalance = bAppToken.totalObligatedBalance.minus(
+      slashedStrategyTokenBalance
+    );
+    bAppToken.save();
+  }
 }
 
 export function handleStrategyWithdrawal(event: StrategyWithdrawalEvent): void {
@@ -1166,4 +1643,58 @@ export function handleStrategyWithdrawalProposed(
   strategyTokenBalance.proposedWithdrawal = event.params.amount;
   strategyTokenBalance.proposedWithdrawalTimestamp = event.block.timestamp;
   strategyTokenBalance.save();
+}
+
+export function handleAccountMetadataURIUpdated(
+  event: AccountMetadataURIUpdatedEvent
+): void {
+  let entity = new AccountMetadataURIUpdated(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  );
+  entity.account = event.params.account;
+  entity.metadataURI = event.params.metadataURI;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+
+  let account = Account.load(event.params.account);
+  if (!account) {
+    log.error(
+      `New account Event, Account address ${event.params.account.toHexString()} does not exist on the database, and it can't be created`,
+      []
+    );
+  } else {
+    account.metadataURI = event.params.metadataURI;
+    account.save();
+  }
+}
+
+export function handlStrategyMetadataURIUpdated(
+  event: StrategyMetadataURIUpdatedEvent
+): void {
+  let entity = new StrategyMetadataURIUpdated(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  );
+  entity.strategyId = event.params.strategyId;
+  entity.metadataURI = event.params.metadataURI;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+
+  let strategy = Strategy.load(event.params.strategyId.toString());
+  if (!strategy) {
+    log.error(
+      `New Strategy Event, Strategy ID ${event.params.strategyId} does not exist on the database, and it can't be created`,
+      []
+    );
+  } else {
+    strategy.metadataURI = event.params.metadataURI;
+    strategy.save();
+  }
 }
