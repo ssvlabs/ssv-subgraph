@@ -5,52 +5,12 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum
-    name: SSVNetworkImpl
-    network: holesky
-    source:
-      abi: SSVNetwork
-      address: "0x116522F4D00b42Efce0aA77f7ddAd1d27705F36b"
-      startBlock: 84598
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.7
-      language: wasm/assemblyscript
-      entities:
-        - DAOValues
-      abis:
-        - name: SSVNetwork
-          file: ./abis/SSVNetwork.json
-      callHandlers:
-        - function: initialize(address,address,address,address,address,uint64,uint256,uint32,uint64,uint64,uint64)
-          handler: handleInitialize
-      file: ./src/ssv-network.ts
-  - kind: ethereum
-    name: BasedAppManagerImpl
-    network: holesky
-    source:
-      abi: BasedAppManager
-      address: "0x590C093AbF6489289741E8aC119d1c91b06500C5"
-      startBlock: 3250994
-    mapping:
-      kind: ethereum/events
-      apiVersion: 0.0.7
-      language: wasm/assemblyscript
-      entities:
-        - DAOValues
-      abis:
-        - name: BasedAppManager
-          file: ./abis/BasedAppManager.json
-      callHandlers:
-        - function: initialize(address,uint32)
-          handler: handleInitialize
-      file: ./src/based-app-manager.ts
-  - kind: ethereum
     name: BasedAppManager
-    network: holesky
+    network: hoodi
     source:
       abi: BasedAppManager
-      address: "0x9B3345F3B1Ce2d8655FC4B6e2ed39322d52aA317"
-      startBlock: 3250994
+      address: "0xc7fCFeEc5FB9962bDC2234A7a25dCec739e27f9f"
+      startBlock: 900
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -81,16 +41,36 @@ dataSources:
         - name: BasedAppManager
           file: ./abis/BasedAppManager.json
       eventHandlers:
+        - event: Initialized(uint64)
+          handler: handleInitialized
+        - event: FeeExpireTimeUpdated(uint32)
+          handler: handleFeeExpireTimeUpdated
+        - event: FeeTimelockPeriodUpdated(uint32)
+          handler: handleFeeTimelockPeriodUpdated
+        - event: MaxFeeIncrementSet(uint32)
+          handler: handleMaxFeeIncrementSet
+        - event: ObligationExpireTimeUpdated(uint32)
+          handler: handleObligationExpireTimeUpdated
+        - event: ObligationTimelockPeriodUpdated(uint32)
+          handler: handleObligationTimelockPeriodUpdated
+        - event: StrategyMaxFeeIncrementUpdated(uint32)
+          handler: handleStrategyMaxFeeIncrementUpdated
+        - event: StrategyMaxSharesUpdated(uint256)
+          handler: handleStrategyMaxSharesUpdated
+        - event: WithdrawalTimelockPeriodUpdated(uint32)
+          handler: handleWithdrawalTimelockPeriodUpdated
+        - event: WithdrawalExpireTimeUpdated(uint32)
+          handler: handleWithdrawalExpireTimeUpdated
+        - event: SlashingFundWithdrawn(address,uint256)
+          handler: handleSlashingFundWithdrawn
         - event: BAppMetadataURIUpdated(indexed address,string)
           handler: handleBAppMetadataURIUpdated
-        - event: BAppOptedInByStrategy(indexed uint256,indexed
+        - event: BAppOptedInByStrategy(indexed uint32,indexed
             address,bytes,address[],uint32[])
           handler: handleBAppOptedInByStrategy
-        - event: BAppRegistered(indexed address,indexed address,address[],uint32[],string)
+        - event: BAppRegistered(indexed address,address[],uint32[],string)
           handler: handleBAppRegistered
-        - event: BAppTokensCreated(indexed address,address[],uint32[])
-          handler: handleBAppTokensCreated
-        - event: BAppTokensUpdated(indexed address,address[],uint32[])
+        - event: BAppTokensUpdated(indexed address,(address,uint32)[])
           handler: handleBAppTokensUpdated
         - event: DelegationCreated(indexed address,indexed address,uint32)
           handler: handleDelegationCreated
@@ -98,39 +78,41 @@ dataSources:
           handler: handleDelegationRemoved
         - event: DelegationUpdated(indexed address,indexed address,uint32)
           handler: handleDelegationUpdated
-        - event: Initialized(uint64)
-          handler: handleInitialized
-        - event: MaxFeeIncrementSet(uint32)
-          handler: handleMaxFeeIncrementSet
-        - event: ObligationCreated(indexed uint256,indexed address,address,uint256)
+        - event: ObligationCreated(indexed uint32,indexed address,address,uint32)
           handler: handleObligationCreated
-        - event: ObligationUpdateProposed(indexed uint256,indexed address,address,uint32)
+        - event: ObligationUpdateProposed(indexed uint32,indexed address,address,uint32)
           handler: handleObligationUpdateProposed
-        - event: ObligationUpdated(indexed uint256,indexed address,address,uint256,bool)
+        - event: ObligationUpdated(indexed uint32,indexed address,address,uint32)
           handler: handleObligationUpdated
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
-        - event: StrategyCreated(indexed uint256,indexed address,uint32)
+        - event: StrategyCreated(indexed uint32,indexed address,uint32,string)
           handler: handleStrategyCreated
-        - event: StrategyDeposit(indexed uint256,indexed address,address,uint256)
+        - event: StrategyDeposit(indexed uint32,indexed address,address,uint256)
           handler: handleStrategyDeposit
-        - event: StrategyFeeUpdateProposed(indexed uint256,address,uint32,uint32)
-          handler: handleStrategyFeeUpdateProposed
-        - event: StrategyFeeUpdated(indexed uint256,address,uint32,uint32)
+        - event: StrategyFeeUpdated(indexed uint32,address,uint32,bool)
           handler: handleStrategyFeeUpdated
-        - event: StrategyWithdrawal(indexed uint256,indexed address,address,uint256,bool)
-          handler: handleStrategyWithdrawal
-        - event: StrategyWithdrawalProposed(indexed uint256,indexed
+        - event: StrategyFeeUpdateProposed(indexed uint32,address,uint32)
+          handler: handleStrategyFeeUpdateProposed
+        - event: StrategySlashed(indexed uint32,indexed address,address,uint32,address)
+          handler: handleStrategySlashed
+        - event: StrategyWithdrawalProposed(indexed uint32,indexed
             address,address,uint256)
           handler: handleStrategyWithdrawalProposed
+        - event: StrategyWithdrawal(indexed uint32,indexed address,address,uint256,bool)
+          handler: handleStrategyWithdrawal
+        - event: AccountMetadataURIUpdated(indexed address,string)
+          handler: handleAccountMetadataURIUpdated
+        - event: StrategyMetadataURIUpdated(indexed uint32,string)
+          handler: handlStrategyMetadataURIUpdated
       file: ./src/based-app-manager.ts
   - kind: ethereum
     name: SSVNetwork
-    network: holesky
+    network: hoodi
     source:
       abi: SSVNetwork
-      address: "0x0d33801785340072C452b994496B19f196b7eE15"
-      startBlock: 181612
+      address: "0x58410Bef803ECd7E63B23664C586A6DB72DAf59c"
+      startBlock: 900
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
