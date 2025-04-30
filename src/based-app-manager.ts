@@ -482,6 +482,67 @@ export function handleBAppOptedInByStrategy(
   strategyBAppOptIn.bApp = event.params.bApp;
   strategyBAppOptIn.strategy = event.params.strategyId.toString();
   strategyBAppOptIn.save();
+
+  let strategyId = event.params.strategyId.toString();
+  for (let i = 0; i < event.params.tokens.length; i++){
+
+    let token = event.params.tokens[i];
+    let percentage = event.params.obligationPercentages[i];
+    let obligationId = strategyBAppOptInId.concat(token.toHexString());
+    let obligation = Obligation.load(obligationId);
+    if (!obligation) {
+      log.info(
+        `New Obligation created ${obligationId} as Strategy ${strategyId} has opted in to BApp ${event.params.bApp.toHexString()}`,
+        []
+      );
+      obligation = new Obligation(obligationId);
+      obligation.percentageProposedTimestamp = BigInt.zero();
+      obligation.obligatedBalance = BigInt.zero();
+    }
+  
+    const strategyTokenBalanceId = strategyId.concat(token.toHexString());
+    let strategyTokenBalance = StrategyTokenBalance.load(strategyTokenBalanceId);
+    if (!strategyTokenBalance) {
+      log.info(
+        `Trying to update the balance for token ${token.toHexString()} on Strategy ${strategyId}, but the StrategyTokenBalance entity does not exist, creating it.`,
+        []
+      );
+      strategyTokenBalance = new StrategyTokenBalance(strategyTokenBalanceId);
+      strategyTokenBalance.strategy = strategyId;
+      strategyTokenBalance.token = token;
+      strategyTokenBalance.balance = BigInt.zero();
+      strategyTokenBalance.riskValue = BigInt.zero();
+    }
+    // update the risk value for this token by adding the % of this obligation
+    strategyTokenBalance.riskValue =
+      strategyTokenBalance.riskValue.plus(percentage);
+    strategyTokenBalance.save();
+  
+    let obligatedBalance = strategyTokenBalance.balance.times(percentage);
+  
+    let bAppToken = BAppToken.load(
+      event.params.bApp.toHexString().concat(token.toHexString())
+    );
+    if (!bAppToken) {
+      log.error(
+        `Trying to update the total balance obligated to BApp ${event.params.bApp.toHexString()} but the related token entity does not exist, and it can't be created`,
+        []
+      );
+      return;
+    }
+    // new obligation created, add new obligated balance
+    bAppToken.totalObligatedBalance =
+      bAppToken.totalObligatedBalance.plus(obligatedBalance);
+    bAppToken.save();
+  
+    // update obligated balance, along other things
+    obligation.obligatedBalance = obligatedBalance;
+    obligation.strategyBAppOptIn = strategyBAppOptInId;
+    obligation.token = token;
+    obligation.percentage = percentage;
+    obligation.percentageProposed = percentage;
+    obligation.save();
+  }
 }
 
 export function handleBAppRegistered(event: BAppRegisteredEvent): void {
