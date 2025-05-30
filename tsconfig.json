@@ -1,11 +1,4 @@
 {
   "extends": "@graphprotocol/graph-ts/types/tsconfig.base.json",
-  "include": ["src", "tests"],
-  "compilerOptions": {
-    "noLib": false,
-    "lib": [
-        "es5", "es6", "dom", "dom.iterable"
-    ]
-  }
-
+  "include": ["src", "tests"]
 }

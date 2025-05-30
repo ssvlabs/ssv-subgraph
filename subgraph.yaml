@@ -1,70 +1,157 @@
-specVersion: 0.0.5
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum
-    name: SSVNetworkImpl
-    network: mainnet
+    name: BasedAppManager
+    network: hoodi
     source:
-      abi: SSVNetwork
-      address: "0xdc1e8e50673b893c16c18d88e81e13b4415f6292"
-      startBlock: 17507480
+      abi: BasedAppManager
+      address: "0xc7fCFeEc5FB9962bDC2234A7a25dCec739e27f9f"
+      startBlock: 900
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - NewGravatar
-        - UpdatedGravatar
+        - BAppMetadataURIUpdated
+        - BAppOptedInByStrategy
+        - BAppRegistered
+        - BAppTokensCreated
+        - BAppTokensUpdated
+        - DelegationCreated
+        - DelegationRemoved
+        - DelegationUpdated
+        - Initialized
+        - MaxFeeIncrementSet
+        - ObligationCreated
+        - ObligationUpdateProposed
+        - ObligationUpdated
+        - OwnershipTransferred
+        - StrategyCreated
+        - StrategyDeposit
+        - StrategyFeeUpdateProposed
+        - StrategyFeeUpdated
+        - StrategyWithdrawal
+        - StrategyWithdrawalProposed
+        - Upgraded
       abis:
-        - name: SSVNetwork
-          file: ./abis/SSVNetwork.json
-      callHandlers:
-        - function: initialize(address,address,address,address,address,uint64,uint256,uint32,uint64,uint64,uint64)
-          handler: handleInitialize
-      file: ./src/ssv-network.ts
+        - name: BasedAppManager
+          file: ./abis/BasedAppManager.json
+      eventHandlers:
+        - event: Initialized(uint64)
+          handler: handleInitialized
+        - event: FeeExpireTimeUpdated(uint32)
+          handler: handleFeeExpireTimeUpdated
+        - event: FeeTimelockPeriodUpdated(uint32)
+          handler: handleFeeTimelockPeriodUpdated
+        - event: MaxFeeIncrementSet(uint32)
+          handler: handleMaxFeeIncrementSet
+        - event: ObligationExpireTimeUpdated(uint32)
+          handler: handleObligationExpireTimeUpdated
+        - event: ObligationTimelockPeriodUpdated(uint32)
+          handler: handleObligationTimelockPeriodUpdated
+        - event: StrategyMaxFeeIncrementUpdated(uint32)
+          handler: handleStrategyMaxFeeIncrementUpdated
+        - event: StrategyMaxSharesUpdated(uint256)
+          handler: handleStrategyMaxSharesUpdated
+        - event: WithdrawalTimelockPeriodUpdated(uint32)
+          handler: handleWithdrawalTimelockPeriodUpdated
+        - event: WithdrawalExpireTimeUpdated(uint32)
+          handler: handleWithdrawalExpireTimeUpdated
+        - event: SlashingFundWithdrawn(address,uint256)
+          handler: handleSlashingFundWithdrawn
+        - event: BAppMetadataURIUpdated(indexed address,string)
+          handler: handleBAppMetadataURIUpdated
+        - event: BAppOptedInByStrategy(indexed uint32,indexed
+            address,bytes,address[],uint32[])
+          handler: handleBAppOptedInByStrategy
+        - event: BAppRegistered(indexed address,address[],uint32[],string)
+          handler: handleBAppRegistered
+        - event: BAppTokensUpdated(indexed address,(address,uint32)[])
+          handler: handleBAppTokensUpdated
+        - event: DelegationCreated(indexed address,indexed address,uint32)
+          handler: handleDelegationCreated
+        - event: DelegationRemoved(indexed address,indexed address)
+          handler: handleDelegationRemoved
+        - event: DelegationUpdated(indexed address,indexed address,uint32)
+          handler: handleDelegationUpdated
+        - event: ObligationCreated(indexed uint32,indexed address,address,uint32)
+          handler: handleObligationCreated
+        - event: ObligationUpdateProposed(indexed uint32,indexed address,address,uint32)
+          handler: handleObligationUpdateProposed
+        - event: ObligationUpdated(indexed uint32,indexed address,address,uint32)
+          handler: handleObligationUpdated
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: StrategyCreated(indexed uint32,indexed address,uint32,string)
+          handler: handleStrategyCreated
+        - event: StrategyDeposit(indexed uint32,indexed address,address,uint256)
+          handler: handleStrategyDeposit
+        - event: StrategyFeeUpdated(indexed uint32,address,uint32,bool)
+          handler: handleStrategyFeeUpdated
+        - event: StrategyFeeUpdateProposed(indexed uint32,address,uint32)
+          handler: handleStrategyFeeUpdateProposed
+        - event: StrategySlashed(indexed uint32,indexed address,address,uint32,address)
+          handler: handleStrategySlashed
+        - event: StrategyWithdrawalProposed(indexed uint32,indexed
+            address,address,uint256)
+          handler: handleStrategyWithdrawalProposed
+        - event: StrategyWithdrawal(indexed uint32,indexed address,address,uint256,bool)
+          handler: handleStrategyWithdrawal
+        - event: AccountMetadataURIUpdated(indexed address,string)
+          handler: handleAccountMetadataURIUpdated
+        - event: StrategyMetadataURIUpdated(indexed uint32,string)
+          handler: handlStrategyMetadataURIUpdated
+      file: ./src/based-app-manager.ts
   - kind: ethereum
     name: SSVNetwork
-    network: mainnet
+    network: hoodi
     source:
       abi: SSVNetwork
-      address: "0xDD9BC35aE942eF0cFa76930954a156B3fF30a4E1"
-      startBlock: 17507480
+      address: "0x58410Bef803ECd7E63B23664C586A6DB72DAf59c"
+      startBlock: 900
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
       language: wasm/assemblyscript
       entities:
-        - Cluster
-        - Validator
-        - Operator
-        - Account
-        - DeclareOperatorFeePeriodUpdated
-        - ExecuteOperatorFeePeriodUpdated
-        - FeeRecipientAddressUpdated
-        - LiquidationThresholdPeriodUpdated
-        - MinimumLiquidationCollateralUpdated
-        - NetworkEarningsWithdrawn
-        - NetworkFeeUpdated
+        - AdminChanged
+        - BeaconUpgraded
         - ClusterDeposited
         - ClusterLiquidated
         - ClusterReactivated
         - ClusterWithdrawn
-        - ValidatorAdded
-        - ValidatorRemoved
+        - DeclareOperatorFeePeriodUpdated
+        - ExecuteOperatorFeePeriodUpdated
+        - FeeRecipientAddressUpdated
+        - SSVNetworkInitialized
+        - LiquidationThresholdPeriodUpdated
+        - MinimumLiquidationCollateralUpdated
+        - ModuleUpgraded
+        - NetworkEarningsWithdrawn
+        - NetworkFeeUpdated
         - OperatorAdded
         - OperatorFeeDeclarationCancelled
         - OperatorFeeDeclared
         - OperatorFeeExecuted
         - OperatorFeeIncreaseLimitUpdated
         - OperatorMaximumFeeUpdated
-        - OperatorRemoved
-        - OperatorWithdrawn
         - OperatorWhitelistUpdated
         - OperatorMultipleWhitelistRemoved
         - OperatorMultipleWhitelistUpdated
-        - OperatorWhitelistingContractUpdated
         - OperatorPrivacyStatusUpdated
+        - OperatorRemoved
+        - OperatorWhitelistingContractUpdated
+        - OperatorWithdrawn
+        - OwnershipTransferStarted
+        - SSVNetworkOwnershipTransferred
+        - SSVNetworkUpgraded
+        - ValidatorAdded
+        - ValidatorExited
+        - ValidatorRemoved
       abis:
         - name: SSVNetwork
           file: ./abis/SSVNetwork.json

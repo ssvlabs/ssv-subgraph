@@ -211,6 +211,7 @@ export function handleFeeRecipientAddressUpdated(
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
     owner.feeRecipient = event.params.recipientAddress
+    owner.totalDelegatedPercentage = BigInt.zero();
     owner.save()
   } else {
     owner.feeRecipient = event.params.recipientAddress
@@ -483,6 +484,7 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
     owner.feeRecipient = event.params.owner
+    owner.totalDelegatedPercentage = BigInt.zero();
     owner.save()
   }
 
@@ -531,6 +533,7 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
     owner.feeRecipient = event.params.owner
+    owner.totalDelegatedPercentage = BigInt.zero();
   }
   owner.validatorCount = owner.validatorCount.minus(event.params.cluster.validatorCount)
   owner.save()
@@ -597,6 +600,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
     owner.feeRecipient = event.params.owner
+    owner.totalDelegatedPercentage = BigInt.zero();
   }
   owner.validatorCount = owner.validatorCount.plus(event.params.cluster.validatorCount)
   owner.save()
@@ -663,6 +667,7 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
     owner.feeRecipient = event.params.owner
+    owner.totalDelegatedPercentage = BigInt.zero();
     owner.save()
   }
 
@@ -745,6 +750,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
     owner.feeRecipient = event.params.owner
+    owner.totalDelegatedPercentage = BigInt.zero();
     // if it's a new account, also increase total counter
     dao.totalAccounts = dao.totalAccounts.plus(BigInt.fromI32(1))
   }
@@ -867,6 +873,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
     owner.feeRecipient = event.params.owner
+    owner.totalDelegatedPercentage = BigInt.zero();
   }
   // update owner validator count if the cluster is active
   // (avoid double counting if already liquidated/inactive)
@@ -989,6 +996,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
     owner.feeRecipient = event.params.owner
+    owner.totalDelegatedPercentage = BigInt.zero();
     owner.save()
     // if it's a new account, also update total counter
     dao.totalAccounts = dao.totalAccounts.plus(BigInt.fromI32(1))
@@ -1047,6 +1055,7 @@ export function handleOperatorFeeDeclarationCancelled(
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
     owner.feeRecipient = event.params.owner
+    owner.totalDelegatedPercentage = BigInt.zero();
     owner.save()
   }
 
@@ -1092,6 +1101,7 @@ export function handleOperatorFeeDeclared(
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
     owner.feeRecipient = event.params.owner
+    owner.totalDelegatedPercentage = BigInt.zero();
     owner.save()
   }
 
@@ -1136,6 +1146,7 @@ export function handleOperatorFeeExecuted(
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
     owner.feeRecipient = event.params.owner
+    owner.totalDelegatedPercentage = BigInt.zero();
     owner.save()
   }
 
@@ -1248,6 +1259,7 @@ export function handleOperatorWhitelistUpdated(
     whitelisted.nonce = BigInt.zero()
     whitelisted.validatorCount = BigInt.zero()
     whitelisted.feeRecipient = event.params.whitelisted
+    whitelisted.totalDelegatedPercentage = BigInt.zero();
     whitelisted.save()
   }
   let operatorId = event.params.operatorId.toString()
@@ -1299,6 +1311,7 @@ export function handleOperatorMultipleWhitelistUpdated(
       whitelisted.nonce = BigInt.zero()
       whitelisted.validatorCount = BigInt.zero()
       whitelisted.feeRecipient = event.params.whitelistAddresses[i]
+      whitelisted.totalDelegatedPercentage = BigInt.zero();
       whitelisted.save()
     }
     whitelistIDList.push(whitelisted.id)
@@ -1353,6 +1366,7 @@ export function handleOperatorMultipleWhitelistRemoved(
       whitelisted.nonce = BigInt.zero()
       whitelisted.validatorCount = BigInt.zero()
       whitelisted.feeRecipient = whitelisted.id
+      whitelisted.totalDelegatedPercentage = BigInt.zero();
       whitelisted.save()
     }
     whitelistAddressSet.push(whitelisted.id as Bytes);
@@ -1488,6 +1502,7 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
     owner.nonce = BigInt.zero()
     owner.validatorCount = BigInt.zero()
     owner.feeRecipient = event.params.owner
+    owner.totalDelegatedPercentage = BigInt.zero();
     owner.save()
   }
 
