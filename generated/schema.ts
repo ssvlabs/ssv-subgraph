@@ -9,6 +9,7 @@ import {
   Bytes,
   BigInt,
   BigDecimal,
+  Int8,
 } from "@graphprotocol/graph-ts";
 
 export class BApp extends Entity {
@@ -3642,19 +3643,6 @@ export class ObligationUpdated extends Entity {
 
   set percentage(value: BigInt) {
     this.set("percentage", Value.fromBigInt(value));
-  }
-
-  get isFast(): boolean {
-    let value = this.get("isFast");
-    if (!value || value.kind == ValueKind.NULL) {
-      return false;
-    } else {
-      return value.toBoolean();
-    }
-  }
-
-  set isFast(value: boolean) {
-    this.set("isFast", Value.fromBoolean(value));
   }
 
   get blockNumber(): BigInt {

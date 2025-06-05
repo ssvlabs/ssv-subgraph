@@ -299,7 +299,6 @@ type ObligationUpdated @entity(immutable: true) {
   bApp: Bytes! # address
   token: Bytes! # address
   percentage: BigInt! # uint256
-  isFast: Boolean! # bool
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
