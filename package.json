@@ -13,7 +13,7 @@
   "dependencies": {
     "@docusaurus/plugin-google-gtag": "^3.7.0",
     "@graphprotocol/graph-cli": "0.82.0",
-    "@graphprotocol/graph-ts": "0.32.0"
+    "@graphprotocol/graph-ts": "0.38.1"
   },
   "devDependencies": {
     "matchstick-as": "0.6.0"
