@@ -62,7 +62,7 @@
   "mainnet": {
     "BasedAppManager": {
       "address": "0xa8D6b028c6A48eCaf5558358A17824D1493D5B0a",
-      "startBlock": 3250994
+      "startBlock": 17507480
     },
     "SSVNetwork": {
       "address": "0xDD9BC35aE942eF0cFa76930954a156B3fF30a4E1",

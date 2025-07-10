@@ -496,6 +496,7 @@ export function handleBAppOptedInByStrategy(
         []
       );
       obligation = new Obligation(obligationId);
+      obligation.percentageProposed = BigInt.zero();
       obligation.percentageProposedTimestamp = BigInt.zero();
       obligation.obligatedBalance = BigInt.zero();
     }
