@@ -9,7 +9,6 @@ import {
   Bytes,
   BigInt,
   BigDecimal,
-  Int8,
 } from "@graphprotocol/graph-ts";
 
 export class Account extends Entity {
@@ -287,6 +286,32 @@ export class Cluster extends Entity {
 
   set validatorCount(value: BigInt) {
     this.set("validatorCount", Value.fromBigInt(value));
+  }
+
+  get effectiveBalance(): BigInt {
+    let value = this.get("effectiveBalance");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set effectiveBalance(value: BigInt) {
+    this.set("effectiveBalance", Value.fromBigInt(value));
+  }
+
+  get vUnits(): BigInt {
+    let value = this.get("vUnits");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set vUnits(value: BigInt) {
+    this.set("vUnits", Value.fromBigInt(value));
   }
 
   get validators(): ValidatorLoader {
@@ -1107,6 +1132,409 @@ export class DAOValues extends Entity {
 
   set lastUpdateTransactionHash(value: Bytes) {
     this.set("lastUpdateTransactionHash", Value.fromBytes(value));
+  }
+}
+
+export class ClusterBalanceUpdated extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(
+      id != null,
+      "Cannot save ClusterBalanceUpdated entity without an ID",
+    );
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type ClusterBalanceUpdated must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("ClusterBalanceUpdated", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): ClusterBalanceUpdated | null {
+    return changetype<ClusterBalanceUpdated | null>(
+      store.get_in_block("ClusterBalanceUpdated", id),
+    );
+  }
+
+  static load(id: string): ClusterBalanceUpdated | null {
+    return changetype<ClusterBalanceUpdated | null>(
+      store.get("ClusterBalanceUpdated", id),
+    );
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get owner(): Bytes {
+    let value = this.get("owner");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set owner(value: Bytes) {
+    this.set("owner", Value.fromBytes(value));
+  }
+
+  get operatorIds(): Array<BigInt> {
+    let value = this.get("operatorIds");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigIntArray();
+    }
+  }
+
+  set operatorIds(value: Array<BigInt>) {
+    this.set("operatorIds", Value.fromBigIntArray(value));
+  }
+
+  get effectiveBalance(): BigInt {
+    let value = this.get("effectiveBalance");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set effectiveBalance(value: BigInt) {
+    this.set("effectiveBalance", Value.fromBigInt(value));
+  }
+
+  get vUnits(): BigInt {
+    let value = this.get("vUnits");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set vUnits(value: BigInt) {
+    this.set("vUnits", Value.fromBigInt(value));
+  }
+
+  get cluster_validatorCount(): BigInt {
+    let value = this.get("cluster_validatorCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set cluster_validatorCount(value: BigInt) {
+    this.set("cluster_validatorCount", Value.fromBigInt(value));
+  }
+
+  get cluster_networkFeeIndex(): BigInt {
+    let value = this.get("cluster_networkFeeIndex");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set cluster_networkFeeIndex(value: BigInt) {
+    this.set("cluster_networkFeeIndex", Value.fromBigInt(value));
+  }
+
+  get cluster_index(): BigInt {
+    let value = this.get("cluster_index");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set cluster_index(value: BigInt) {
+    this.set("cluster_index", Value.fromBigInt(value));
+  }
+
+  get cluster_active(): boolean {
+    let value = this.get("cluster_active");
+    if (!value || value.kind == ValueKind.NULL) {
+      return false;
+    } else {
+      return value.toBoolean();
+    }
+  }
+
+  set cluster_active(value: boolean) {
+    this.set("cluster_active", Value.fromBoolean(value));
+  }
+
+  get cluster_balance(): BigInt {
+    let value = this.get("cluster_balance");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set cluster_balance(value: BigInt) {
+    this.set("cluster_balance", Value.fromBigInt(value));
+  }
+
+  get blockNumber(): BigInt {
+    let value = this.get("blockNumber");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set blockNumber(value: BigInt) {
+    this.set("blockNumber", Value.fromBigInt(value));
+  }
+
+  get blockTimestamp(): BigInt {
+    let value = this.get("blockTimestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set blockTimestamp(value: BigInt) {
+    this.set("blockTimestamp", Value.fromBigInt(value));
+  }
+
+  get transactionHash(): Bytes {
+    let value = this.get("transactionHash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set transactionHash(value: Bytes) {
+    this.set("transactionHash", Value.fromBytes(value));
+  }
+}
+
+export class ClusterMigratedToETH extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save ClusterMigratedToETH entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type ClusterMigratedToETH must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("ClusterMigratedToETH", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): ClusterMigratedToETH | null {
+    return changetype<ClusterMigratedToETH | null>(
+      store.get_in_block("ClusterMigratedToETH", id),
+    );
+  }
+
+  static load(id: string): ClusterMigratedToETH | null {
+    return changetype<ClusterMigratedToETH | null>(
+      store.get("ClusterMigratedToETH", id),
+    );
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get owner(): Bytes {
+    let value = this.get("owner");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set owner(value: Bytes) {
+    this.set("owner", Value.fromBytes(value));
+  }
+
+  get operatorIds(): Array<BigInt> {
+    let value = this.get("operatorIds");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigIntArray();
+    }
+  }
+
+  set operatorIds(value: Array<BigInt>) {
+    this.set("operatorIds", Value.fromBigIntArray(value));
+  }
+
+  get ethDeposited(): BigInt {
+    let value = this.get("ethDeposited");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set ethDeposited(value: BigInt) {
+    this.set("ethDeposited", Value.fromBigInt(value));
+  }
+
+  get ssvRefunded(): BigInt {
+    let value = this.get("ssvRefunded");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set ssvRefunded(value: BigInt) {
+    this.set("ssvRefunded", Value.fromBigInt(value));
+  }
+
+  get cluster_validatorCount(): BigInt {
+    let value = this.get("cluster_validatorCount");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set cluster_validatorCount(value: BigInt) {
+    this.set("cluster_validatorCount", Value.fromBigInt(value));
+  }
+
+  get cluster_networkFeeIndex(): BigInt {
+    let value = this.get("cluster_networkFeeIndex");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set cluster_networkFeeIndex(value: BigInt) {
+    this.set("cluster_networkFeeIndex", Value.fromBigInt(value));
+  }
+
+  get cluster_index(): BigInt {
+    let value = this.get("cluster_index");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set cluster_index(value: BigInt) {
+    this.set("cluster_index", Value.fromBigInt(value));
+  }
+
+  get cluster_active(): boolean {
+    let value = this.get("cluster_active");
+    if (!value || value.kind == ValueKind.NULL) {
+      return false;
+    } else {
+      return value.toBoolean();
+    }
+  }
+
+  set cluster_active(value: boolean) {
+    this.set("cluster_active", Value.fromBoolean(value));
+  }
+
+  get cluster_balance(): BigInt {
+    let value = this.get("cluster_balance");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set cluster_balance(value: BigInt) {
+    this.set("cluster_balance", Value.fromBigInt(value));
+  }
+
+  get blockNumber(): BigInt {
+    let value = this.get("blockNumber");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set blockNumber(value: BigInt) {
+    this.set("blockNumber", Value.fromBigInt(value));
+  }
+
+  get blockTimestamp(): BigInt {
+    let value = this.get("blockTimestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set blockTimestamp(value: BigInt) {
+    this.set("blockTimestamp", Value.fromBigInt(value));
+  }
+
+  get transactionHash(): Bytes {
+    let value = this.get("transactionHash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set transactionHash(value: Bytes) {
+    this.set("transactionHash", Value.fromBytes(value));
   }
 }
 

@@ -112,4 +112,8 @@ dataSources:
           handler: handleOperatorPrivacyStatusUpdated
         - event: OperatorWithdrawn(indexed address,indexed uint64,uint256)
           handler: handleOperatorWithdrawn
+        - event: ClusterBalanceUpdated(indexed address,uint64[],indexed uint64,uint256,uint64,(uint32,uint64,uint64,bool,uint256))
+          handler: handleClusterBalanceUpdated
+        - event: ClusterMigratedToETH(indexed address,uint64[],uint256,uint256,(uint32,uint64,uint64,bool,uint256))
+          handler: handleClusterMigratedToETH
       file: ./src/ssv-network.ts

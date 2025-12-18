@@ -22,6 +22,8 @@ type Cluster @entity(immutable: false) {
   owner: Account! # address
   operatorIds: [BigInt!]! # uint64[]
   validatorCount: BigInt! # uint32
+  effectiveBalance: BigInt! # uint256
+  vUnits: BigInt! # uint256
   validators: [Validator!] @derivedFrom(field: "cluster")
   networkFeeIndex: BigInt! # uint64
   index: BigInt! # uint64
@@ -104,6 +106,38 @@ enum DAOUpdateTypes {
   VALIDATOR_REMOVED
   OPERATOR_ADDED
   OPERATOR_REMOVED
+}
+
+type ClusterBalanceUpdated @entity(immutable: true) {
+  id: String!
+  owner: Bytes! # address
+  operatorIds: [BigInt!]! # uint64[]
+  effectiveBalance: BigInt! # uint256
+  vUnits: BigInt! # uint256
+  cluster_validatorCount: BigInt! # uint32
+  cluster_networkFeeIndex: BigInt! # uint64
+  cluster_index: BigInt! # uint64
+  cluster_active: Boolean! # bool
+  cluster_balance: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ClusterMigratedToETH @entity(immutable: true) {
+  id: String!
+  owner: Bytes! # address
+  operatorIds: [BigInt!]! # uint64[]
+  ethDeposited: BigInt! # uint256
+  ssvRefunded: BigInt! # uint256
+  cluster_validatorCount: BigInt! # uint32
+  cluster_networkFeeIndex: BigInt! # uint64
+  cluster_index: BigInt! # uint64
+  cluster_active: Boolean! # bool
+  cluster_balance: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
 }
 
 type ClusterDeposited @entity(immutable: true) {

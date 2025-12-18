@@ -1,5 +1,7 @@
 import { Address, BigInt, Bytes, arweave } from "@graphprotocol/graph-ts"
 import {
+  ClusterBalanceUpdated as ClusterBalanceUpdatedEvent,
+  ClusterMigratedToETH as ClusterMigratedToETHEvent,
   ClusterDeposited as ClusterDepositedEvent,
   ClusterLiquidated as ClusterLiquidatedEvent,
   ClusterReactivated as ClusterReactivatedEvent,
@@ -59,7 +61,9 @@ import {
   OperatorWithdrawn,
   ValidatorAdded,
   ValidatorRemoved,
-  DAOValues
+  DAOValues,
+  ClusterBalanceUpdated,
+  ClusterMigratedToETH
 } from "../generated/schema"
 import { log } from "matchstick-as"
 
@@ -422,6 +426,112 @@ export function handleOperatorMaximumFeeUpdated(
 
 // ###### Cluster Events ######
 
+export function handleClusterBalanceUpdated(event: ClusterBalanceUpdatedEvent): void {
+  let entity = new ClusterBalanceUpdated(
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
+  )
+  entity.owner = event.params.owner
+  entity.operatorIds = event.params.operatorIds
+  entity.effectiveBalance = event.params.effectiveBalance
+  entity.vUnits = event.params.vUnits
+  entity.cluster_validatorCount = event.params.cluster.validatorCount
+  entity.cluster_networkFeeIndex = event.params.cluster.networkFeeIndex
+  entity.cluster_index = event.params.cluster.index
+  entity.cluster_active = event.params.cluster.active
+  entity.cluster_balance = event.params.cluster.balance
+
+  entity.blockNumber = event.block.number
+  entity.blockTimestamp = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+
+  entity.save()
+
+  let owner = Account.load(event.params.owner)
+  if (!owner) {
+    owner = new Account(event.params.owner)
+    owner.nonce = BigInt.zero()
+    owner.validatorCount = BigInt.zero()
+    owner.feeRecipient = event.params.owner
+    owner.save()
+  }
+
+  let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
+  let cluster = Cluster.load(clusterId)
+  if (!cluster) {
+    log.error(`Cluster ${clusterId} is being deposited, but it does not exist on the database`, [])
+    cluster = new Cluster(clusterId)
+    cluster.effectiveBalance = BigInt.fromI32(32)
+    cluster.vUnits = BigInt.fromI32(100)
+  }
+
+  cluster.owner = owner.id
+  cluster.operatorIds = event.params.operatorIds
+  cluster.validatorCount = event.params.cluster.validatorCount
+  log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
+  cluster.effectiveBalance = event.params.effectiveBalance
+  cluster.vUnits = event.params.vUnits
+  cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
+  cluster.index = event.params.cluster.index
+  cluster.active = event.params.cluster.active
+  cluster.balance = event.params.cluster.balance
+  cluster.lastUpdateBlockNumber = event.block.number
+  cluster.lastUpdateBlockTimestamp = event.block.timestamp
+  cluster.lastUpdateTransactionHash = event.transaction.hash
+  cluster.save()
+}
+
+export function handleClusterMigratedToETH(event: ClusterMigratedToETHEvent): void {
+  let entity = new ClusterMigratedToETH(
+    `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
+  )
+  entity.owner = event.params.owner
+  entity.operatorIds = event.params.operatorIds
+  entity.ethDeposited = event.params.ethDeposited
+  entity.ssvRefunded = event.params.ssvRefunded
+  entity.cluster_validatorCount = event.params.cluster.validatorCount
+  entity.cluster_networkFeeIndex = event.params.cluster.networkFeeIndex
+  entity.cluster_index = event.params.cluster.index
+  entity.cluster_active = event.params.cluster.active
+  entity.cluster_balance = event.params.cluster.balance
+
+  entity.blockNumber = event.block.number
+  entity.blockTimestamp = event.block.timestamp
+  entity.transactionHash = event.transaction.hash
+
+  entity.save()
+
+  let owner = Account.load(event.params.owner)
+  if (!owner) {
+    owner = new Account(event.params.owner)
+    owner.nonce = BigInt.zero()
+    owner.validatorCount = BigInt.zero()
+    owner.feeRecipient = event.params.owner
+    owner.save()
+  }
+
+  let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join("-")}`
+  let cluster = Cluster.load(clusterId)
+  if (!cluster) {
+    log.error(`Cluster ${clusterId} is being deposited, but it does not exist on the database`, [])
+    cluster = new Cluster(clusterId)
+    cluster.effectiveBalance = BigInt.fromI32(32)
+    cluster.vUnits = BigInt.fromI32(100)
+  }
+
+  cluster.owner = owner.id
+  cluster.operatorIds = event.params.operatorIds
+  cluster.validatorCount = event.params.cluster.validatorCount
+  log.info(`Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`, []);
+  cluster.networkFeeIndex = event.params.cluster.networkFeeIndex
+  cluster.index = event.params.cluster.index
+  cluster.active = event.params.cluster.active
+  cluster.balance = event.params.cluster.balance
+  cluster.lastUpdateBlockNumber = event.block.number
+  cluster.lastUpdateBlockTimestamp = event.block.timestamp
+  cluster.lastUpdateTransactionHash = event.transaction.hash
+  cluster.save()
+}
+
 export function handleClusterDeposited(event: ClusterDepositedEvent): void {
   let entity = new ClusterDeposited(
     `${event.transaction.hash.toHexString()}-${event.logIndex.toString().padStart(5, '0')}`
@@ -455,6 +565,8 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
   if (!cluster) {
     log.error(`Cluster ${clusterId} is being deposited, but it does not exist on the database`, [])
     cluster = new Cluster(clusterId)
+    cluster.effectiveBalance = BigInt.fromI32(32)
+    cluster.vUnits = BigInt.fromI32(100)
   }
 
   cluster.owner = owner.id
@@ -504,6 +616,8 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
   if (!cluster) {
     log.error(`Cluster ${clusterId} is being liquidated, but it does not exist on the database`, [])
     cluster = new Cluster(clusterId)
+    cluster.effectiveBalance = BigInt.fromI32(32)
+    cluster.vUnits = BigInt.fromI32(100)
   }
 
   cluster.owner = owner.id
@@ -570,6 +684,8 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   if (!cluster) {
     log.error(`Cluster ${clusterId} is being reactivated, but it does not exist on the database`, [])
     cluster = new Cluster(clusterId)
+    cluster.effectiveBalance = BigInt.fromI32(32)
+    cluster.vUnits = BigInt.fromI32(100)
   }
 
   cluster.owner = owner.id
@@ -635,6 +751,8 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
   if (!cluster) {
     log.error(`Cluster ${clusterId} is being withdrawn, but it does not exist on the database`, [])
     cluster = new Cluster(clusterId)
+    cluster.effectiveBalance = BigInt.fromI32(32)
+    cluster.vUnits = BigInt.fromI32(100)
   }
 
   cluster.owner = owner.id
@@ -723,6 +841,8 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   if (!cluster) {
     log.info(`Validator ${event.params.publicKey.toHexString()} is being added to new Cluster ${clusterId}`, [])
     cluster = new Cluster(clusterId)
+    cluster.effectiveBalance = BigInt.fromI32(32)
+    cluster.vUnits = BigInt.fromI32(100)
   }
 
   cluster.owner = owner.id
@@ -844,6 +964,8 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   if (!cluster) {
     log.error(`Validator ${event.params.publicKey.toHexString()} is being removed from Cluster ${clusterId} which does not exist on DB`, [])
     cluster = new Cluster(clusterId)
+    cluster.effectiveBalance = BigInt.fromI32(32)
+    cluster.vUnits = BigInt.fromI32(100)
   }
 
   cluster.owner = owner.id
