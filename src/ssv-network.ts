@@ -8,7 +8,9 @@ import {
   ClusterWithdrawn as ClusterWithdrawnEvent,
   DeclareOperatorFeePeriodUpdated as DeclareOperatorFeePeriodUpdatedEvent,
   ExecuteOperatorFeePeriodUpdated as ExecuteOperatorFeePeriodUpdatedEvent,
+  ERC20Rescued as ERC20RescuedEvent,
   FeeRecipientAddressUpdated as FeeRecipientAddressUpdatedEvent,
+  FeesSynced as FeesSyncedEvent,
   LiquidationThresholdPeriodUpdated as LiquidationThresholdPeriodUpdatedEvent,
   MinimumLiquidationCollateralUpdated as MinimumLiquidationCollateralUpdatedEvent,
   NetworkEarningsWithdrawn as NetworkEarningsWithdrawnEvent,
@@ -26,9 +28,13 @@ import {
   OperatorMultipleWhitelistUpdated as OperatorMultipleWhitelistUpdatedEvent,
   OperatorPrivacyStatusUpdated as OperatorPrivacyStatusUpdatedEvent,
   OperatorWithdrawn as OperatorWithdrawnEvent,
+  RewardsClaimed as RewardsClaimedEvent,
+  RewardsSettled as RewardsSettledEvent,
+  Staked as StakedEvent,
+  UnstakeRequested as UnstakeRequestedEvent,
+  UnstakedWithdrawn as UnstakedWithdrawnEvent,
   ValidatorAdded as ValidatorAddedEvent,
   ValidatorRemoved as ValidatorRemovedEvent,
-  InitializeCall,
 } from "../generated/SSVNetwork/SSVNetwork";
 import {
   Validator,
@@ -40,8 +46,10 @@ import {
   ClusterReactivated,
   ClusterWithdrawn,
   DeclareOperatorFeePeriodUpdated,
+  ERC20Rescued,
   ExecuteOperatorFeePeriodUpdated,
   FeeRecipientAddressUpdated,
+  FeeSynced,
   LiquidationThresholdPeriodUpdated,
   MinimumLiquidationCollateralUpdated,
   NetworkEarningsWithdrawn,
@@ -59,6 +67,11 @@ import {
   OperatorWhitelistingContractUpdated,
   OperatorPrivacyStatusUpdated,
   OperatorWithdrawn,
+  RewardsClaimed,
+  RewardsSettled,
+  Staked,
+  UnstakeRequested,
+  UnstakedWithdrawn,
   ValidatorAdded,
   ValidatorRemoved,
   DAOValues,
@@ -482,19 +495,17 @@ export function handleClusterBalanceUpdated(
   entity.owner = event.params.owner;
   entity.operatorIds = event.params.operatorIds;
   entity.effectiveBalance = event.params.effectiveBalance;
-  entity.vUnits = event.params.vUnits;
   entity.cluster_validatorCount = event.params.cluster.validatorCount;
   entity.cluster_networkFeeIndex = event.params.cluster.networkFeeIndex;
   entity.cluster_index = event.params.cluster.index;
   entity.cluster_active = event.params.cluster.active;
   entity.cluster_balance = event.params.cluster.balance;
-
+  
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
-
-  entity.save();
-
+  
+  
   let owner = Account.load(event.params.owner);
   if (!owner) {
     owner = new Account(event.params.owner);
@@ -503,7 +514,7 @@ export function handleClusterBalanceUpdated(
     owner.feeRecipient = event.params.owner;
     owner.save();
   }
-
+  
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join(
     "-"
   )}`;
@@ -515,7 +526,7 @@ export function handleClusterBalanceUpdated(
     );
     cluster = new Cluster(clusterId);
   }
-
+  
   cluster.owner = owner.id;
   cluster.operatorIds = event.params.operatorIds;
   cluster.validatorCount = event.params.cluster.validatorCount;
@@ -533,6 +544,9 @@ export function handleClusterBalanceUpdated(
   cluster.lastUpdateBlockTimestamp = event.block.timestamp;
   cluster.lastUpdateTransactionHash = event.transaction.hash;
   cluster.save();
+  
+  entity.vUnits = cluster.vUnits;
+  entity.save();
 }
 
 export function handleClusterMigratedToETH(
@@ -547,6 +561,7 @@ export function handleClusterMigratedToETH(
   entity.operatorIds = event.params.operatorIds;
   entity.ethDeposited = event.params.ethDeposited;
   entity.ssvRefunded = event.params.ssvRefunded;
+  entity.effectiveBalance = event.params.clusterEB
   entity.cluster_validatorCount = event.params.cluster.validatorCount;
   entity.cluster_networkFeeIndex = event.params.cluster.networkFeeIndex;
   entity.cluster_index = event.params.cluster.index;
@@ -578,10 +593,8 @@ export function handleClusterMigratedToETH(
       []
     );
     cluster = new Cluster(clusterId);
-    cluster.effectiveBalance = DEFAULT_BALANCE;
-    cluster.vUnits = BigInt.fromI32(100);
   }
-
+  
   cluster.owner = owner.id;
   cluster.operatorIds = event.params.operatorIds;
   cluster.validatorCount = event.params.cluster.validatorCount;
@@ -589,6 +602,8 @@ export function handleClusterMigratedToETH(
     `Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`,
     []
   );
+  cluster.effectiveBalance = event.params.clusterEB;
+  cluster.vUnits = cluster.effectiveBalance.div(DEFAULT_BALANCE).times(VUNITS_PRECISION);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex;
   cluster.index = event.params.cluster.index;
   cluster.active = event.params.cluster.active;
@@ -986,12 +1001,9 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
       []
     );
     cluster = new Cluster(clusterId);
-    cluster.effectiveBalance = DEFAULT_BALANCE;
-    cluster.vUnits = BigInt.fromI32(100);
-  } else {
-    cluster.vUnits = (cluster.effectiveBalance.plus(DEFAULT_BALANCE)).div(DEFAULT_BALANCE).times(VUNITS_PRECISION)
+    cluster.effectiveBalance = BigInt.fromI32(0);
   }
-
+  
   cluster.owner = owner.id;
   cluster.operatorIds = event.params.operatorIds;
   cluster.validatorCount = event.params.cluster.validatorCount;
@@ -999,6 +1011,8 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     `Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`,
     []
   );
+  cluster.effectiveBalance = cluster.effectiveBalance.plus(DEFAULT_BALANCE);
+  cluster.vUnits = cluster.effectiveBalance.div(DEFAULT_BALANCE).times(VUNITS_PRECISION)
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex;
   cluster.index = event.params.cluster.index;
   cluster.active = event.params.cluster.active;
@@ -1138,10 +1152,10 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
       []
     );
     cluster = new Cluster(clusterId);
+    // this is a bit of a trick: initialize with 32, then subtract 32 (~10 lines below here)
+    // But this line of code should technically NEVER happen:
+    // how can you remove validators from a cluster that does not exist?!
     cluster.effectiveBalance = DEFAULT_BALANCE;
-    cluster.vUnits = BigInt.fromI32(100);
-  } else {
-    cluster.vUnits = (cluster.effectiveBalance.minus(DEFAULT_BALANCE)).div(DEFAULT_BALANCE).times(VUNITS_PRECISION)
   }
 
   cluster.owner = owner.id;
@@ -1151,6 +1165,8 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     `Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`,
     []
   );
+  cluster.effectiveBalance = cluster.effectiveBalance.minus(DEFAULT_BALANCE);
+  cluster.vUnits = cluster.effectiveBalance.div(DEFAULT_BALANCE).times(VUNITS_PRECISION)
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex;
   cluster.index = event.params.cluster.index;
   cluster.active = event.params.cluster.active;
@@ -1922,4 +1938,50 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
     operator.lastUpdateTransactionHash = event.transaction.hash;
     operator.save();
   }
+}
+
+// Staking Events
+
+export function handleERC20Rescued(event: ERC20RescuedEvent): void {
+  let entity = new ERC20Rescued(
+    `${event.transaction.hash.toHexString()}-${event.logIndex
+      .toString()
+      .padStart(5, "0")}`
+  );
+  entity.token = event.params.token;
+  entity.to = event.params.to;
+  entity.amount = event.params.amount;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+
+}
+
+export function handleFeesSynced(event: FeesSyncedEvent): void {
+  log.info(
+      `New feesWei: ${event.params.newFeesWei}, accEthPerShare: ${event.params.accEthPerShare}`,
+      [])
+}
+
+export function handleRewardsClaimed(event: RewardsClaimedEvent): void {
+  
+}
+
+export function handleRewardsSettled(event: RewardsSettledEvent): void {
+  
+}
+
+export function handleStaked(event: StakedEvent): void {
+  
+}
+
+export function handleUnstakeRequested(event: UnstakeRequestedEvent): void {
+  
+}
+
+export function handleUnstakedWithdrawn(event: UnstakedWithdrawnEvent): void {
+  
 }

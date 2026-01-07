@@ -130,6 +130,7 @@ type ClusterMigratedToETH @entity(immutable: true) {
   operatorIds: [BigInt!]! # uint64[]
   ethDeposited: BigInt! # uint256
   ssvRefunded: BigInt! # uint256
+  effectiveBalance: BigInt! # uint256
   cluster_validatorCount: BigInt! # uint32
   cluster_networkFeeIndex: BigInt! # uint64
   cluster_index: BigInt! # uint64
@@ -206,6 +207,16 @@ type DeclareOperatorFeePeriodUpdated @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+type ERC20Rescued @entity(immutable: true) {
+  id: String!
+  token: Bytes! # address
+  to: Bytes! # address
+  amount: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
 type ExecuteOperatorFeePeriodUpdated @entity(immutable: true) {
   id: String!
   value: BigInt! # uint64
@@ -218,6 +229,15 @@ type FeeRecipientAddressUpdated @entity(immutable: true) {
   id: String!
   owner: Bytes! # address
   recipientAddress: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type FeeSynced @entity(immutable: true) {
+  id: String!
+  newFeesWei: BigInt!
+  accEthPerShare: BigInt!
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
@@ -371,6 +391,54 @@ type OperatorWithdrawn @entity(immutable: true) {
   owner: Bytes! # address
   operatorId: BigInt! # uint64
   value: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type RewardsClaimed @entity(immutable: true) {
+  id: String!
+  user: Bytes! # address
+  amount: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type RewardsSettled @entity(immutable: true) {
+  id: String!
+  user: Bytes! # address
+  pending: BigInt!
+  accrued: BigInt!
+  userIndex: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Staked @entity(immutable: true) {
+  id: String!
+  user: Bytes! # address
+  amount: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type UnstakeRequested @entity(immutable: true) {
+  id: String!
+  user: Bytes! # address
+  amount: BigInt!
+  unlockTime: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type UnstakedWithdrawn @entity(immutable: true) {
+  id: String!
+  user: Bytes! # address
+  amount: BigInt!
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
