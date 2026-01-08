@@ -25,6 +25,7 @@ type Cluster @entity(immutable: false) {
   effectiveBalance: BigInt! # uint256
   vUnits: BigInt! # uint256
   validators: [Validator!] @derivedFrom(field: "cluster")
+  feeAsset: ClusterFeeAssetTypes!
   networkFeeIndex: BigInt! # uint64
   index: BigInt! # uint64
   active: Boolean! # bool
@@ -32,6 +33,11 @@ type Cluster @entity(immutable: false) {
   lastUpdateBlockNumber: BigInt! # uint256
   lastUpdateBlockTimestamp: BigInt!
   lastUpdateTransactionHash: Bytes!
+}
+
+enum ClusterFeeAssetTypes {
+  SSV
+  ETH
 }
 
 type Validator @entity(immutable: false) {
@@ -57,10 +63,15 @@ type Operator @entity(immutable: false) {
   feeIndex: BigInt! # uint256
   feeIndexBlockNumber: BigInt! # uint256
   declaredFee: BigInt! # uint256
+  ssvFee: BigInt! # uint256
+  ssvFeeIndex: BigInt! # uint256
+  ssvFeeIndexBlockNumber: BigInt! # uint256
+  declaredSSVFee: BigInt! # uint256
   whitelisted: [Account!]!
   whitelistedContract: Bytes! #address
   isPrivate: Boolean! # bool
   totalWithdrawn: BigInt! # uint256
+  totalEffectiveBalance: BigInt! # uint256
   lastUpdateBlockNumber: BigInt! # uint256
   lastUpdateBlockTimestamp: BigInt!
   lastUpdateTransactionHash: Bytes!
@@ -84,6 +95,7 @@ type DAOValues @entity(immutable: false) {
   totalAccounts: BigInt!
   totalValidators: BigInt!
   totalOperators: BigInt!
+  totalEffectiveBalance: BigInt!
   validatorsAdded: BigInt!
   validatorsRemoved: BigInt!
   operatorsAdded: BigInt!
@@ -113,7 +125,6 @@ type ClusterBalanceUpdated @entity(immutable: true) {
   owner: Bytes! # address
   operatorIds: [BigInt!]! # uint64[]
   effectiveBalance: BigInt! # uint256
-  vUnits: BigInt! # uint256
   cluster_validatorCount: BigInt! # uint32
   cluster_networkFeeIndex: BigInt! # uint64
   cluster_index: BigInt! # uint64
@@ -234,7 +245,7 @@ type FeeRecipientAddressUpdated @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type FeeSynced @entity(immutable: true) {
+type FeesSynced @entity(immutable: true) {
   id: String!
   newFeesWei: BigInt!
   accEthPerShare: BigInt!

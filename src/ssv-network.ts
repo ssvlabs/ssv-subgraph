@@ -49,7 +49,7 @@ import {
   ERC20Rescued,
   ExecuteOperatorFeePeriodUpdated,
   FeeRecipientAddressUpdated,
-  FeeSynced,
+  FeesSynced,
   LiquidationThresholdPeriodUpdated,
   MinimumLiquidationCollateralUpdated,
   NetworkEarningsWithdrawn,
@@ -82,6 +82,8 @@ import { log } from "matchstick-as";
 
 const VUNITS_PRECISION = BigInt.fromI32(100000);
 const DEFAULT_BALANCE = BigInt.fromI32(32);
+const SSV_STAKING_UPDATE_BLOCK_NUMBER = BigInt.fromI32(1989056);
+const DEFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(10_000_000);
 
 // ###### DAO Events ######
 
@@ -121,6 +123,7 @@ export function handleDeclareOperatorFeePeriodUpdated(
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
+    dao.totalEffectiveBalance = BigInt.zero();
     dao.validatorsAdded = BigInt.zero();
     dao.validatorsRemoved = BigInt.zero();
     dao.operatorsAdded = BigInt.zero();
@@ -170,6 +173,7 @@ export function handleExecuteOperatorFeePeriodUpdated(
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
+    dao.totalEffectiveBalance = BigInt.zero();
     dao.validatorsAdded = BigInt.zero();
     dao.validatorsRemoved = BigInt.zero();
     dao.operatorsAdded = BigInt.zero();
@@ -249,6 +253,7 @@ export function handleLiquidationThresholdPeriodUpdated(
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
+    dao.totalEffectiveBalance = BigInt.zero();
     dao.validatorsAdded = BigInt.zero();
     dao.validatorsRemoved = BigInt.zero();
     dao.operatorsAdded = BigInt.zero();
@@ -298,6 +303,7 @@ export function handleMinimumLiquidationCollateralUpdated(
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
+    dao.totalEffectiveBalance = BigInt.zero();
     dao.validatorsAdded = BigInt.zero();
     dao.validatorsRemoved = BigInt.zero();
     dao.operatorsAdded = BigInt.zero();
@@ -364,6 +370,7 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
+    dao.totalEffectiveBalance = BigInt.zero();
     dao.validatorsAdded = BigInt.zero();
     dao.validatorsRemoved = BigInt.zero();
     dao.operatorsAdded = BigInt.zero();
@@ -420,6 +427,7 @@ export function handleOperatorFeeIncreaseLimitUpdated(
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
+    dao.totalEffectiveBalance = BigInt.zero();
     dao.validatorsAdded = BigInt.zero();
     dao.validatorsRemoved = BigInt.zero();
     dao.operatorsAdded = BigInt.zero();
@@ -469,6 +477,7 @@ export function handleOperatorMaximumFeeUpdated(
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
+    dao.totalEffectiveBalance = BigInt.zero();
     dao.validatorsAdded = BigInt.zero();
     dao.validatorsRemoved = BigInt.zero();
     dao.operatorsAdded = BigInt.zero();
@@ -500,12 +509,13 @@ export function handleClusterBalanceUpdated(
   entity.cluster_index = event.params.cluster.index;
   entity.cluster_active = event.params.cluster.active;
   entity.cluster_balance = event.params.cluster.balance;
-  
+
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
-  
-  
+
+  entity.save();
+
   let owner = Account.load(event.params.owner);
   if (!owner) {
     owner = new Account(event.params.owner);
@@ -514,7 +524,7 @@ export function handleClusterBalanceUpdated(
     owner.feeRecipient = event.params.owner;
     owner.save();
   }
-  
+
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join(
     "-"
   )}`;
@@ -525,8 +535,9 @@ export function handleClusterBalanceUpdated(
       []
     );
     cluster = new Cluster(clusterId);
+    cluster.feeAsset = "ETH";
   }
-  
+
   cluster.owner = owner.id;
   cluster.operatorIds = event.params.operatorIds;
   cluster.validatorCount = event.params.cluster.validatorCount;
@@ -534,8 +545,11 @@ export function handleClusterBalanceUpdated(
     `Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`,
     []
   );
+  let clusterPreviousBalance = cluster.effectiveBalance;
   cluster.effectiveBalance = event.params.effectiveBalance;
-  cluster.vUnits = cluster.effectiveBalance.div(DEFAULT_BALANCE).times(VUNITS_PRECISION)
+  cluster.vUnits = cluster.effectiveBalance
+    .div(DEFAULT_BALANCE)
+    .times(VUNITS_PRECISION);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex;
   cluster.index = event.params.cluster.index;
   cluster.active = event.params.cluster.active;
@@ -544,9 +558,72 @@ export function handleClusterBalanceUpdated(
   cluster.lastUpdateBlockTimestamp = event.block.timestamp;
   cluster.lastUpdateTransactionHash = event.transaction.hash;
   cluster.save();
-  
-  entity.vUnits = cluster.vUnits;
-  entity.save();
+
+  let dao = DAOValues.load(event.address);
+  if (!dao) {
+    log.error(
+      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
+      []
+    );
+    dao = new DAOValues(event.address);
+    dao.updateType = "CLUSTER_BALANCE_UPDATED";
+
+    dao.networkFee = BigInt.zero();
+    dao.networkFeeIndex = BigInt.zero();
+    dao.networkFeeIndexBlockNumber = BigInt.zero();
+    dao.liquidationThreshold = BigInt.zero();
+    dao.minimumLiquidationCollateral = BigInt.zero();
+    dao.operatorFeeIncreaseLimit = BigInt.zero();
+    dao.declareOperatorFeePeriod = BigInt.zero();
+    dao.executeOperatorFeePeriod = BigInt.zero();
+    dao.operatorMaximumFee = BigInt.zero();
+    dao.validatorsPerOperatorLimit = BigInt.zero();
+    dao.totalAccounts = BigInt.zero();
+    dao.totalOperators = BigInt.zero();
+    dao.totalValidators = BigInt.zero();
+    dao.totalEffectiveBalance = BigInt.zero();
+    dao.validatorsAdded = BigInt.zero();
+    dao.validatorsRemoved = BigInt.zero();
+    dao.operatorsAdded = BigInt.zero();
+    dao.operatorsRemoved = BigInt.zero();
+    dao.operatorMaximumFee = BigInt.zero();
+    dao.lastUpdateBlockNumber = event.block.number;
+    dao.lastUpdateBlockTimestamp = event.block.timestamp;
+    dao.lastUpdateTransactionHash = event.transaction.hash;
+  }
+
+  dao.totalEffectiveBalance = dao.totalEffectiveBalance
+    .minus(clusterPreviousBalance)
+    .plus(cluster.effectiveBalance);
+  dao.save();
+
+  for (var i = 0; i < event.params.operatorIds.length; i++) {
+    let operatorId = event.params.operatorIds[i].toString();
+    let operator = Operator.load(operatorId);
+    if (!operator) {
+      log.error(
+        `Cluster is migrated to ETH, but Operator ${event.params.operatorIds[i]} does not exist on the database`,
+        []
+      );
+      log.error(
+        `Could not create ${operatorId} on the database, because of missing information`,
+        []
+      );
+    } else {
+      // if the operator fee is zero, it means it's the first cluster with this operator to migrate to ETH
+      // so let's update the ETH fee to the default value
+      if (operator.fee = BigInt.zero()) {
+        operator.fee = DEFAULT_OPERATOR_ETH_FEE
+      }
+      operator.totalEffectiveBalance = operator.totalEffectiveBalance
+        .minus(clusterPreviousBalance)
+        .plus(cluster.effectiveBalance);
+      operator.lastUpdateBlockNumber = event.block.number;
+      operator.lastUpdateBlockTimestamp = event.block.timestamp;
+      operator.lastUpdateTransactionHash = event.transaction.hash;
+      operator.save();
+    }
+  }
 }
 
 export function handleClusterMigratedToETH(
@@ -561,7 +638,7 @@ export function handleClusterMigratedToETH(
   entity.operatorIds = event.params.operatorIds;
   entity.ethDeposited = event.params.ethDeposited;
   entity.ssvRefunded = event.params.ssvRefunded;
-  entity.effectiveBalance = event.params.clusterEB
+  entity.effectiveBalance = event.params.clusterEB;
   entity.cluster_validatorCount = event.params.cluster.validatorCount;
   entity.cluster_networkFeeIndex = event.params.cluster.networkFeeIndex;
   entity.cluster_index = event.params.cluster.index;
@@ -593,8 +670,9 @@ export function handleClusterMigratedToETH(
       []
     );
     cluster = new Cluster(clusterId);
+    cluster.feeAsset = "ETH";
   }
-  
+
   cluster.owner = owner.id;
   cluster.operatorIds = event.params.operatorIds;
   cluster.validatorCount = event.params.cluster.validatorCount;
@@ -602,8 +680,11 @@ export function handleClusterMigratedToETH(
     `Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`,
     []
   );
+  cluster.feeAsset = "SSV";
   cluster.effectiveBalance = event.params.clusterEB;
-  cluster.vUnits = cluster.effectiveBalance.div(DEFAULT_BALANCE).times(VUNITS_PRECISION);
+  cluster.vUnits = cluster.effectiveBalance
+    .div(DEFAULT_BALANCE)
+    .times(VUNITS_PRECISION);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex;
   cluster.index = event.params.cluster.index;
   cluster.active = event.params.cluster.active;
@@ -612,6 +693,29 @@ export function handleClusterMigratedToETH(
   cluster.lastUpdateBlockTimestamp = event.block.timestamp;
   cluster.lastUpdateTransactionHash = event.transaction.hash;
   cluster.save();
+
+  for (var i = 0; i < event.params.operatorIds.length; i++) {
+    let operatorId = event.params.operatorIds[i].toString();
+    let operator = Operator.load(operatorId);
+    if (!operator) {
+      log.error(
+        `Cluster is migrated to ETH, but Operator ${event.params.operatorIds[i]} does not exist on the database`,
+        []
+      );
+      log.error(
+        `Could not create ${operatorId} on the database, because of missing information`,
+        []
+      );
+    } else {
+      operator.totalEffectiveBalance = operator.totalEffectiveBalance.plus(
+        cluster.effectiveBalance
+      );
+      operator.lastUpdateBlockNumber = event.block.number;
+      operator.lastUpdateBlockTimestamp = event.block.timestamp;
+      operator.lastUpdateTransactionHash = event.transaction.hash;
+      operator.save();
+    }
+  }
 }
 
 export function handleClusterDeposited(event: ClusterDepositedEvent): void {
@@ -654,6 +758,7 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
       []
     );
     cluster = new Cluster(clusterId);
+    cluster.feeAsset = "SSV";
     cluster.effectiveBalance = DEFAULT_BALANCE;
     cluster.vUnits = BigInt.fromI32(100);
   }
@@ -717,6 +822,7 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
       []
     );
     cluster = new Cluster(clusterId);
+    cluster.feeAsset = "SSV";
     cluster.effectiveBalance = DEFAULT_BALANCE;
     cluster.vUnits = BigInt.fromI32(100);
   }
@@ -804,6 +910,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
       []
     );
     cluster = new Cluster(clusterId);
+    cluster.feeAsset = "SSV";
     cluster.effectiveBalance = DEFAULT_BALANCE;
     cluster.vUnits = BigInt.fromI32(100);
   }
@@ -889,6 +996,7 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
       []
     );
     cluster = new Cluster(clusterId);
+    cluster.feeAsset = "SSV";
     cluster.effectiveBalance = DEFAULT_BALANCE;
     cluster.vUnits = BigInt.fromI32(100);
   }
@@ -954,6 +1062,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
+    dao.totalEffectiveBalance = BigInt.zero();
     dao.validatorsAdded = BigInt.zero();
     dao.validatorsRemoved = BigInt.zero();
     dao.operatorsAdded = BigInt.zero();
@@ -1001,9 +1110,10 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
       []
     );
     cluster = new Cluster(clusterId);
+    cluster.feeAsset = "SSV";
     cluster.effectiveBalance = BigInt.fromI32(0);
   }
-  
+
   cluster.owner = owner.id;
   cluster.operatorIds = event.params.operatorIds;
   cluster.validatorCount = event.params.cluster.validatorCount;
@@ -1012,7 +1122,9 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     []
   );
   cluster.effectiveBalance = cluster.effectiveBalance.plus(DEFAULT_BALANCE);
-  cluster.vUnits = cluster.effectiveBalance.div(DEFAULT_BALANCE).times(VUNITS_PRECISION)
+  cluster.vUnits = cluster.effectiveBalance
+    .div(DEFAULT_BALANCE)
+    .times(VUNITS_PRECISION);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex;
   cluster.index = event.params.cluster.index;
   cluster.active = event.params.cluster.active;
@@ -1116,6 +1228,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
+    dao.totalEffectiveBalance = BigInt.zero();
     dao.validatorsAdded = BigInt.zero();
     dao.validatorsRemoved = BigInt.zero();
     dao.operatorsAdded = BigInt.zero();
@@ -1152,6 +1265,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
       []
     );
     cluster = new Cluster(clusterId);
+    cluster.feeAsset = "SSV";
     // this is a bit of a trick: initialize with 32, then subtract 32 (~10 lines below here)
     // But this line of code should technically NEVER happen:
     // how can you remove validators from a cluster that does not exist?!
@@ -1166,7 +1280,9 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     []
   );
   cluster.effectiveBalance = cluster.effectiveBalance.minus(DEFAULT_BALANCE);
-  cluster.vUnits = cluster.effectiveBalance.div(DEFAULT_BALANCE).times(VUNITS_PRECISION)
+  cluster.vUnits = cluster.effectiveBalance
+    .div(DEFAULT_BALANCE)
+    .times(VUNITS_PRECISION);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex;
   cluster.index = event.params.cluster.index;
   cluster.active = event.params.cluster.active;
@@ -1275,6 +1391,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
+    dao.totalEffectiveBalance = BigInt.zero();
     dao.validatorsAdded = BigInt.zero();
     dao.validatorsRemoved = BigInt.zero();
     dao.operatorsAdded = BigInt.zero();
@@ -1309,6 +1426,10 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.feeIndex = BigInt.zero();
     operator.feeIndexBlockNumber = event.block.number;
     operator.declaredFee = BigInt.zero();
+    operator.ssvFee = event.params.fee;
+    operator.ssvFeeIndex = BigInt.zero();
+    operator.ssvFeeIndexBlockNumber = event.block.number;
+    operator.declaredSSVFee = BigInt.zero();
     operator.whitelisted = [];
     operator.isPrivate = false;
     operator.whitelistedContract = Address.fromString(
@@ -1379,7 +1500,11 @@ export function handleOperatorFeeDeclarationCancelled(
   } else {
     operator.operatorId = event.params.operatorId;
     operator.owner = owner.id;
-    operator.declaredFee = BigInt.zero(); // reset declared fee, as fee change was cancelled
+    if (event.block.number < SSV_STAKING_UPDATE_BLOCK_NUMBER) {
+      operator.declaredSSVFee = BigInt.zero();
+    } else {
+      operator.declaredFee = BigInt.zero(); // reset declared fee, as fee change was cancelled
+    }
     operator.lastUpdateBlockNumber = event.block.number;
     operator.lastUpdateBlockTimestamp = event.block.timestamp;
     operator.lastUpdateTransactionHash = event.transaction.hash;
@@ -1435,7 +1560,11 @@ export function handleOperatorFeeDeclared(
   } else {
     operator.operatorId = event.params.operatorId;
     operator.owner = owner.id;
-    operator.declaredFee = event.params.fee; // storing declared fee, in case fee change gets cancelled
+    if (event.block.number < SSV_STAKING_UPDATE_BLOCK_NUMBER) {
+      operator.declaredSSVFee = event.params.fee; // storing declared fee, in case fee change gets cancelled
+    } else {
+      operator.declaredFee = event.params.fee; // storing declared fee, in case fee change gets cancelled
+    }
     operator.lastUpdateBlockNumber = event.block.number;
     operator.lastUpdateBlockTimestamp = event.block.timestamp;
     operator.lastUpdateTransactionHash = event.transaction.hash;
@@ -1491,13 +1620,27 @@ export function handleOperatorFeeExecuted(
   } else {
     operator.operatorId = event.params.operatorId;
     operator.owner = owner.id;
-    // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
-    operator.feeIndex = operator.feeIndex.plus(
-      event.block.number.minus(operator.feeIndexBlockNumber).times(operator.fee)
-    );
-    operator.feeIndexBlockNumber = event.block.number;
-    operator.fee = event.params.fee;
-    operator.declaredFee = BigInt.zero(); // reset declared fee, as fee change was executed
+    if (event.block.number < SSV_STAKING_UPDATE_BLOCK_NUMBER) {
+      // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
+      operator.ssvFeeIndex = operator.feeIndex.plus(
+        event.block.number
+          .minus(operator.ssvFeeIndexBlockNumber)
+          .times(operator.ssvFee)
+      );
+      operator.ssvFeeIndexBlockNumber = event.block.number;
+      operator.ssvFee = event.params.fee;
+      operator.declaredSSVFee = BigInt.zero(); // reset declared fee, as fee change was executed
+    } else {
+      // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
+      operator.feeIndex = operator.feeIndex.plus(
+        event.block.number
+          .minus(operator.feeIndexBlockNumber)
+          .times(operator.fee)
+      );
+      operator.feeIndexBlockNumber = event.block.number;
+      operator.fee = event.params.fee;
+      operator.declaredFee = BigInt.zero(); // reset declared fee, as fee change was executed
+    }
     operator.lastUpdateBlockNumber = event.block.number;
     operator.lastUpdateBlockTimestamp = event.block.timestamp;
     operator.lastUpdateTransactionHash = event.transaction.hash;
@@ -1541,6 +1684,7 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
+    dao.totalEffectiveBalance = BigInt.zero();
     dao.validatorsAdded = BigInt.zero();
     dao.validatorsRemoved = BigInt.zero();
     dao.operatorsAdded = BigInt.zero();
@@ -1957,31 +2101,108 @@ export function handleERC20Rescued(event: ERC20RescuedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   entity.save();
-
 }
 
 export function handleFeesSynced(event: FeesSyncedEvent): void {
   log.info(
-      `New feesWei: ${event.params.newFeesWei}, accEthPerShare: ${event.params.accEthPerShare}`,
-      [])
+    `New feesWei: ${event.params.newFeesWei}, accEthPerShare: ${event.params.accEthPerShare}`,
+    []
+  );
+
+  let entity = new FeesSynced(
+    `${event.transaction.hash.toHexString()}-${event.logIndex
+      .toString()
+      .padStart(5, "0")}`
+  );
+  entity.newFeesWei = event.params.newFeesWei;
+  entity.accEthPerShare = event.params.accEthPerShare;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
 }
 
 export function handleRewardsClaimed(event: RewardsClaimedEvent): void {
-  
+  let entity = new RewardsClaimed(
+    `${event.transaction.hash.toHexString()}-${event.logIndex
+      .toString()
+      .padStart(5, "0")}`
+  );
+  entity.user = event.params.user;
+  entity.amount = event.params.amount;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
 }
 
 export function handleRewardsSettled(event: RewardsSettledEvent): void {
-  
+  let entity = new RewardsSettled(
+    `${event.transaction.hash.toHexString()}-${event.logIndex
+      .toString()
+      .padStart(5, "0")}`
+  );
+  entity.user = event.params.user;
+  entity.accrued = event.params.accrued;
+  entity.pending = event.params.pending;
+  entity.userIndex = event.params.userIndex;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
 }
 
 export function handleStaked(event: StakedEvent): void {
-  
+  let entity = new Staked(
+    `${event.transaction.hash.toHexString()}-${event.logIndex
+      .toString()
+      .padStart(5, "0")}`
+  );
+  entity.user = event.params.user;
+  entity.amount = event.params.amount;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
 }
 
 export function handleUnstakeRequested(event: UnstakeRequestedEvent): void {
-  
+  let entity = new UnstakeRequested(
+    `${event.transaction.hash.toHexString()}-${event.logIndex
+      .toString()
+      .padStart(5, "0")}`
+  );
+  entity.user = event.params.user;
+  entity.amount = event.params.amount;
+  entity.unlockTime = event.params.unlockTime;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
 }
 
 export function handleUnstakedWithdrawn(event: UnstakedWithdrawnEvent): void {
-  
+  let entity = new UnstakedWithdrawn(
+    `${event.transaction.hash.toHexString()}-${event.logIndex
+      .toString()
+      .padStart(5, "0")}`
+  );
+  entity.user = event.params.user;
+  entity.amount = event.params.amount;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
 }

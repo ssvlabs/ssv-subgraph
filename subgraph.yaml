@@ -56,10 +56,14 @@ dataSources:
       eventHandlers:
         - event: DeclareOperatorFeePeriodUpdated(uint64)
           handler: handleDeclareOperatorFeePeriodUpdated
+        - event: ERC20Rescued(indexed address,indexed address,uint256)
+          handler: handleERC20Rescued
         - event: ExecuteOperatorFeePeriodUpdated(uint64)
           handler: handleExecuteOperatorFeePeriodUpdated
         - event: FeeRecipientAddressUpdated(indexed address,address)
           handler: handleFeeRecipientAddressUpdated
+        - event: FeesSynced(uint256,uint256)
+          handler: handleFeesSynced
         - event: LiquidationThresholdPeriodUpdated(uint64)
           handler: handleLiquidationThresholdPeriodUpdated
         - event: MinimumLiquidationCollateralUpdated(uint256)
@@ -112,6 +116,16 @@ dataSources:
           handler: handleOperatorPrivacyStatusUpdated
         - event: OperatorWithdrawn(indexed address,indexed uint64,uint256)
           handler: handleOperatorWithdrawn
+        - event: RewardsClaimed(indexed address,uint256)
+          handler: handleRewardsClaimed
+        - event: RewardsSettled(indexed address,uint256,uint256,uint256)
+          handler: handleRewardsSettled
+        - event: Staked(indexed address,uint256)
+          handler: handleStaked
+        - event: UnstakeRequested(indexed address,uint256,uint256)
+          handler: handleUnstakeRequested
+        - event: UnstakedWithdrawn(indexed address,uint256)
+          handler: handleUnstakedWithdrawn
         - event: ClusterBalanceUpdated(indexed address,uint64[],indexed uint64,uint256,(uint32,uint64,uint64,bool,uint256))
           handler: handleClusterBalanceUpdated
         - event: ClusterMigratedToETH(indexed address,uint64[],uint256,uint256,uint256,(uint32,uint64,uint64,bool,uint256))

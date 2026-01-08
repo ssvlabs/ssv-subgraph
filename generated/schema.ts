@@ -9,7 +9,6 @@ import {
   Bytes,
   BigInt,
   BigDecimal,
-  Int8,
 } from "@graphprotocol/graph-ts";
 
 export class Account extends Entity {
@@ -321,6 +320,19 @@ export class Cluster extends Entity {
       this.get("id")!.toString(),
       "validators",
     );
+  }
+
+  get feeAsset(): string {
+    let value = this.get("feeAsset");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set feeAsset(value: string) {
+    this.set("feeAsset", Value.fromString(value));
   }
 
   get networkFeeIndex(): BigInt {
@@ -706,6 +718,58 @@ export class Operator extends Entity {
     this.set("declaredFee", Value.fromBigInt(value));
   }
 
+  get ssvFee(): BigInt {
+    let value = this.get("ssvFee");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set ssvFee(value: BigInt) {
+    this.set("ssvFee", Value.fromBigInt(value));
+  }
+
+  get ssvFeeIndex(): BigInt {
+    let value = this.get("ssvFeeIndex");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set ssvFeeIndex(value: BigInt) {
+    this.set("ssvFeeIndex", Value.fromBigInt(value));
+  }
+
+  get ssvFeeIndexBlockNumber(): BigInt {
+    let value = this.get("ssvFeeIndexBlockNumber");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set ssvFeeIndexBlockNumber(value: BigInt) {
+    this.set("ssvFeeIndexBlockNumber", Value.fromBigInt(value));
+  }
+
+  get declaredSSVFee(): BigInt {
+    let value = this.get("declaredSSVFee");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set declaredSSVFee(value: BigInt) {
+    this.set("declaredSSVFee", Value.fromBigInt(value));
+  }
+
   get whitelisted(): Array<Bytes> {
     let value = this.get("whitelisted");
     if (!value || value.kind == ValueKind.NULL) {
@@ -756,6 +820,19 @@ export class Operator extends Entity {
 
   set totalWithdrawn(value: BigInt) {
     this.set("totalWithdrawn", Value.fromBigInt(value));
+  }
+
+  get totalEffectiveBalance(): BigInt {
+    let value = this.get("totalEffectiveBalance");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalEffectiveBalance(value: BigInt) {
+    this.set("totalEffectiveBalance", Value.fromBigInt(value));
   }
 
   get lastUpdateBlockNumber(): BigInt {
@@ -1044,6 +1121,19 @@ export class DAOValues extends Entity {
     this.set("totalOperators", Value.fromBigInt(value));
   }
 
+  get totalEffectiveBalance(): BigInt {
+    let value = this.get("totalEffectiveBalance");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalEffectiveBalance(value: BigInt) {
+    this.set("totalEffectiveBalance", Value.fromBigInt(value));
+  }
+
   get validatorsAdded(): BigInt {
     let value = this.get("validatorsAdded");
     if (!value || value.kind == ValueKind.NULL) {
@@ -1219,19 +1309,6 @@ export class ClusterBalanceUpdated extends Entity {
 
   set effectiveBalance(value: BigInt) {
     this.set("effectiveBalance", Value.fromBigInt(value));
-  }
-
-  get vUnits(): BigInt {
-    let value = this.get("vUnits");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set vUnits(value: BigInt) {
-    this.set("vUnits", Value.fromBigInt(value));
   }
 
   get cluster_validatorCount(): BigInt {
@@ -2704,7 +2781,7 @@ export class FeeRecipientAddressUpdated extends Entity {
   }
 }
 
-export class FeeSynced extends Entity {
+export class FeesSynced extends Entity {
   constructor(id: string) {
     super();
     this.set("id", Value.fromString(id));
@@ -2712,22 +2789,22 @@ export class FeeSynced extends Entity {
 
   save(): void {
     let id = this.get("id");
-    assert(id != null, "Cannot save FeeSynced entity without an ID");
+    assert(id != null, "Cannot save FeesSynced entity without an ID");
     if (id) {
       assert(
         id.kind == ValueKind.STRING,
-        `Entities of type FeeSynced must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+        `Entities of type FeesSynced must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
       );
-      store.set("FeeSynced", id.toString(), this);
+      store.set("FeesSynced", id.toString(), this);
     }
   }
 
-  static loadInBlock(id: string): FeeSynced | null {
-    return changetype<FeeSynced | null>(store.get_in_block("FeeSynced", id));
+  static loadInBlock(id: string): FeesSynced | null {
+    return changetype<FeesSynced | null>(store.get_in_block("FeesSynced", id));
   }
 
-  static load(id: string): FeeSynced | null {
-    return changetype<FeeSynced | null>(store.get("FeeSynced", id));
+  static load(id: string): FeesSynced | null {
+    return changetype<FeesSynced | null>(store.get("FeesSynced", id));
   }
 
   get id(): string {
