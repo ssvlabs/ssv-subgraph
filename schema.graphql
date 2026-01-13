@@ -86,10 +86,16 @@ type DAOValues @entity(immutable: false) {
   networkFeeIndexBlockNumber: BigInt! # uint256
   liquidationThreshold: BigInt! # uint256
   minimumLiquidationCollateral: BigInt! # uint256
+  networkFeeSSV: BigInt! # uint256
+  networkFeeIndexSSV: BigInt! # uint256
+  networkFeeIndexBlockNumberSSV: BigInt! # uint256
+  liquidationThresholdSSV: BigInt! # uint256
+  minimumLiquidationCollateralSSV: BigInt! # uint256
   operatorFeeIncreaseLimit: BigInt! # uint256
   declareOperatorFeePeriod: BigInt! # uint256
   executeOperatorFeePeriod: BigInt! # uint256
   operatorMaximumFee: BigInt! # uint256
+  operatorMaximumFeeSSV: BigInt! # uint256
   validatorsPerOperatorLimit: BigInt!
   updateType: DAOUpdateTypes!
   totalAccounts: BigInt!
@@ -108,12 +114,16 @@ type DAOValues @entity(immutable: false) {
 enum DAOUpdateTypes {
   INITIALIZATION
   NETWORK_FEE
+  NETWORK_FEE_SSV
   LIQUIDATION_THRESHOLD
+  LIQUIDATION_THRESHOLD_SSV
   MIN_LIQUIDATION_COLLATERAL
+  MIN_LIQUIDATION_COLLATERAL_SSV
   OPERATOR_FEE_INCREASE_LIMIT
   DECLARE_OPERATOR_FEE_PERIOD
   EXECUTE_OPERATOR_FEE_PERIOD
   OPERATOR_MAX_FEE
+  OPERATOR_MAX_FEE_SSV
   VALIDATOR_ADDED
   VALIDATOR_REMOVED
   OPERATOR_ADDED
@@ -262,7 +272,23 @@ type LiquidationThresholdPeriodUpdated @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+type LiquidationThresholdPeriodSSVUpdated @entity(immutable: true) {
+  id: String!
+  value: BigInt! # uint64
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
 type MinimumLiquidationCollateralUpdated @entity(immutable: true) {
+  id: String!
+  value: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type MinimumLiquidationCollateralSSVUpdated @entity(immutable: true) {
   id: String!
   value: BigInt! # uint256
   blockNumber: BigInt!
@@ -280,6 +306,15 @@ type NetworkEarningsWithdrawn @entity(immutable: true) {
 }
 
 type NetworkFeeUpdated @entity(immutable: true) {
+  id: String!
+  oldFee: BigInt! # uint256
+  newFee: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type NetworkFeeUpdatedSSV @entity(immutable: true) {
   id: String!
   oldFee: BigInt! # uint256
   newFee: BigInt! # uint256
@@ -337,6 +372,14 @@ type OperatorFeeIncreaseLimitUpdated @entity(immutable: true) {
 }
 
 type OperatorMaximumFeeUpdated @entity(immutable: true) {
+  id: String!
+  maxFee: BigInt! # uint64
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OperatorMaximumFeeSSVUpdated @entity(immutable: true) {
   id: String!
   maxFee: BigInt! # uint64
   blockNumber: BigInt!
@@ -481,6 +524,62 @@ type ValidatorRemoved @entity(immutable: true) {
   cluster_index: BigInt! # uint64
   cluster_active: Boolean! # bool
   cluster_balance: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type RootCommitted @entity(immutable: true) {
+  id: String!
+  merkleRoot: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type RootProposed @entity(immutable: true) {
+  id: String!
+  merkleRoot: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type DelegationUpdated @entity(immutable: true) {
+  id: String!
+  user: Bytes! # address
+  oracleIds: [BigInt!]!
+  amounts: [BigInt!]!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OracleReplaced @entity(immutable: true) {
+  id: String!
+  oracleId: BigInt! # address
+  oldOracle: Bytes!
+  newOracle: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type QuorumUpdated @entity(immutable: true) {
+  id: String!
+  newQuorum: Int!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type WeightedRootProposed @entity(immutable: true) {
+  id: String!
+  merkleRoot: Bytes!
+  accumulatedWeight: BigInt!
+  quorum: BigInt!
+  oracleId: BigInt!
+  oracle: Bytes!
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!

@@ -66,12 +66,18 @@ dataSources:
           handler: handleFeesSynced
         - event: LiquidationThresholdPeriodUpdated(uint64)
           handler: handleLiquidationThresholdPeriodUpdated
+        - event: LiquidationThresholdPeriodSSVUpdated(uint64)
+          handler: handleLiquidationThresholdPeriodSSVUpdated
         - event: MinimumLiquidationCollateralUpdated(uint256)
           handler: handleMinimumLiquidationCollateralUpdated
+        - event: MinimumLiquidationCollateralSSVUpdated(uint256)
+          handler: handleMinimumLiquidationCollateralSSVUpdated
         - event: NetworkEarningsWithdrawn(uint256,address)
           handler: handleNetworkEarningsWithdrawn
         - event: NetworkFeeUpdated(uint256,uint256)
           handler: handleNetworkFeeUpdated
+        - event: NetworkFeeUpdatedSSV(uint256,uint256)
+          handler: handleNetworkFeeUpdatedSSV
         - event: ClusterDeposited(indexed
             address,uint64[],uint256,(uint32,uint64,uint64,bool,uint256))
           handler: handleClusterDeposited
@@ -102,6 +108,8 @@ dataSources:
           handler: handleOperatorFeeIncreaseLimitUpdated
         - event: OperatorMaximumFeeUpdated(uint64)
           handler: handleOperatorMaximumFeeUpdated
+        - event: OperatorMaximumFeeSSVUpdated(uint64)
+          handler: handleOperatorMaximumFeeSSVUpdated
         - event: OperatorRemoved(indexed uint64)
           handler: handleOperatorRemoved
         - event: OperatorWhitelistUpdated(indexed uint64,address)
@@ -126,8 +134,20 @@ dataSources:
           handler: handleUnstakeRequested
         - event: UnstakedWithdrawn(indexed address,uint256)
           handler: handleUnstakedWithdrawn
-        - event: ClusterBalanceUpdated(indexed address,uint64[],indexed uint64,uint256,(uint32,uint64,uint64,bool,uint256))
+        - event: ClusterBalanceUpdated(indexed address,uint64[],indexed uint64,uint32,(uint32,uint64,uint64,bool,uint256))
           handler: handleClusterBalanceUpdated
-        - event: ClusterMigratedToETH(indexed address,uint64[],uint256,uint256,uint256,(uint32,uint64,uint64,bool,uint256))
+        - event: ClusterMigratedToETH(indexed address,uint64[],uint256,uint256,uint32,(uint32,uint64,uint64,bool,uint256))
           handler: handleClusterMigratedToETH
+        - event: RootCommitted(indexed bytes32,indexed uint64)
+          handler: handleRootCommitted
+        - event: RootProposed(indexed bytes32,indexed uint64)
+          handler: handleRootProposed
+        - event: DelegationUpdated(indexed address,uint32[4],uint256[4])
+          handler: handleDelegationUpdated
+        - event: OracleReplaced(indexed uint32,indexed address,indexed address)
+          handler: handleOracleReplaced
+        - event: QuorumUpdated(uint16)
+          handler: handleQuorumUpdated
+        - event: WeightedRootProposed(indexed bytes32,indexed uint64,uint256,uint256,uint32,address)
+          handler: handleWeightedRootProposed
       file: ./src/ssv-network.ts

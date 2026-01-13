@@ -1,14 +1,14 @@
 {
   "hoodi": {
     "SSVNetwork": {
-      "address": "0x956c4e278ea61Da0B0c46cA057264a930E13AAd4",
+      "address": "0x5Ec6aBaC8cB238D68d310A2b1656405161988bFC",
       "startBlock": 1706002
     }
   },
   "hoodi-testnet": {
     "SSVNetwork": {
-      "address": "0x956c4e278ea61Da0B0c46cA057264a930E13AAd4",
-      "startBlock": 1706002
+      "address": "0x5Ec6aBaC8cB238D68d310A2b1656405161988bFC",
+      "startBlock": 1930389
     }
   },
   "hoodi-stage": {

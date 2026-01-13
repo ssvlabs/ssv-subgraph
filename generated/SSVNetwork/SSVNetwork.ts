@@ -241,7 +241,7 @@ export class ClusterMigratedToETH__Params {
     return this._event.parameters[3].value.toBigInt();
   }
 
-  get clusterEB(): BigInt {
+  get effectiveBalance(): BigInt {
     return this._event.parameters[4].value.toBigInt();
   }
 
@@ -414,6 +414,32 @@ export class DeclareOperatorFeePeriodUpdated__Params {
   }
 }
 
+export class DelegationUpdated extends ethereum.Event {
+  get params(): DelegationUpdated__Params {
+    return new DelegationUpdated__Params(this);
+  }
+}
+
+export class DelegationUpdated__Params {
+  _event: DelegationUpdated;
+
+  constructor(event: DelegationUpdated) {
+    this._event = event;
+  }
+
+  get user(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get oracleIds(): Array<BigInt> {
+    return this._event.parameters[1].value.toBigIntArray();
+  }
+
+  get amounts(): Array<BigInt> {
+    return this._event.parameters[2].value.toBigIntArray();
+  }
+}
+
 export class ERC20Rescued extends ethereum.Event {
   get params(): ERC20Rescued__Params {
     return new ERC20Rescued__Params(this);
@@ -520,6 +546,24 @@ export class Initialized__Params {
   }
 }
 
+export class LiquidationThresholdPeriodSSVUpdated extends ethereum.Event {
+  get params(): LiquidationThresholdPeriodSSVUpdated__Params {
+    return new LiquidationThresholdPeriodSSVUpdated__Params(this);
+  }
+}
+
+export class LiquidationThresholdPeriodSSVUpdated__Params {
+  _event: LiquidationThresholdPeriodSSVUpdated;
+
+  constructor(event: LiquidationThresholdPeriodSSVUpdated) {
+    this._event = event;
+  }
+
+  get value(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+}
+
 export class LiquidationThresholdPeriodUpdated extends ethereum.Event {
   get params(): LiquidationThresholdPeriodUpdated__Params {
     return new LiquidationThresholdPeriodUpdated__Params(this);
@@ -530,6 +574,24 @@ export class LiquidationThresholdPeriodUpdated__Params {
   _event: LiquidationThresholdPeriodUpdated;
 
   constructor(event: LiquidationThresholdPeriodUpdated) {
+    this._event = event;
+  }
+
+  get value(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+}
+
+export class MinimumLiquidationCollateralSSVUpdated extends ethereum.Event {
+  get params(): MinimumLiquidationCollateralSSVUpdated__Params {
+    return new MinimumLiquidationCollateralSSVUpdated__Params(this);
+  }
+}
+
+export class MinimumLiquidationCollateralSSVUpdated__Params {
+  _event: MinimumLiquidationCollateralSSVUpdated;
+
+  constructor(event: MinimumLiquidationCollateralSSVUpdated) {
     this._event = event;
   }
 
@@ -610,6 +672,28 @@ export class NetworkFeeUpdated__Params {
   _event: NetworkFeeUpdated;
 
   constructor(event: NetworkFeeUpdated) {
+    this._event = event;
+  }
+
+  get oldFee(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+
+  get newFee(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+}
+
+export class NetworkFeeUpdatedSSV extends ethereum.Event {
+  get params(): NetworkFeeUpdatedSSV__Params {
+    return new NetworkFeeUpdatedSSV__Params(this);
+  }
+}
+
+export class NetworkFeeUpdatedSSV__Params {
+  _event: NetworkFeeUpdatedSSV;
+
+  constructor(event: NetworkFeeUpdatedSSV) {
     this._event = event;
   }
 
@@ -748,6 +832,24 @@ export class OperatorFeeIncreaseLimitUpdated__Params {
   }
 
   get value(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+}
+
+export class OperatorMaximumFeeSSVUpdated extends ethereum.Event {
+  get params(): OperatorMaximumFeeSSVUpdated__Params {
+    return new OperatorMaximumFeeSSVUpdated__Params(this);
+  }
+}
+
+export class OperatorMaximumFeeSSVUpdated__Params {
+  _event: OperatorMaximumFeeSSVUpdated;
+
+  constructor(event: OperatorMaximumFeeSSVUpdated) {
+    this._event = event;
+  }
+
+  get maxFee(): BigInt {
     return this._event.parameters[0].value.toBigInt();
   }
 }
@@ -924,6 +1026,32 @@ export class OperatorWithdrawn__Params {
   }
 }
 
+export class OracleReplaced extends ethereum.Event {
+  get params(): OracleReplaced__Params {
+    return new OracleReplaced__Params(this);
+  }
+}
+
+export class OracleReplaced__Params {
+  _event: OracleReplaced;
+
+  constructor(event: OracleReplaced) {
+    this._event = event;
+  }
+
+  get oracleId(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+
+  get oldOracle(): Address {
+    return this._event.parameters[1].value.toAddress();
+  }
+
+  get newOracle(): Address {
+    return this._event.parameters[2].value.toAddress();
+  }
+}
+
 export class OwnershipTransferStarted extends ethereum.Event {
   get params(): OwnershipTransferStarted__Params {
     return new OwnershipTransferStarted__Params(this);
@@ -965,6 +1093,24 @@ export class OwnershipTransferred__Params {
 
   get newOwner(): Address {
     return this._event.parameters[1].value.toAddress();
+  }
+}
+
+export class QuorumUpdated extends ethereum.Event {
+  get params(): QuorumUpdated__Params {
+    return new QuorumUpdated__Params(this);
+  }
+}
+
+export class QuorumUpdated__Params {
+  _event: QuorumUpdated;
+
+  constructor(event: QuorumUpdated) {
+    this._event = event;
+  }
+
+  get newQuorum(): i32 {
+    return this._event.parameters[0].value.toI32();
   }
 }
 
@@ -1287,6 +1433,44 @@ export class ValidatorRemovedClusterStruct extends ethereum.Tuple {
 
   get balance(): BigInt {
     return this[4].toBigInt();
+  }
+}
+
+export class WeightedRootProposed extends ethereum.Event {
+  get params(): WeightedRootProposed__Params {
+    return new WeightedRootProposed__Params(this);
+  }
+}
+
+export class WeightedRootProposed__Params {
+  _event: WeightedRootProposed;
+
+  constructor(event: WeightedRootProposed) {
+    this._event = event;
+  }
+
+  get merkleRoot(): Bytes {
+    return this._event.parameters[0].value.toBytes();
+  }
+
+  get blockNum(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get accumulatedWeight(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+
+  get quorum(): BigInt {
+    return this._event.parameters[3].value.toBigInt();
+  }
+
+  get oracleId(): BigInt {
+    return this._event.parameters[4].value.toBigInt();
+  }
+
+  get oracle(): Address {
+    return this._event.parameters[5].value.toAddress();
   }
 }
 
@@ -1930,28 +2114,10 @@ export class InitializeCall__Inputs {
     return this._call.inputValues[4].value.toAddress();
   }
 
-  get minimumBlocksBeforeLiquidation_(): BigInt {
-    return this._call.inputValues[5].value.toBigInt();
-  }
-
-  get minimumLiquidationCollateral_(): BigInt {
-    return this._call.inputValues[6].value.toBigInt();
-  }
-
-  get validatorsPerOperatorLimit_(): BigInt {
-    return this._call.inputValues[7].value.toBigInt();
-  }
-
-  get declareOperatorFeePeriod_(): BigInt {
-    return this._call.inputValues[8].value.toBigInt();
-  }
-
-  get executeOperatorFeePeriod_(): BigInt {
-    return this._call.inputValues[9].value.toBigInt();
-  }
-
-  get operatorMaxFeeIncrease_(): BigInt {
-    return this._call.inputValues[10].value.toBigInt();
+  get params(): InitializeCallParamsStruct {
+    return changetype<InitializeCallParamsStruct>(
+      this._call.inputValues[5].value.toTuple(),
+    );
   }
 }
 
@@ -1960,6 +2126,40 @@ export class InitializeCall__Outputs {
 
   constructor(call: InitializeCall) {
     this._call = call;
+  }
+}
+
+export class InitializeCallParamsStruct extends ethereum.Tuple {
+  get minimumBlocksBeforeLiquidation(): BigInt {
+    return this[0].toBigInt();
+  }
+
+  get minimumLiquidationCollateral(): BigInt {
+    return this[1].toBigInt();
+  }
+
+  get validatorsPerOperatorLimit(): BigInt {
+    return this[2].toBigInt();
+  }
+
+  get declareOperatorFeePeriod(): BigInt {
+    return this[3].toBigInt();
+  }
+
+  get executeOperatorFeePeriod(): BigInt {
+    return this[4].toBigInt();
+  }
+
+  get operatorMaxFeeIncrease(): BigInt {
+    return this[5].toBigInt();
+  }
+
+  get defaultOracleIds(): Array<BigInt> {
+    return this[6].toBigIntArray();
+  }
+
+  get quorumBps(): i32 {
+    return this[7].toI32();
   }
 }
 
@@ -2168,6 +2368,10 @@ export class OnCSSVTransferCall__Inputs {
 
   get to(): Address {
     return this._call.inputValues[1].value.toAddress();
+  }
+
+  get amount(): BigInt {
+    return this._call.inputValues[2].value.toBigInt();
   }
 }
 
@@ -2569,6 +2773,40 @@ export class RenounceOwnershipCall__Outputs {
   }
 }
 
+export class ReplaceOracleCall extends ethereum.Call {
+  get inputs(): ReplaceOracleCall__Inputs {
+    return new ReplaceOracleCall__Inputs(this);
+  }
+
+  get outputs(): ReplaceOracleCall__Outputs {
+    return new ReplaceOracleCall__Outputs(this);
+  }
+}
+
+export class ReplaceOracleCall__Inputs {
+  _call: ReplaceOracleCall;
+
+  constructor(call: ReplaceOracleCall) {
+    this._call = call;
+  }
+
+  get oracleId(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+
+  get newOracle(): Address {
+    return this._call.inputValues[1].value.toAddress();
+  }
+}
+
+export class ReplaceOracleCall__Outputs {
+  _call: ReplaceOracleCall;
+
+  constructor(call: ReplaceOracleCall) {
+    this._call = call;
+  }
+}
+
 export class RequestUnstakeCall extends ethereum.Call {
   get inputs(): RequestUnstakeCall__Inputs {
     return new RequestUnstakeCall__Inputs(this);
@@ -2795,44 +3033,32 @@ export class SetOperatorsWhitelistsCall__Outputs {
   }
 }
 
-export class SetOracleTimingConfigCall extends ethereum.Call {
-  get inputs(): SetOracleTimingConfigCall__Inputs {
-    return new SetOracleTimingConfigCall__Inputs(this);
+export class SetQuorumBpsCall extends ethereum.Call {
+  get inputs(): SetQuorumBpsCall__Inputs {
+    return new SetQuorumBpsCall__Inputs(this);
   }
 
-  get outputs(): SetOracleTimingConfigCall__Outputs {
-    return new SetOracleTimingConfigCall__Outputs(this);
+  get outputs(): SetQuorumBpsCall__Outputs {
+    return new SetQuorumBpsCall__Outputs(this);
   }
 }
 
-export class SetOracleTimingConfigCall__Inputs {
-  _call: SetOracleTimingConfigCall;
+export class SetQuorumBpsCall__Inputs {
+  _call: SetQuorumBpsCall;
 
-  constructor(call: SetOracleTimingConfigCall) {
+  constructor(call: SetQuorumBpsCall) {
     this._call = call;
   }
 
-  get firstStartEpoch(): BigInt {
-    return this._call.inputValues[0].value.toBigInt();
-  }
-
-  get firstInterval(): BigInt {
-    return this._call.inputValues[1].value.toBigInt();
-  }
-
-  get secondStartEpoch(): BigInt {
-    return this._call.inputValues[2].value.toBigInt();
-  }
-
-  get secondInterval(): BigInt {
-    return this._call.inputValues[3].value.toBigInt();
+  get quorum(): i32 {
+    return this._call.inputValues[0].value.toI32();
   }
 }
 
-export class SetOracleTimingConfigCall__Outputs {
-  _call: SetOracleTimingConfigCall;
+export class SetQuorumBpsCall__Outputs {
+  _call: SetQuorumBpsCall;
 
-  constructor(call: SetOracleTimingConfigCall) {
+  constructor(call: SetQuorumBpsCall) {
     this._call = call;
   }
 }
@@ -3117,6 +3343,36 @@ export class UpdateLiquidationThresholdPeriodCall__Outputs {
   }
 }
 
+export class UpdateLiquidationThresholdPeriodSSVCall extends ethereum.Call {
+  get inputs(): UpdateLiquidationThresholdPeriodSSVCall__Inputs {
+    return new UpdateLiquidationThresholdPeriodSSVCall__Inputs(this);
+  }
+
+  get outputs(): UpdateLiquidationThresholdPeriodSSVCall__Outputs {
+    return new UpdateLiquidationThresholdPeriodSSVCall__Outputs(this);
+  }
+}
+
+export class UpdateLiquidationThresholdPeriodSSVCall__Inputs {
+  _call: UpdateLiquidationThresholdPeriodSSVCall;
+
+  constructor(call: UpdateLiquidationThresholdPeriodSSVCall) {
+    this._call = call;
+  }
+
+  get blocks(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class UpdateLiquidationThresholdPeriodSSVCall__Outputs {
+  _call: UpdateLiquidationThresholdPeriodSSVCall;
+
+  constructor(call: UpdateLiquidationThresholdPeriodSSVCall) {
+    this._call = call;
+  }
+}
+
 export class UpdateMaximumOperatorFeeCall extends ethereum.Call {
   get inputs(): UpdateMaximumOperatorFeeCall__Inputs {
     return new UpdateMaximumOperatorFeeCall__Inputs(this);
@@ -3147,6 +3403,36 @@ export class UpdateMaximumOperatorFeeCall__Outputs {
   }
 }
 
+export class UpdateMaximumOperatorFeeSSVCall extends ethereum.Call {
+  get inputs(): UpdateMaximumOperatorFeeSSVCall__Inputs {
+    return new UpdateMaximumOperatorFeeSSVCall__Inputs(this);
+  }
+
+  get outputs(): UpdateMaximumOperatorFeeSSVCall__Outputs {
+    return new UpdateMaximumOperatorFeeSSVCall__Outputs(this);
+  }
+}
+
+export class UpdateMaximumOperatorFeeSSVCall__Inputs {
+  _call: UpdateMaximumOperatorFeeSSVCall;
+
+  constructor(call: UpdateMaximumOperatorFeeSSVCall) {
+    this._call = call;
+  }
+
+  get maxFee(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class UpdateMaximumOperatorFeeSSVCall__Outputs {
+  _call: UpdateMaximumOperatorFeeSSVCall;
+
+  constructor(call: UpdateMaximumOperatorFeeSSVCall) {
+    this._call = call;
+  }
+}
+
 export class UpdateMinimumLiquidationCollateralCall extends ethereum.Call {
   get inputs(): UpdateMinimumLiquidationCollateralCall__Inputs {
     return new UpdateMinimumLiquidationCollateralCall__Inputs(this);
@@ -3173,6 +3459,36 @@ export class UpdateMinimumLiquidationCollateralCall__Outputs {
   _call: UpdateMinimumLiquidationCollateralCall;
 
   constructor(call: UpdateMinimumLiquidationCollateralCall) {
+    this._call = call;
+  }
+}
+
+export class UpdateMinimumLiquidationCollateralSSVCall extends ethereum.Call {
+  get inputs(): UpdateMinimumLiquidationCollateralSSVCall__Inputs {
+    return new UpdateMinimumLiquidationCollateralSSVCall__Inputs(this);
+  }
+
+  get outputs(): UpdateMinimumLiquidationCollateralSSVCall__Outputs {
+    return new UpdateMinimumLiquidationCollateralSSVCall__Outputs(this);
+  }
+}
+
+export class UpdateMinimumLiquidationCollateralSSVCall__Inputs {
+  _call: UpdateMinimumLiquidationCollateralSSVCall;
+
+  constructor(call: UpdateMinimumLiquidationCollateralSSVCall) {
+    this._call = call;
+  }
+
+  get amount(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class UpdateMinimumLiquidationCollateralSSVCall__Outputs {
+  _call: UpdateMinimumLiquidationCollateralSSVCall;
+
+  constructor(call: UpdateMinimumLiquidationCollateralSSVCall) {
     this._call = call;
   }
 }
@@ -3612,6 +3928,68 @@ export class WithdrawOperatorEarningsSSVCall__Outputs {
 
   constructor(call: WithdrawOperatorEarningsSSVCall) {
     this._call = call;
+  }
+}
+
+export class WithdrawSSVCall extends ethereum.Call {
+  get inputs(): WithdrawSSVCall__Inputs {
+    return new WithdrawSSVCall__Inputs(this);
+  }
+
+  get outputs(): WithdrawSSVCall__Outputs {
+    return new WithdrawSSVCall__Outputs(this);
+  }
+}
+
+export class WithdrawSSVCall__Inputs {
+  _call: WithdrawSSVCall;
+
+  constructor(call: WithdrawSSVCall) {
+    this._call = call;
+  }
+
+  get operatorIds(): Array<BigInt> {
+    return this._call.inputValues[0].value.toBigIntArray();
+  }
+
+  get amount(): BigInt {
+    return this._call.inputValues[1].value.toBigInt();
+  }
+
+  get cluster(): WithdrawSSVCallClusterStruct {
+    return changetype<WithdrawSSVCallClusterStruct>(
+      this._call.inputValues[2].value.toTuple(),
+    );
+  }
+}
+
+export class WithdrawSSVCall__Outputs {
+  _call: WithdrawSSVCall;
+
+  constructor(call: WithdrawSSVCall) {
+    this._call = call;
+  }
+}
+
+export class WithdrawSSVCallClusterStruct extends ethereum.Tuple {
+  get validatorCount(): BigInt {
+    return this[0].toBigInt();
+  }
+
+  get networkFeeIndex(): BigInt {
+    return this[1].toBigInt();
+  }
+
+  get index(): BigInt {
+    return this[2].toBigInt();
+  }
+
+  get active(): boolean {
+    return this[3].toBoolean();
+  }
+
+  get balance(): BigInt {
+    return this[4].toBigInt();
   }
 }
 
