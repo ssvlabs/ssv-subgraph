@@ -7,14 +7,9 @@ type Account @entity(immutable: false) {
   validators: [Validator!] @derivedFrom(field: "owner")
   operators: [Operator!] @derivedFrom(field: "owner")
   feeRecipient: Bytes! #address
-}
-
-type Upgraded @entity(immutable: true) {
-  id: Bytes!
-  implementation: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  stakedAmount: BigInt!
+  unstakePendingAmount: BigInt!
+  delegatedOracles: [OracleDelegation!] @derivedFrom(field: "delegator")
 }
 
 type Cluster @entity(immutable: false) {
@@ -98,6 +93,10 @@ type DAOValues @entity(immutable: false) {
   operatorMaximumFeeSSV: BigInt! # uint256
   validatorsPerOperatorLimit: BigInt!
   updateType: DAOUpdateTypes!
+  accEthPerShare: BigInt!
+  newFeesWei: BigInt!
+  quorum: Int!
+  latestMerkleRoot: Bytes!
   totalAccounts: BigInt!
   totalValidators: BigInt!
   totalOperators: BigInt!
@@ -124,10 +123,31 @@ enum DAOUpdateTypes {
   EXECUTE_OPERATOR_FEE_PERIOD
   OPERATOR_MAX_FEE
   OPERATOR_MAX_FEE_SSV
+  QUORUM_UPDATED
+  FEES_SYNCED
+  WEIGHTED_ROOT_PROPOSED
   VALIDATOR_ADDED
   VALIDATOR_REMOVED
   OPERATOR_ADDED
   OPERATOR_REMOVED
+}
+
+type Oracle @entity(immutable: false) {
+  id: String!
+  oracleId: BigInt!
+  oracleAddress: Bytes! # address
+  delegators: [OracleDelegation!] @derivedFrom(field: "delegatedOracle")
+  totalDelegatedAmount: BigInt! # uint256
+  lastUpdateBlockNumber: BigInt! # uint256
+  lastUpdateBlockTimestamp: BigInt!
+  lastUpdateTransactionHash: Bytes!
+}
+
+type OracleDelegation @entity(immutable: false) {
+  id: String!
+  delegator: Account!
+  delegatedOracle: Oracle!
+  amount: BigInt!
 }
 
 type ClusterBalanceUpdated @entity(immutable: true) {
@@ -524,6 +544,14 @@ type ValidatorRemoved @entity(immutable: true) {
   cluster_index: BigInt! # uint64
   cluster_active: Boolean! # bool
   cluster_balance: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Upgraded @entity(immutable: true) {
+  id: Bytes!
+  implementation: Bytes! # address
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!

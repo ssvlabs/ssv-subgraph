@@ -97,6 +97,8 @@ import {
   ClusterBalanceUpdated,
   ClusterMigratedToETH,
   WeightedRootProposed,
+  Oracle,
+  OracleDelegation,
 } from "../generated/schema";
 import { log } from "matchstick-as";
 
@@ -145,7 +147,11 @@ export function handleDeclareOperatorFeePeriodUpdated(
     dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
     dao.operatorMaximumFee = BigInt.zero();
     dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(1000);
+    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
+    dao.accEthPerShare = BigInt.zero();
+    dao.newFeesWei = BigInt.zero();
+    dao.quorum = 0;
+    dao.latestMerkleRoot = Bytes.empty();
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
@@ -201,7 +207,11 @@ export function handleExecuteOperatorFeePeriodUpdated(
     dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
     dao.operatorMaximumFee = BigInt.zero();
     dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(1000);
+    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
+    dao.accEthPerShare = BigInt.zero();
+    dao.newFeesWei = BigInt.zero();
+    dao.quorum = 0;
+    dao.latestMerkleRoot = Bytes.empty();
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
@@ -242,6 +252,8 @@ export function handleFeeRecipientAddressUpdated(
     owner.nonce = BigInt.zero();
     owner.validatorCount = BigInt.zero();
     owner.feeRecipient = event.params.recipientAddress;
+    owner.stakedAmount = BigInt.zero();
+    owner.unstakePendingAmount = BigInt.zero();
     owner.save();
   } else {
     owner.feeRecipient = event.params.recipientAddress;
@@ -287,7 +299,11 @@ export function handleLiquidationThresholdPeriodUpdated(
     dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
     dao.operatorMaximumFee = BigInt.zero();
     dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(1000);
+    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
+    dao.accEthPerShare = BigInt.zero();
+    dao.newFeesWei = BigInt.zero();
+    dao.quorum = 0;
+    dao.latestMerkleRoot = Bytes.empty();
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
@@ -342,7 +358,11 @@ export function handleLiquidationThresholdPeriodSSVUpdated(
     dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
     dao.operatorMaximumFee = BigInt.zero();
     dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(1000);
+    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
+    dao.accEthPerShare = BigInt.zero();
+    dao.newFeesWei = BigInt.zero();
+    dao.quorum = 0;
+    dao.latestMerkleRoot = Bytes.empty();
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
@@ -398,7 +418,11 @@ export function handleMinimumLiquidationCollateralUpdated(
     dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
     dao.operatorMaximumFee = BigInt.zero();
     dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(1000);
+    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
+    dao.accEthPerShare = BigInt.zero();
+    dao.newFeesWei = BigInt.zero();
+    dao.quorum = 0;
+    dao.latestMerkleRoot = Bytes.empty();
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
@@ -454,7 +478,11 @@ export function handleMinimumLiquidationCollateralSSVUpdated(
     dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
     dao.operatorMaximumFee = BigInt.zero();
     dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(1000);
+    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
+    dao.accEthPerShare = BigInt.zero();
+    dao.newFeesWei = BigInt.zero();
+    dao.quorum = 0;
+    dao.latestMerkleRoot = Bytes.empty();
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
@@ -527,7 +555,11 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
     dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
     dao.operatorMaximumFee = BigInt.zero();
     dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(1000);
+    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
+    dao.accEthPerShare = BigInt.zero();
+    dao.newFeesWei = BigInt.zero();
+    dao.quorum = 0;
+    dao.latestMerkleRoot = Bytes.empty();
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
@@ -589,7 +621,11 @@ export function handleNetworkFeeUpdatedSSV(event: NetworkFeeUpdatedEvent): void 
     dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
     dao.operatorMaximumFee = BigInt.zero();
     dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(1000);
+    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
+    dao.accEthPerShare = BigInt.zero();
+    dao.newFeesWei = BigInt.zero();
+    dao.quorum = 0;
+    dao.latestMerkleRoot = Bytes.empty();
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
@@ -652,7 +688,11 @@ export function handleOperatorFeeIncreaseLimitUpdated(
     dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
     dao.operatorMaximumFee = BigInt.zero();
     dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(1000);
+    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
+    dao.accEthPerShare = BigInt.zero();
+    dao.newFeesWei = BigInt.zero();
+    dao.quorum = 0;
+    dao.latestMerkleRoot = Bytes.empty();
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
@@ -708,7 +748,11 @@ export function handleOperatorMaximumFeeUpdated(
     dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
     dao.operatorMaximumFee = BigInt.zero();
     dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(1000);
+    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
+    dao.accEthPerShare = BigInt.zero();
+    dao.newFeesWei = BigInt.zero();
+    dao.quorum = 0;
+    dao.latestMerkleRoot = Bytes.empty();
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
@@ -764,7 +808,11 @@ export function handleOperatorMaximumFeeSSVUpdated(
     dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
     dao.operatorMaximumFee = BigInt.zero();
     dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(1000);
+    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
+    dao.accEthPerShare = BigInt.zero();
+    dao.newFeesWei = BigInt.zero();
+    dao.quorum = 0;
+    dao.latestMerkleRoot = Bytes.empty();
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
@@ -813,6 +861,8 @@ export function handleClusterBalanceUpdated(
     owner.nonce = BigInt.zero();
     owner.validatorCount = BigInt.zero();
     owner.feeRecipient = event.params.owner;
+    owner.stakedAmount = BigInt.zero();
+    owner.unstakePendingAmount = BigInt.zero();
     owner.save();
   }
 
@@ -826,9 +876,8 @@ export function handleClusterBalanceUpdated(
       []
     );
     cluster = new Cluster(clusterId);
-    cluster.feeAsset = "ETH";
   }
-
+  
   cluster.owner = owner.id;
   cluster.operatorIds = event.params.operatorIds;
   cluster.validatorCount = event.params.cluster.validatorCount;
@@ -839,9 +888,10 @@ export function handleClusterBalanceUpdated(
   let clusterPreviousBalance = cluster.effectiveBalance;
   cluster.effectiveBalance = event.params.effectiveBalance;
   cluster.vUnits = cluster.effectiveBalance
-    .div(DEFAULT_BALANCE)
-    .times(VUNITS_PRECISION);
+  .div(DEFAULT_BALANCE)
+  .times(VUNITS_PRECISION);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex;
+  cluster.feeAsset = "ETH";
   cluster.index = event.params.cluster.index;
   cluster.active = event.params.cluster.active;
   cluster.balance = event.params.cluster.balance;
@@ -873,7 +923,11 @@ export function handleClusterBalanceUpdated(
     dao.executeOperatorFeePeriod = BigInt.zero();
     dao.operatorMaximumFee = BigInt.zero();
     dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.zero();
+    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
+    dao.accEthPerShare = BigInt.zero();
+    dao.newFeesWei = BigInt.zero();
+    dao.quorum = 0;
+    dao.latestMerkleRoot = Bytes.empty();
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
@@ -953,6 +1007,8 @@ export function handleClusterMigratedToETH(
     owner.nonce = BigInt.zero();
     owner.validatorCount = BigInt.zero();
     owner.feeRecipient = event.params.owner;
+    owner.stakedAmount = BigInt.zero();
+    owner.unstakePendingAmount = BigInt.zero();
     owner.save();
   }
 
@@ -966,7 +1022,6 @@ export function handleClusterMigratedToETH(
       []
     );
     cluster = new Cluster(clusterId);
-    cluster.feeAsset = "ETH";
   }
 
   cluster.owner = owner.id;
@@ -976,7 +1031,7 @@ export function handleClusterMigratedToETH(
     `Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`,
     []
   );
-  cluster.feeAsset = "SSV";
+  cluster.feeAsset = "ETH";
   cluster.effectiveBalance = event.params.effectiveBalance;
   cluster.vUnits = cluster.effectiveBalance
     .div(DEFAULT_BALANCE)
@@ -1041,6 +1096,8 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
     owner.nonce = BigInt.zero();
     owner.validatorCount = BigInt.zero();
     owner.feeRecipient = event.params.owner;
+    owner.stakedAmount = BigInt.zero();
+    owner.unstakePendingAmount = BigInt.zero();
     owner.save();
   }
 
@@ -1102,6 +1159,8 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
     owner.nonce = BigInt.zero();
     owner.validatorCount = BigInt.zero();
     owner.feeRecipient = event.params.owner;
+    owner.stakedAmount = BigInt.zero();
+    owner.unstakePendingAmount = BigInt.zero();
   }
   owner.validatorCount = owner.validatorCount.minus(
     event.params.cluster.validatorCount
@@ -1190,6 +1249,8 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
     owner.nonce = BigInt.zero();
     owner.validatorCount = BigInt.zero();
     owner.feeRecipient = event.params.owner;
+    owner.stakedAmount = BigInt.zero();
+    owner.unstakePendingAmount = BigInt.zero();
   }
   owner.validatorCount = owner.validatorCount.plus(
     event.params.cluster.validatorCount
@@ -1279,6 +1340,8 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
     owner.nonce = BigInt.zero();
     owner.validatorCount = BigInt.zero();
     owner.feeRecipient = event.params.owner;
+    owner.stakedAmount = BigInt.zero();
+    owner.unstakePendingAmount = BigInt.zero();
     owner.save();
   }
 
@@ -1359,7 +1422,11 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     dao.executeOperatorFeePeriod = BigInt.zero();
     dao.operatorMaximumFee = BigInt.zero();
     dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.zero();
+    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
+    dao.accEthPerShare = BigInt.zero();
+    dao.newFeesWei = BigInt.zero();
+    dao.quorum = 0;
+    dao.latestMerkleRoot = Bytes.empty();
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
@@ -1389,6 +1456,8 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     owner.nonce = BigInt.zero();
     owner.validatorCount = BigInt.zero();
     owner.feeRecipient = event.params.owner;
+    owner.stakedAmount = BigInt.zero();
+    owner.unstakePendingAmount = BigInt.zero();
     // if it's a new account, also increase total counter
     dao.totalAccounts = dao.totalAccounts.plus(BigInt.fromI32(1));
   }
@@ -1533,7 +1602,11 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     dao.executeOperatorFeePeriod = BigInt.zero();
     dao.operatorMaximumFee = BigInt.zero();
     dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.zero();
+    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
+    dao.accEthPerShare = BigInt.zero();
+    dao.newFeesWei = BigInt.zero();
+    dao.quorum = 0;
+    dao.latestMerkleRoot = Bytes.empty();
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
@@ -1558,6 +1631,8 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     owner.nonce = BigInt.zero();
     owner.validatorCount = BigInt.zero();
     owner.feeRecipient = event.params.owner;
+    owner.stakedAmount = BigInt.zero();
+    owner.unstakePendingAmount = BigInt.zero();
   }
   // update owner validator count if the cluster is active
   // (avoid double counting if already liquidated/inactive)
@@ -1703,7 +1778,11 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     dao.executeOperatorFeePeriod = BigInt.zero();
     dao.operatorMaximumFee = BigInt.zero();
     dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.zero();
+    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
+    dao.accEthPerShare = BigInt.zero();
+    dao.newFeesWei = BigInt.zero();
+    dao.quorum = 0;
+    dao.latestMerkleRoot = Bytes.empty();
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
@@ -1725,6 +1804,8 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     owner.nonce = BigInt.zero();
     owner.validatorCount = BigInt.zero();
     owner.feeRecipient = event.params.owner;
+    owner.stakedAmount = BigInt.zero();
+    owner.unstakePendingAmount = BigInt.zero();
     owner.save();
     // if it's a new account, also update total counter
     dao.totalAccounts = dao.totalAccounts.plus(BigInt.fromI32(1));
@@ -1745,6 +1826,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.ssvFee = event.params.fee;
     operator.ssvFeeIndex = BigInt.zero();
     operator.ssvFeeIndexBlockNumber = event.block.number;
+    operator.totalEffectiveBalance = BigInt.zero()
     operator.declaredSSVFee = BigInt.zero();
     operator.whitelisted = [];
     operator.isPrivate = false;
@@ -1799,6 +1881,8 @@ export function handleOperatorFeeDeclarationCancelled(
     owner.nonce = BigInt.zero();
     owner.validatorCount = BigInt.zero();
     owner.feeRecipient = event.params.owner;
+    owner.stakedAmount = BigInt.zero();
+    owner.unstakePendingAmount = BigInt.zero();
     owner.save();
   }
 
@@ -1859,6 +1943,8 @@ export function handleOperatorFeeDeclared(
     owner.nonce = BigInt.zero();
     owner.validatorCount = BigInt.zero();
     owner.feeRecipient = event.params.owner;
+    owner.stakedAmount = BigInt.zero();
+    owner.unstakePendingAmount = BigInt.zero();
     owner.save();
   }
 
@@ -1919,6 +2005,8 @@ export function handleOperatorFeeExecuted(
     owner.nonce = BigInt.zero();
     owner.validatorCount = BigInt.zero();
     owner.feeRecipient = event.params.owner;
+    owner.stakedAmount = BigInt.zero();
+    owner.unstakePendingAmount = BigInt.zero();
     owner.save();
   }
 
@@ -2001,7 +2089,11 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
     dao.executeOperatorFeePeriod = BigInt.zero();
     dao.operatorMaximumFee = BigInt.zero();
     dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.zero();
+    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
+    dao.accEthPerShare = BigInt.zero();
+    dao.newFeesWei = BigInt.zero();
+    dao.quorum = 0;
+    dao.latestMerkleRoot = Bytes.empty();
     dao.totalAccounts = BigInt.zero();
     dao.totalOperators = BigInt.zero();
     dao.totalValidators = BigInt.zero();
@@ -2084,6 +2176,8 @@ export function handleOperatorWhitelistUpdated(
     whitelisted.nonce = BigInt.zero();
     whitelisted.validatorCount = BigInt.zero();
     whitelisted.feeRecipient = event.params.whitelisted;
+    whitelisted.stakedAmount = BigInt.zero();
+    whitelisted.unstakePendingAmount = BigInt.zero();
     whitelisted.save();
   }
   let operatorId = event.params.operatorId.toString();
@@ -2154,6 +2248,8 @@ export function handleOperatorMultipleWhitelistUpdated(
       whitelisted.nonce = BigInt.zero();
       whitelisted.validatorCount = BigInt.zero();
       whitelisted.feeRecipient = event.params.whitelistAddresses[i];
+      whitelisted.stakedAmount = BigInt.zero();
+      whitelisted.unstakePendingAmount = BigInt.zero();
       whitelisted.save();
     }
     whitelistIDList.push(whitelisted.id);
@@ -2219,6 +2315,8 @@ export function handleOperatorMultipleWhitelistRemoved(
       whitelisted.nonce = BigInt.zero();
       whitelisted.validatorCount = BigInt.zero();
       whitelisted.feeRecipient = whitelisted.id;
+      whitelisted.stakedAmount = BigInt.zero();
+      whitelisted.unstakePendingAmount = BigInt.zero();
       whitelisted.save();
     }
     whitelistAddressSet.push(whitelisted.id as Bytes);
@@ -2381,6 +2479,8 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
     owner.nonce = BigInt.zero();
     owner.validatorCount = BigInt.zero();
     owner.feeRecipient = event.params.owner;
+    owner.stakedAmount = BigInt.zero();
+    owner.unstakePendingAmount = BigInt.zero();
     owner.save();
   }
 
@@ -2443,6 +2543,27 @@ export function handleFeesSynced(event: FeesSyncedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   entity.save();
+  let dao = DAOValues.load(event.address);
+  if (!dao) {
+    log.error(
+      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: QUORUM_UPDATED`,
+      []
+    );
+  }
+  else {
+    dao.updateType = "FEES_SYNCED";
+    dao.accEthPerShare = event.params.accEthPerShare;
+    dao.newFeesWei = event.params.newFeesWei;
+    dao.lastUpdateBlockNumber = event.block.number;
+    dao.lastUpdateBlockTimestamp = event.block.timestamp;
+    dao.lastUpdateTransactionHash = event.transaction.hash;
+
+    log.info(
+      `Dao Values update type: ${dao.updateType}, new ETH per share: ${dao.accEthPerShare}, new fees wei: ${dao.newFeesWei}`,
+      []
+    );
+    dao.save();
+  }
 }
 
 export function handleRewardsClaimed(event: RewardsClaimedEvent): void {
@@ -2493,6 +2614,18 @@ export function handleStaked(event: StakedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   entity.save();
+
+  let user = Account.load(event.params.user);
+  if (!user) {
+    user = new Account(event.params.user);
+    user.nonce = BigInt.zero();
+    user.validatorCount = BigInt.zero();
+    user.feeRecipient = event.params.user;
+    user.stakedAmount = BigInt.zero();
+    user.unstakePendingAmount = BigInt.zero();
+  }
+  user.stakedAmount = user.stakedAmount.plus(event.params.amount);
+  user.save();
 }
 
 export function handleUnstakeRequested(event: UnstakeRequestedEvent): void {
@@ -2510,6 +2643,19 @@ export function handleUnstakeRequested(event: UnstakeRequestedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   entity.save();
+
+  let user = Account.load(event.params.user);
+  if (!user) {
+    log.error(
+      `Unstake requested for User ${event.params.user.toHexString()}, but the account does not exist on the database`,
+      []
+    );
+  }
+  else {
+    user.unstakePendingAmount = user.unstakePendingAmount.plus(event.params.amount);
+    user.stakedAmount = user.stakedAmount.minus(event.params.amount);
+    user.save();
+  }
 }
 
 export function handleUnstakedWithdrawn(event: UnstakedWithdrawnEvent): void {
@@ -2526,6 +2672,18 @@ export function handleUnstakedWithdrawn(event: UnstakedWithdrawnEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   entity.save();
+
+  let user = Account.load(event.params.user);
+  if (!user) {
+    log.error(
+      `Unstake withdrawn for User ${event.params.user.toHexString()}, but the account does not exist on the database`,
+      []
+    );
+  }
+  else {
+    user.unstakePendingAmount = user.unstakePendingAmount.minus(event.params.amount);
+    user.save();
+  }
 }
 
 // Oracles events
@@ -2575,6 +2733,40 @@ export function handleDelegationUpdated(event: DelegationUpdatedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   entity.save();
+
+  let user = Account.load(event.params.user);
+  if (!user) {
+    user = new Account(event.params.user);
+    user.nonce = BigInt.zero();
+    user.validatorCount = BigInt.zero();
+    user.feeRecipient = event.params.user;
+    user.stakedAmount = BigInt.zero();
+    user.unstakePendingAmount = BigInt.zero();
+    user.save();
+  }
+
+  for (let i = 0; i < event.params.oracleIds.length; i++) {
+    let oracle = Oracle.load(event.params.oracleIds[i].toString());
+    if (!oracle) {
+      oracle = new Oracle(event.params.oracleIds[i].toString());
+      oracle.oracleId = event.params.oracleIds[i];
+      oracle.totalDelegatedAmount = BigInt.zero();
+      oracle.oracleAddress = Bytes.empty();
+    }
+    oracle.totalDelegatedAmount = oracle.totalDelegatedAmount.plus(event.params.amounts[i]);
+    oracle.save();
+
+    let oracleDelegationId = `${user.id.toHexString()}-${oracle.id}`;
+    let oracleDelegation = OracleDelegation.load(oracleDelegationId);
+    if (!oracleDelegation) {
+      oracleDelegation = new OracleDelegation(oracleDelegationId);
+      oracleDelegation.delegator = user.id;
+      oracleDelegation.delegatedOracle = oracle.id;
+      oracleDelegation.amount = BigInt.zero();
+    }
+    oracleDelegation.amount = oracleDelegation.amount.plus(event.params.amounts[i]);
+    oracleDelegation.save();
+  }
 }
 
 export function handleOracleReplaced(event: OracleReplacedEvent): void {
@@ -2592,6 +2784,16 @@ export function handleOracleReplaced(event: OracleReplacedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   entity.save();
+
+  let oracleId = event.params.oracleId.toString();
+  let oracle = Oracle.load(oracleId);
+  if (!oracle) {
+    oracle = new Oracle(oracleId);
+    oracle.oracleId = event.params.oracleId;
+    oracle.totalDelegatedAmount = BigInt.zero();
+  }
+  oracle.oracleAddress = event.params.newOracle;
+  oracle.save();
 }
 
 export function handleQuorumUpdated(event: QuorumUpdatedEvent): void {
@@ -2607,6 +2809,26 @@ export function handleQuorumUpdated(event: QuorumUpdatedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   entity.save();
+  let dao = DAOValues.load(event.address);
+  if (!dao) {
+    log.error(
+      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: QUORUM_UPDATED`,
+      []
+    );
+  }
+  else {
+    dao.updateType = "QUORUM_UPDATED";
+    dao.quorum = event.params.newQuorum;
+    dao.lastUpdateBlockNumber = event.block.number;
+    dao.lastUpdateBlockTimestamp = event.block.timestamp;
+    dao.lastUpdateTransactionHash = event.transaction.hash;
+
+    log.info(
+      `Dao Values update type: ${dao.updateType}, new quorum: ${dao.quorum}`,
+      []
+    );
+    dao.save();
+  }
 }
 
 export function handleWeightedRootProposed(event: WeightedRootProposedEvent): void {

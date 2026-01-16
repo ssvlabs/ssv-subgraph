@@ -115,99 +115,39 @@ export class Account extends Entity {
   set feeRecipient(value: Bytes) {
     this.set("feeRecipient", Value.fromBytes(value));
   }
-}
 
-export class Upgraded extends Entity {
-  constructor(id: Bytes) {
-    super();
-    this.set("id", Value.fromBytes(id));
-  }
-
-  save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save Upgraded entity without an ID");
-    if (id) {
-      assert(
-        id.kind == ValueKind.BYTES,
-        `Entities of type Upgraded must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`,
-      );
-      store.set("Upgraded", id.toBytes().toHexString(), this);
+  get stakedAmount(): BigInt {
+    let value = this.get("stakedAmount");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
     }
   }
 
-  static loadInBlock(id: Bytes): Upgraded | null {
-    return changetype<Upgraded | null>(
-      store.get_in_block("Upgraded", id.toHexString()),
+  set stakedAmount(value: BigInt) {
+    this.set("stakedAmount", Value.fromBigInt(value));
+  }
+
+  get unstakePendingAmount(): BigInt {
+    let value = this.get("unstakePendingAmount");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set unstakePendingAmount(value: BigInt) {
+    this.set("unstakePendingAmount", Value.fromBigInt(value));
+  }
+
+  get delegatedOracles(): OracleDelegationLoader {
+    return new OracleDelegationLoader(
+      "Account",
+      this.get("id")!.toBytes().toHexString(),
+      "delegatedOracles",
     );
-  }
-
-  static load(id: Bytes): Upgraded | null {
-    return changetype<Upgraded | null>(store.get("Upgraded", id.toHexString()));
-  }
-
-  get id(): Bytes {
-    let value = this.get("id");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set id(value: Bytes) {
-    this.set("id", Value.fromBytes(value));
-  }
-
-  get implementation(): Bytes {
-    let value = this.get("implementation");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set implementation(value: Bytes) {
-    this.set("implementation", Value.fromBytes(value));
-  }
-
-  get blockNumber(): BigInt {
-    let value = this.get("blockNumber");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set blockNumber(value: BigInt) {
-    this.set("blockNumber", Value.fromBigInt(value));
-  }
-
-  get blockTimestamp(): BigInt {
-    let value = this.get("blockTimestamp");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set blockTimestamp(value: BigInt) {
-    this.set("blockTimestamp", Value.fromBigInt(value));
-  }
-
-  get transactionHash(): Bytes {
-    let value = this.get("transactionHash");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set transactionHash(value: Bytes) {
-    this.set("transactionHash", Value.fromBytes(value));
   }
 }
 
@@ -1161,6 +1101,58 @@ export class DAOValues extends Entity {
     this.set("updateType", Value.fromString(value));
   }
 
+  get accEthPerShare(): BigInt {
+    let value = this.get("accEthPerShare");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set accEthPerShare(value: BigInt) {
+    this.set("accEthPerShare", Value.fromBigInt(value));
+  }
+
+  get newFeesWei(): BigInt {
+    let value = this.get("newFeesWei");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set newFeesWei(value: BigInt) {
+    this.set("newFeesWei", Value.fromBigInt(value));
+  }
+
+  get quorum(): i32 {
+    let value = this.get("quorum");
+    if (!value || value.kind == ValueKind.NULL) {
+      return 0;
+    } else {
+      return value.toI32();
+    }
+  }
+
+  set quorum(value: i32) {
+    this.set("quorum", Value.fromI32(value));
+  }
+
+  get latestMerkleRoot(): Bytes {
+    let value = this.get("latestMerkleRoot");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set latestMerkleRoot(value: Bytes) {
+    this.set("latestMerkleRoot", Value.fromBytes(value));
+  }
+
   get totalAccounts(): BigInt {
     let value = this.get("totalAccounts");
     if (!value || value.kind == ValueKind.NULL) {
@@ -1302,6 +1294,215 @@ export class DAOValues extends Entity {
 
   set lastUpdateTransactionHash(value: Bytes) {
     this.set("lastUpdateTransactionHash", Value.fromBytes(value));
+  }
+}
+
+export class Oracle extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save Oracle entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type Oracle must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("Oracle", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): Oracle | null {
+    return changetype<Oracle | null>(store.get_in_block("Oracle", id));
+  }
+
+  static load(id: string): Oracle | null {
+    return changetype<Oracle | null>(store.get("Oracle", id));
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get oracleId(): BigInt {
+    let value = this.get("oracleId");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set oracleId(value: BigInt) {
+    this.set("oracleId", Value.fromBigInt(value));
+  }
+
+  get oracleAddress(): Bytes {
+    let value = this.get("oracleAddress");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set oracleAddress(value: Bytes) {
+    this.set("oracleAddress", Value.fromBytes(value));
+  }
+
+  get delegators(): OracleDelegationLoader {
+    return new OracleDelegationLoader(
+      "Oracle",
+      this.get("id")!.toString(),
+      "delegators",
+    );
+  }
+
+  get totalDelegatedAmount(): BigInt {
+    let value = this.get("totalDelegatedAmount");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set totalDelegatedAmount(value: BigInt) {
+    this.set("totalDelegatedAmount", Value.fromBigInt(value));
+  }
+
+  get lastUpdateBlockNumber(): BigInt {
+    let value = this.get("lastUpdateBlockNumber");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set lastUpdateBlockNumber(value: BigInt) {
+    this.set("lastUpdateBlockNumber", Value.fromBigInt(value));
+  }
+
+  get lastUpdateBlockTimestamp(): BigInt {
+    let value = this.get("lastUpdateBlockTimestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set lastUpdateBlockTimestamp(value: BigInt) {
+    this.set("lastUpdateBlockTimestamp", Value.fromBigInt(value));
+  }
+
+  get lastUpdateTransactionHash(): Bytes {
+    let value = this.get("lastUpdateTransactionHash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set lastUpdateTransactionHash(value: Bytes) {
+    this.set("lastUpdateTransactionHash", Value.fromBytes(value));
+  }
+}
+
+export class OracleDelegation extends Entity {
+  constructor(id: string) {
+    super();
+    this.set("id", Value.fromString(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save OracleDelegation entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.STRING,
+        `Entities of type OracleDelegation must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("OracleDelegation", id.toString(), this);
+    }
+  }
+
+  static loadInBlock(id: string): OracleDelegation | null {
+    return changetype<OracleDelegation | null>(
+      store.get_in_block("OracleDelegation", id),
+    );
+  }
+
+  static load(id: string): OracleDelegation | null {
+    return changetype<OracleDelegation | null>(
+      store.get("OracleDelegation", id),
+    );
+  }
+
+  get id(): string {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set id(value: string) {
+    this.set("id", Value.fromString(value));
+  }
+
+  get delegator(): Bytes {
+    let value = this.get("delegator");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set delegator(value: Bytes) {
+    this.set("delegator", Value.fromBytes(value));
+  }
+
+  get delegatedOracle(): string {
+    let value = this.get("delegatedOracle");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set delegatedOracle(value: string) {
+    this.set("delegatedOracle", Value.fromString(value));
+  }
+
+  get amount(): BigInt {
+    let value = this.get("amount");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set amount(value: BigInt) {
+    this.set("amount", Value.fromBigInt(value));
   }
 }
 
@@ -6224,6 +6425,100 @@ export class ValidatorRemoved extends Entity {
   }
 }
 
+export class Upgraded extends Entity {
+  constructor(id: Bytes) {
+    super();
+    this.set("id", Value.fromBytes(id));
+  }
+
+  save(): void {
+    let id = this.get("id");
+    assert(id != null, "Cannot save Upgraded entity without an ID");
+    if (id) {
+      assert(
+        id.kind == ValueKind.BYTES,
+        `Entities of type Upgraded must have an ID of type Bytes but the id '${id.displayData()}' is of type ${id.displayKind()}`,
+      );
+      store.set("Upgraded", id.toBytes().toHexString(), this);
+    }
+  }
+
+  static loadInBlock(id: Bytes): Upgraded | null {
+    return changetype<Upgraded | null>(
+      store.get_in_block("Upgraded", id.toHexString()),
+    );
+  }
+
+  static load(id: Bytes): Upgraded | null {
+    return changetype<Upgraded | null>(store.get("Upgraded", id.toHexString()));
+  }
+
+  get id(): Bytes {
+    let value = this.get("id");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set id(value: Bytes) {
+    this.set("id", Value.fromBytes(value));
+  }
+
+  get implementation(): Bytes {
+    let value = this.get("implementation");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set implementation(value: Bytes) {
+    this.set("implementation", Value.fromBytes(value));
+  }
+
+  get blockNumber(): BigInt {
+    let value = this.get("blockNumber");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set blockNumber(value: BigInt) {
+    this.set("blockNumber", Value.fromBigInt(value));
+  }
+
+  get blockTimestamp(): BigInt {
+    let value = this.get("blockTimestamp");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set blockTimestamp(value: BigInt) {
+    this.set("blockTimestamp", Value.fromBigInt(value));
+  }
+
+  get transactionHash(): Bytes {
+    let value = this.get("transactionHash");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set transactionHash(value: Bytes) {
+    this.set("transactionHash", Value.fromBytes(value));
+  }
+}
+
 export class RootCommitted extends Entity {
   constructor(id: string) {
     super();
@@ -6947,5 +7242,23 @@ export class OperatorLoader extends Entity {
   load(): Operator[] {
     let value = store.loadRelated(this._entity, this._id, this._field);
     return changetype<Operator[]>(value);
+  }
+}
+
+export class OracleDelegationLoader extends Entity {
+  _entity: string;
+  _field: string;
+  _id: string;
+
+  constructor(entity: string, id: string, field: string) {
+    super();
+    this._entity = entity;
+    this._id = id;
+    this._field = field;
+  }
+
+  load(): OracleDelegation[] {
+    let value = store.loadRelated(this._entity, this._id, this._field);
+    return changetype<OracleDelegation[]>(value);
   }
 }
