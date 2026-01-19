@@ -2752,6 +2752,9 @@ export function handleDelegationUpdated(event: DelegationUpdatedEvent): void {
       oracle.oracleId = event.params.oracleIds[i];
       oracle.totalDelegatedAmount = BigInt.zero();
       oracle.oracleAddress = Bytes.empty();
+    oracle.lastUpdateBlockNumber = event.block.number;
+    oracle.lastUpdateBlockTimestamp = event.block.timestamp;
+    oracle.lastUpdateTransactionHash = event.transaction.hash;
     }
     oracle.totalDelegatedAmount = oracle.totalDelegatedAmount.plus(event.params.amounts[i]);
     oracle.save();
@@ -2791,6 +2794,9 @@ export function handleOracleReplaced(event: OracleReplacedEvent): void {
     oracle = new Oracle(oracleId);
     oracle.oracleId = event.params.oracleId;
     oracle.totalDelegatedAmount = BigInt.zero();
+    oracle.lastUpdateBlockNumber = event.block.number;
+    oracle.lastUpdateBlockTimestamp = event.block.timestamp;
+    oracle.lastUpdateTransactionHash = event.transaction.hash;
   }
   oracle.oracleAddress = event.params.newOracle;
   oracle.save();

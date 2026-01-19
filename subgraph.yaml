@@ -9,8 +9,8 @@ dataSources:
     network: hoodi
     source:
       abi: SSVNetwork
-      address: "0x58410Bef803ECd7E63B23664C586A6DB72DAf59c"
-      startBlock: 900
+      address: "0x5Ec6aBaC8cB238D68d310A2b1656405161988bFC"
+      startBlock: 1706002
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
