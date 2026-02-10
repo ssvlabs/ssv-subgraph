@@ -9,8 +9,8 @@ dataSources:
     network: hoodi
     source:
       abi: SSVNetwork
-      address: "0x5Ec6aBaC8cB238D68d310A2b1656405161988bFC"
-      startBlock: 1706002
+      address: "0x1784167a4D562110B021BE66067cb81D15F2FaC4"
+      startBlock: 900
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -106,10 +106,8 @@ dataSources:
           handler: handleOperatorFeeExecuted
         - event: OperatorFeeIncreaseLimitUpdated(uint64)
           handler: handleOperatorFeeIncreaseLimitUpdated
-        - event: OperatorMaximumFeeUpdated(uint64)
+        - event: OperatorMaximumFeeUpdated(uint256)
           handler: handleOperatorMaximumFeeUpdated
-        - event: OperatorMaximumFeeSSVUpdated(uint64)
-          handler: handleOperatorMaximumFeeSSVUpdated
         - event: OperatorRemoved(indexed uint64)
           handler: handleOperatorRemoved
         - event: OperatorWhitelistUpdated(indexed uint64,address)
@@ -150,4 +148,6 @@ dataSources:
           handler: handleQuorumUpdated
         - event: WeightedRootProposed(indexed bytes32,indexed uint64,uint256,uint256,uint32,address)
           handler: handleWeightedRootProposed
+        - event: SSVNetworkUpgradeBlock(indexed string,uint256)
+          handler: handleSSVNetworkUpgradeBlock
       file: ./src/ssv-network.ts

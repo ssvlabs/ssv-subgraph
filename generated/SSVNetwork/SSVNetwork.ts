@@ -618,6 +618,24 @@ export class MinimumLiquidationCollateralUpdated__Params {
   }
 }
 
+export class MinimumOperatorEthFeeUpdated extends ethereum.Event {
+  get params(): MinimumOperatorEthFeeUpdated__Params {
+    return new MinimumOperatorEthFeeUpdated__Params(this);
+  }
+}
+
+export class MinimumOperatorEthFeeUpdated__Params {
+  _event: MinimumOperatorEthFeeUpdated;
+
+  constructor(event: MinimumOperatorEthFeeUpdated) {
+    this._event = event;
+  }
+
+  get minFee(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+}
+
 export class ModuleUpgraded extends ethereum.Event {
   get params(): ModuleUpgraded__Params {
     return new ModuleUpgraded__Params(this);
@@ -832,24 +850,6 @@ export class OperatorFeeIncreaseLimitUpdated__Params {
   }
 
   get value(): BigInt {
-    return this._event.parameters[0].value.toBigInt();
-  }
-}
-
-export class OperatorMaximumFeeSSVUpdated extends ethereum.Event {
-  get params(): OperatorMaximumFeeSSVUpdated__Params {
-    return new OperatorMaximumFeeSSVUpdated__Params(this);
-  }
-}
-
-export class OperatorMaximumFeeSSVUpdated__Params {
-  _event: OperatorMaximumFeeSSVUpdated;
-
-  constructor(event: OperatorMaximumFeeSSVUpdated) {
-    this._event = event;
-  }
-
-  get maxFee(): BigInt {
     return this._event.parameters[0].value.toBigInt();
   }
 }
@@ -1206,6 +1206,28 @@ export class RootProposed__Params {
   }
 
   get blockNum(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+}
+
+export class SSVNetworkUpgradeBlock extends ethereum.Event {
+  get params(): SSVNetworkUpgradeBlock__Params {
+    return new SSVNetworkUpgradeBlock__Params(this);
+  }
+}
+
+export class SSVNetworkUpgradeBlock__Params {
+  _event: SSVNetworkUpgradeBlock;
+
+  constructor(event: SSVNetworkUpgradeBlock) {
+    this._event = event;
+  }
+
+  get version(): Bytes {
+    return this._event.parameters[0].value.toBytes();
+  }
+
+  get blockNumber(): BigInt {
     return this._event.parameters[1].value.toBigInt();
   }
 }
@@ -1579,32 +1601,6 @@ export class SSVNetwork extends ethereum.SmartContract {
   }
 }
 
-export class ConstructorCall extends ethereum.Call {
-  get inputs(): ConstructorCall__Inputs {
-    return new ConstructorCall__Inputs(this);
-  }
-
-  get outputs(): ConstructorCall__Outputs {
-    return new ConstructorCall__Outputs(this);
-  }
-}
-
-export class ConstructorCall__Inputs {
-  _call: ConstructorCall;
-
-  constructor(call: ConstructorCall) {
-    this._call = call;
-  }
-}
-
-export class ConstructorCall__Outputs {
-  _call: ConstructorCall;
-
-  constructor(call: ConstructorCall) {
-    this._call = call;
-  }
-}
-
 export class DefaultCall extends ethereum.Call {
   get inputs(): DefaultCall__Inputs {
     return new DefaultCall__Inputs(this);
@@ -1720,13 +1716,9 @@ export class BulkRegisterValidatorCall__Inputs {
     return this._call.inputValues[2].value.toBytesArray();
   }
 
-  get amount(): BigInt {
-    return this._call.inputValues[3].value.toBigInt();
-  }
-
   get cluster(): BulkRegisterValidatorCallClusterStruct {
     return changetype<BulkRegisterValidatorCallClusterStruct>(
-      this._call.inputValues[4].value.toTuple(),
+      this._call.inputValues[3].value.toTuple(),
     );
   }
 }
@@ -1972,13 +1964,9 @@ export class DepositCall__Inputs {
     return this._call.inputValues[1].value.toBigIntArray();
   }
 
-  get amount(): BigInt {
-    return this._call.inputValues[2].value.toBigInt();
-  }
-
   get cluster(): DepositCallClusterStruct {
     return changetype<DepositCallClusterStruct>(
-      this._call.inputValues[3].value.toTuple(),
+      this._call.inputValues[2].value.toTuple(),
     );
   }
 }
@@ -2160,6 +2148,40 @@ export class InitializeCallParamsStruct extends ethereum.Tuple {
 
   get quorumBps(): i32 {
     return this[7].toI32();
+  }
+}
+
+export class InitializeSSVStakingCall extends ethereum.Call {
+  get inputs(): InitializeSSVStakingCall__Inputs {
+    return new InitializeSSVStakingCall__Inputs(this);
+  }
+
+  get outputs(): InitializeSSVStakingCall__Outputs {
+    return new InitializeSSVStakingCall__Outputs(this);
+  }
+}
+
+export class InitializeSSVStakingCall__Inputs {
+  _call: InitializeSSVStakingCall;
+
+  constructor(call: InitializeSSVStakingCall) {
+    this._call = call;
+  }
+
+  get cooldownDuration(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+
+  get defaultOracleIds(): Array<BigInt> {
+    return this._call.inputValues[1].value.toBigIntArray();
+  }
+}
+
+export class InitializeSSVStakingCall__Outputs {
+  _call: InitializeSSVStakingCall;
+
+  constructor(call: InitializeSSVStakingCall) {
+    this._call = call;
   }
 }
 
@@ -2404,13 +2426,9 @@ export class ReactivateCall__Inputs {
     return this._call.inputValues[0].value.toBigIntArray();
   }
 
-  get amount(): BigInt {
-    return this._call.inputValues[1].value.toBigInt();
-  }
-
   get cluster(): ReactivateCallClusterStruct {
     return changetype<ReactivateCallClusterStruct>(
-      this._call.inputValues[2].value.toTuple(),
+      this._call.inputValues[1].value.toTuple(),
     );
   }
 }
@@ -2550,13 +2568,9 @@ export class RegisterValidatorCall__Inputs {
     return this._call.inputValues[2].value.toBytes();
   }
 
-  get amount(): BigInt {
-    return this._call.inputValues[3].value.toBigInt();
-  }
-
   get cluster(): RegisterValidatorCallClusterStruct {
     return changetype<RegisterValidatorCallClusterStruct>(
-      this._call.inputValues[4].value.toTuple(),
+      this._call.inputValues[3].value.toTuple(),
     );
   }
 }
@@ -3403,36 +3417,6 @@ export class UpdateMaximumOperatorFeeCall__Outputs {
   }
 }
 
-export class UpdateMaximumOperatorFeeSSVCall extends ethereum.Call {
-  get inputs(): UpdateMaximumOperatorFeeSSVCall__Inputs {
-    return new UpdateMaximumOperatorFeeSSVCall__Inputs(this);
-  }
-
-  get outputs(): UpdateMaximumOperatorFeeSSVCall__Outputs {
-    return new UpdateMaximumOperatorFeeSSVCall__Outputs(this);
-  }
-}
-
-export class UpdateMaximumOperatorFeeSSVCall__Inputs {
-  _call: UpdateMaximumOperatorFeeSSVCall;
-
-  constructor(call: UpdateMaximumOperatorFeeSSVCall) {
-    this._call = call;
-  }
-
-  get maxFee(): BigInt {
-    return this._call.inputValues[0].value.toBigInt();
-  }
-}
-
-export class UpdateMaximumOperatorFeeSSVCall__Outputs {
-  _call: UpdateMaximumOperatorFeeSSVCall;
-
-  constructor(call: UpdateMaximumOperatorFeeSSVCall) {
-    this._call = call;
-  }
-}
-
 export class UpdateMinimumLiquidationCollateralCall extends ethereum.Call {
   get inputs(): UpdateMinimumLiquidationCollateralCall__Inputs {
     return new UpdateMinimumLiquidationCollateralCall__Inputs(this);
@@ -3489,6 +3473,36 @@ export class UpdateMinimumLiquidationCollateralSSVCall__Outputs {
   _call: UpdateMinimumLiquidationCollateralSSVCall;
 
   constructor(call: UpdateMinimumLiquidationCollateralSSVCall) {
+    this._call = call;
+  }
+}
+
+export class UpdateMinimumOperatorEthFeeCall extends ethereum.Call {
+  get inputs(): UpdateMinimumOperatorEthFeeCall__Inputs {
+    return new UpdateMinimumOperatorEthFeeCall__Inputs(this);
+  }
+
+  get outputs(): UpdateMinimumOperatorEthFeeCall__Outputs {
+    return new UpdateMinimumOperatorEthFeeCall__Outputs(this);
+  }
+}
+
+export class UpdateMinimumOperatorEthFeeCall__Inputs {
+  _call: UpdateMinimumOperatorEthFeeCall;
+
+  constructor(call: UpdateMinimumOperatorEthFeeCall) {
+    this._call = call;
+  }
+
+  get minFee(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class UpdateMinimumOperatorEthFeeCall__Outputs {
+  _call: UpdateMinimumOperatorEthFeeCall;
+
+  constructor(call: UpdateMinimumOperatorEthFeeCall) {
     this._call = call;
   }
 }
@@ -3928,68 +3942,6 @@ export class WithdrawOperatorEarningsSSVCall__Outputs {
 
   constructor(call: WithdrawOperatorEarningsSSVCall) {
     this._call = call;
-  }
-}
-
-export class WithdrawSSVCall extends ethereum.Call {
-  get inputs(): WithdrawSSVCall__Inputs {
-    return new WithdrawSSVCall__Inputs(this);
-  }
-
-  get outputs(): WithdrawSSVCall__Outputs {
-    return new WithdrawSSVCall__Outputs(this);
-  }
-}
-
-export class WithdrawSSVCall__Inputs {
-  _call: WithdrawSSVCall;
-
-  constructor(call: WithdrawSSVCall) {
-    this._call = call;
-  }
-
-  get operatorIds(): Array<BigInt> {
-    return this._call.inputValues[0].value.toBigIntArray();
-  }
-
-  get amount(): BigInt {
-    return this._call.inputValues[1].value.toBigInt();
-  }
-
-  get cluster(): WithdrawSSVCallClusterStruct {
-    return changetype<WithdrawSSVCallClusterStruct>(
-      this._call.inputValues[2].value.toTuple(),
-    );
-  }
-}
-
-export class WithdrawSSVCall__Outputs {
-  _call: WithdrawSSVCall;
-
-  constructor(call: WithdrawSSVCall) {
-    this._call = call;
-  }
-}
-
-export class WithdrawSSVCallClusterStruct extends ethereum.Tuple {
-  get validatorCount(): BigInt {
-    return this[0].toBigInt();
-  }
-
-  get networkFeeIndex(): BigInt {
-    return this[1].toBigInt();
-  }
-
-  get index(): BigInt {
-    return this[2].toBigInt();
-  }
-
-  get active(): boolean {
-    return this[3].toBoolean();
-  }
-
-  get balance(): BigInt {
-    return this[4].toBigInt();
   }
 }
 

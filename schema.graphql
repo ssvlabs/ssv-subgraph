@@ -96,6 +96,7 @@ type DAOValues @entity(immutable: false) {
   accEthPerShare: BigInt!
   newFeesWei: BigInt!
   quorum: Int!
+  version: String!
   latestMerkleRoot: Bytes!
   totalAccounts: BigInt!
   totalValidators: BigInt!
@@ -131,6 +132,7 @@ enum DAOUpdateTypes {
   VALIDATOR_REMOVED
   OPERATOR_ADDED
   OPERATOR_REMOVED
+  SSV_NETWORK_UPGRADE
 }
 
 type Oracle @entity(immutable: false) {
@@ -400,14 +402,6 @@ type OperatorMaximumFeeUpdated @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type OperatorMaximumFeeSSVUpdated @entity(immutable: true) {
-  id: String!
-  maxFee: BigInt! # uint64
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
 type OperatorRemoved @entity(immutable: true) {
   id: String!
   operatorId: BigInt! # uint64
@@ -500,6 +494,14 @@ type Staked @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+type SSVNetworkUpgradeBlock @entity(immutable: true) {
+  id: String!
+  version: String!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
 type UnstakeRequested @entity(immutable: true) {
   id: String!
   user: Bytes! # address
@@ -560,6 +562,7 @@ type Upgraded @entity(immutable: true) {
 
 type RootCommitted @entity(immutable: true) {
   id: String!
+  sender: Bytes! #address
   merkleRoot: Bytes!
   blockNumber: BigInt!
   blockTimestamp: BigInt!
