@@ -414,32 +414,6 @@ export class DeclareOperatorFeePeriodUpdated__Params {
   }
 }
 
-export class DelegationUpdated extends ethereum.Event {
-  get params(): DelegationUpdated__Params {
-    return new DelegationUpdated__Params(this);
-  }
-}
-
-export class DelegationUpdated__Params {
-  _event: DelegationUpdated;
-
-  constructor(event: DelegationUpdated) {
-    this._event = event;
-  }
-
-  get user(): Address {
-    return this._event.parameters[0].value.toAddress();
-  }
-
-  get oracleIds(): Array<BigInt> {
-    return this._event.parameters[1].value.toBigIntArray();
-  }
-
-  get amounts(): Array<BigInt> {
-    return this._event.parameters[2].value.toBigIntArray();
-  }
-}
-
 export class ERC20Rescued extends ethereum.Event {
   get params(): ERC20Rescued__Params {
     return new ERC20Rescued__Params(this);
@@ -1188,28 +1162,6 @@ export class RootCommitted__Params {
   }
 }
 
-export class RootProposed extends ethereum.Event {
-  get params(): RootProposed__Params {
-    return new RootProposed__Params(this);
-  }
-}
-
-export class RootProposed__Params {
-  _event: RootProposed;
-
-  constructor(event: RootProposed) {
-    this._event = event;
-  }
-
-  get merkleRoot(): Bytes {
-    return this._event.parameters[0].value.toBytes();
-  }
-
-  get blockNum(): BigInt {
-    return this._event.parameters[1].value.toBigInt();
-  }
-}
-
 export class SSVNetworkUpgradeBlock extends ethereum.Event {
   get params(): SSVNetworkUpgradeBlock__Params {
     return new SSVNetworkUpgradeBlock__Params(this);
@@ -1223,8 +1175,8 @@ export class SSVNetworkUpgradeBlock__Params {
     this._event = event;
   }
 
-  get version(): Bytes {
-    return this._event.parameters[0].value.toBytes();
+  get version(): string {
+    return this._event.parameters[0].value.toString();
   }
 
   get blockNumber(): BigInt {
@@ -1598,6 +1550,32 @@ export class SSVNetwork extends ethereum.SmartContract {
     }
     let value = result.value;
     return ethereum.CallResult.fromValue(value[0].toBigInt());
+  }
+}
+
+export class ConstructorCall extends ethereum.Call {
+  get inputs(): ConstructorCall__Inputs {
+    return new ConstructorCall__Inputs(this);
+  }
+
+  get outputs(): ConstructorCall__Outputs {
+    return new ConstructorCall__Outputs(this);
+  }
+}
+
+export class ConstructorCall__Inputs {
+  _call: ConstructorCall;
+
+  constructor(call: ConstructorCall) {
+    this._call = call;
+  }
+}
+
+export class ConstructorCall__Outputs {
+  _call: ConstructorCall;
+
+  constructor(call: ConstructorCall) {
+    this._call = call;
   }
 }
 
@@ -2148,40 +2126,6 @@ export class InitializeCallParamsStruct extends ethereum.Tuple {
 
   get quorumBps(): i32 {
     return this[7].toI32();
-  }
-}
-
-export class InitializeSSVStakingCall extends ethereum.Call {
-  get inputs(): InitializeSSVStakingCall__Inputs {
-    return new InitializeSSVStakingCall__Inputs(this);
-  }
-
-  get outputs(): InitializeSSVStakingCall__Outputs {
-    return new InitializeSSVStakingCall__Outputs(this);
-  }
-}
-
-export class InitializeSSVStakingCall__Inputs {
-  _call: InitializeSSVStakingCall;
-
-  constructor(call: InitializeSSVStakingCall) {
-    this._call = call;
-  }
-
-  get cooldownDuration(): BigInt {
-    return this._call.inputValues[0].value.toBigInt();
-  }
-
-  get defaultOracleIds(): Array<BigInt> {
-    return this._call.inputValues[1].value.toBigIntArray();
-  }
-}
-
-export class InitializeSSVStakingCall__Outputs {
-  _call: InitializeSSVStakingCall;
-
-  constructor(call: InitializeSSVStakingCall) {
-    this._call = call;
   }
 }
 

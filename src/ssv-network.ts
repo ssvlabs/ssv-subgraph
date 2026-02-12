@@ -7,7 +7,6 @@ import {
   ClusterReactivated as ClusterReactivatedEvent,
   ClusterWithdrawn as ClusterWithdrawnEvent,
   DeclareOperatorFeePeriodUpdated as DeclareOperatorFeePeriodUpdatedEvent,
-  DelegationUpdated as DelegationUpdatedEvent,
   ExecuteOperatorFeePeriodUpdated as ExecuteOperatorFeePeriodUpdatedEvent,
   ERC20Rescued as ERC20RescuedEvent,
   FeeRecipientAddressUpdated as FeeRecipientAddressUpdatedEvent,
@@ -36,7 +35,6 @@ import {
   RewardsClaimed as RewardsClaimedEvent,
   RewardsSettled as RewardsSettledEvent,
   RootCommitted as RootCommittedEvent,
-  RootProposed as RootProposedEvent,
   Staked as StakedEvent,
   SSVNetworkUpgradeBlock as SSVNetworkUpgradeBlockEvent,
   UnstakeRequested as UnstakeRequestedEvent,
@@ -97,14 +95,13 @@ import {
   ClusterMigratedToETH,
   WeightedRootProposed,
   Oracle,
-  OracleDelegation,
 } from "../generated/schema";
 import { log } from "matchstick-as";
 
 const VUNITS_PRECISION = BigInt.fromI32(100000);
 const DEFAULT_BALANCE = BigInt.fromI32(32);
 const SSV_STAKING_UPDATE_BLOCK_NUMBER = BigInt.fromI32(2219331);
-const DEFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(10_000_000);
+const DEFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(1_770_000_000);
 
 // ###### DAO Events ######
 
@@ -592,7 +589,7 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
   dao.updateType = "NETWORK_FEE";
 
   // if (dao.version == "v.2.0") {
-    if (event.block.number >= SSV_STAKING_UPDATE_BLOCK_NUMBER) {
+  if (event.block.number >= SSV_STAKING_UPDATE_BLOCK_NUMBER) {
     // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
     dao.networkFeeIndex = dao.networkFeeIndex.plus(
       event.block.number
@@ -601,15 +598,16 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
     );
     dao.networkFeeIndexBlockNumber = event.block.number;
     dao.networkFee = event.params.newFee;
+  } else {
+    // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
+    dao.networkFeeIndexSSV = dao.networkFeeIndexSSV.plus(
+      event.block.number
+        .minus(dao.networkFeeIndexBlockNumberSSV)
+        .times(dao.networkFeeSSV),
+    );
+    dao.networkFeeIndexBlockNumberSSV = event.block.number;
+    dao.networkFeeSSV = event.params.newFee;
   }
-  // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
-  dao.networkFeeIndexSSV = dao.networkFeeIndexSSV.plus(
-    event.block.number
-      .minus(dao.networkFeeIndexBlockNumberSSV)
-      .times(dao.networkFeeSSV),
-  );
-  dao.networkFeeIndexBlockNumberSSV = event.block.number;
-  dao.networkFeeSSV = event.params.newFee;
   dao.lastUpdateBlockNumber = event.block.number;
   dao.lastUpdateBlockTimestamp = event.block.timestamp;
   dao.lastUpdateTransactionHash = event.transaction.hash;
@@ -874,7 +872,6 @@ export function handleClusterBalanceUpdated(
     .div(DEFAULT_BALANCE)
     .times(VUNITS_PRECISION);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex;
-  cluster.feeAsset = "ETH";
   cluster.index = event.params.cluster.index;
   cluster.active = event.params.cluster.active;
   cluster.balance = event.params.cluster.balance;
@@ -932,34 +929,6 @@ export function handleClusterBalanceUpdated(
     .minus(clusterPreviousBalance)
     .plus(cluster.effectiveBalance);
   dao.save();
-
-  for (var i = 0; i < event.params.operatorIds.length; i++) {
-    let operatorId = event.params.operatorIds[i].toString();
-    let operator = Operator.load(operatorId);
-    if (!operator) {
-      log.error(
-        `Cluster is migrated to ETH, but Operator ${event.params.operatorIds[i]} does not exist on the database`,
-        [],
-      );
-      log.error(
-        `Could not create ${operatorId} on the database, because of missing information`,
-        [],
-      );
-    } else {
-      // if the operator fee is zero, it means it's the first cluster with this operator to migrate to ETH
-      // so let's update the ETH fee to the default value
-      if ((operator.fee = BigInt.zero())) {
-        operator.fee = DEFAULT_OPERATOR_ETH_FEE;
-      }
-      operator.totalEffectiveBalance = operator.totalEffectiveBalance
-        .minus(clusterPreviousBalance)
-        .plus(cluster.effectiveBalance);
-      operator.lastUpdateBlockNumber = event.block.number;
-      operator.lastUpdateBlockTimestamp = event.block.timestamp;
-      operator.lastUpdateTransactionHash = event.transaction.hash;
-      operator.save();
-    }
-  }
 }
 
 export function handleClusterMigratedToETH(
@@ -1044,6 +1013,7 @@ export function handleClusterMigratedToETH(
         [],
       );
     } else {
+      operator.fee = DEFAULT_OPERATOR_ETH_FEE;
       operator.totalEffectiveBalance = operator.totalEffectiveBalance.plus(
         cluster.effectiveBalance,
       );
@@ -1471,10 +1441,15 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
       [],
     );
     cluster = new Cluster(clusterId);
-    cluster.feeAsset = "SSV";
     cluster.effectiveBalance = BigInt.fromI32(0);
+    // if (compareSemver(dao.version, "v2.0.0") >=0){
+    if (event.block.number >= SSV_STAKING_UPDATE_BLOCK_NUMBER){
+      cluster.feeAsset = "ETH";
+    } else {
+      cluster.feeAsset = "SSV";
+    }
   }
-
+  
   cluster.owner = owner.id;
   cluster.operatorIds = event.params.operatorIds;
   cluster.validatorCount = event.params.cluster.validatorCount;
@@ -1815,7 +1790,9 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     // if (dao.version == "v.2.0") {
     if (event.block.number >= SSV_STAKING_UPDATE_BLOCK_NUMBER) {
       operator.fee = event.params.fee;
+      operator.ssvFee = BigInt.zero();
     } else {
+      operator.fee = BigInt.zero();
       operator.ssvFee = event.params.fee;
     }
     operator.feeIndex = BigInt.zero();
@@ -2715,78 +2692,63 @@ export function handleRootCommitted(event: RootCommittedEvent): void {
   entity.save();
 }
 
-export function handleRootProposed(event: RootProposedEvent): void {
-  let entity = new RootProposed(
-    `${event.transaction.hash.toHexString()}-${event.logIndex
-      .toString()
-      .padStart(5, "0")}`,
-  );
-  entity.merkleRoot = event.params.merkleRoot;
+// export function handleDelegationUpdated(event: DelegationUpdatedEvent): void {
+//   let entity = new DelegationUpdated(
+//     `${event.transaction.hash.toHexString()}-${event.logIndex
+//       .toString()
+//       .padStart(5, "0")}`,
+//   );
+//   entity.user = event.params.user;
+//   entity.oracleIds = event.params.oracleIds;
+//   entity.amounts = event.params.amounts;
 
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
+//   entity.blockNumber = event.block.number;
+//   entity.blockTimestamp = event.block.timestamp;
+//   entity.transactionHash = event.transaction.hash;
 
-  entity.save();
-}
+//   entity.save();
 
-export function handleDelegationUpdated(event: DelegationUpdatedEvent): void {
-  let entity = new DelegationUpdated(
-    `${event.transaction.hash.toHexString()}-${event.logIndex
-      .toString()
-      .padStart(5, "0")}`,
-  );
-  entity.user = event.params.user;
-  entity.oracleIds = event.params.oracleIds;
-  entity.amounts = event.params.amounts;
+//   let user = Account.load(event.params.user);
+//   if (!user) {
+//     user = new Account(event.params.user);
+//     user.nonce = BigInt.zero();
+//     user.validatorCount = BigInt.zero();
+//     user.feeRecipient = event.params.user;
+//     user.stakedAmount = BigInt.zero();
+//     user.unstakePendingAmount = BigInt.zero();
+//     user.save();
+//   }
 
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
+//   for (let i = 0; i < event.params.oracleIds.length; i++) {
+//     let oracle = Oracle.load(event.params.oracleIds[i].toString());
+//     if (!oracle) {
+//       oracle = new Oracle(event.params.oracleIds[i].toString());
+//       oracle.oracleId = event.params.oracleIds[i];
+//       oracle.totalDelegatedAmount = BigInt.zero();
+//       oracle.oracleAddress = Bytes.empty();
+//       oracle.lastUpdateBlockNumber = event.block.number;
+//       oracle.lastUpdateBlockTimestamp = event.block.timestamp;
+//       oracle.lastUpdateTransactionHash = event.transaction.hash;
+//     }
+//     oracle.totalDelegatedAmount = oracle.totalDelegatedAmount.plus(
+//       event.params.amounts[i],
+//     );
+//     oracle.save();
 
-  entity.save();
-
-  let user = Account.load(event.params.user);
-  if (!user) {
-    user = new Account(event.params.user);
-    user.nonce = BigInt.zero();
-    user.validatorCount = BigInt.zero();
-    user.feeRecipient = event.params.user;
-    user.stakedAmount = BigInt.zero();
-    user.unstakePendingAmount = BigInt.zero();
-    user.save();
-  }
-
-  for (let i = 0; i < event.params.oracleIds.length; i++) {
-    let oracle = Oracle.load(event.params.oracleIds[i].toString());
-    if (!oracle) {
-      oracle = new Oracle(event.params.oracleIds[i].toString());
-      oracle.oracleId = event.params.oracleIds[i];
-      oracle.totalDelegatedAmount = BigInt.zero();
-      oracle.oracleAddress = Bytes.empty();
-      oracle.lastUpdateBlockNumber = event.block.number;
-      oracle.lastUpdateBlockTimestamp = event.block.timestamp;
-      oracle.lastUpdateTransactionHash = event.transaction.hash;
-    }
-    oracle.totalDelegatedAmount = oracle.totalDelegatedAmount.plus(
-      event.params.amounts[i],
-    );
-    oracle.save();
-
-    let oracleDelegationId = `${user.id.toHexString()}-${oracle.id}`;
-    let oracleDelegation = OracleDelegation.load(oracleDelegationId);
-    if (!oracleDelegation) {
-      oracleDelegation = new OracleDelegation(oracleDelegationId);
-      oracleDelegation.delegator = user.id;
-      oracleDelegation.delegatedOracle = oracle.id;
-      oracleDelegation.amount = BigInt.zero();
-    }
-    oracleDelegation.amount = oracleDelegation.amount.plus(
-      event.params.amounts[i],
-    );
-    oracleDelegation.save();
-  }
-}
+//     let oracleDelegationId = `${user.id.toHexString()}-${oracle.id}`;
+//     let oracleDelegation = OracleDelegation.load(oracleDelegationId);
+//     if (!oracleDelegation) {
+//       oracleDelegation = new OracleDelegation(oracleDelegationId);
+//       oracleDelegation.delegator = user.id;
+//       oracleDelegation.delegatedOracle = oracle.id;
+//       oracleDelegation.amount = BigInt.zero();
+//     }
+//     oracleDelegation.amount = oracleDelegation.amount.plus(
+//       event.params.amounts[i],
+//     );
+//     oracleDelegation.save();
+//   }
+// }
 
 export function handleOracleReplaced(event: OracleReplacedEvent): void {
   let entity = new OracleReplaced(
@@ -2882,7 +2844,7 @@ export function handleSSVNetworkUpgradeBlock(
       .padStart(5, "0")}`,
   );
 
-  entity.version = event.params.version.toString();
+  entity.version = event.params.version;
   entity.blockNumber = event.params.blockNumber;
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
@@ -2897,9 +2859,9 @@ export function handleSSVNetworkUpgradeBlock(
     );
   } else {
     dao.updateType = "SSV_NETWORK_UPGRADE";
-    dao.version = event.params.version.toHexString();
-    // if (dao.version == "v.2.0") {
-    if (event.block.number >= SSV_STAKING_UPDATE_BLOCK_NUMBER) {
+    dao.version = event.params.version;
+    if (compareSemver(dao.version, "v2.0.0") >= 0) {
+    // if (event.block.number >= SSV_STAKING_UPDATE_BLOCK_NUMBER) {
       dao.networkFeeIndex = BigInt.zero();
       dao.networkFeeIndexBlockNumber = event.params.blockNumber;
     }
@@ -2913,4 +2875,24 @@ export function handleSSVNetworkUpgradeBlock(
     );
     dao.save();
   }
+}
+
+function compareSemver(version1:string, version2: string): number {
+  const components1 = version1.split(".")
+  const components2 = version2.split(".")
+
+  const major1 = parseInt(components1[0].replace("v", ""))
+  const major2 = parseInt(components2[0].replace("v", ""))
+  const minor1 = parseInt(components1[0])
+  const minor2 = parseInt(components2[0])
+  const patch1 = parseInt(components1[0])
+  const patch2 = parseInt(components2[0])
+
+  if (major1 > major2) return 1
+  if (major1 < major2) return -1
+  if (minor1 > minor2) return 1
+  if (minor1 < minor2) return -1
+  if (patch1 > patch2) return 1
+  if (patch1 < patch2) return -1
+  return 0
 }

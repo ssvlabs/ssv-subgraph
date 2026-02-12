@@ -138,16 +138,16 @@ dataSources:
           handler: handleClusterMigratedToETH
         - event: RootCommitted(indexed bytes32,indexed uint64)
           handler: handleRootCommitted
-        - event: RootProposed(indexed bytes32,indexed uint64)
-          handler: handleRootProposed
-        - event: DelegationUpdated(indexed address,uint32[4],uint256[4])
-          handler: handleDelegationUpdated
+        # - event: RootProposed(indexed bytes32,indexed uint64)
+        #   handler: handleRootProposed
+        # - event: DelegationUpdated(indexed address,uint32[4],uint256[4])
+        #   handler: handleDelegationUpdated
         - event: OracleReplaced(indexed uint32,indexed address,indexed address)
           handler: handleOracleReplaced
         - event: QuorumUpdated(uint16)
           handler: handleQuorumUpdated
         - event: WeightedRootProposed(indexed bytes32,indexed uint64,uint256,uint256,uint32,address)
           handler: handleWeightedRootProposed
-        - event: SSVNetworkUpgradeBlock(indexed string,uint256)
+        - event: SSVNetworkUpgradeBlock(string,uint256)
           handler: handleSSVNetworkUpgradeBlock
       file: ./src/ssv-network.ts
