@@ -2908,7 +2908,7 @@ export function handleSSVNetworkUpgradeBlock(
     dao.lastUpdateTransactionHash = event.transaction.hash;
 
     log.info(
-      `Dao Values update type: ${dao.updateType}, new quorum: ${dao.quorum}`,
+      `Dao Values update type: ${dao.updateType}, contract upgraded to version ${dao.version}`,
       [],
     );
     dao.save();
