@@ -2771,7 +2771,7 @@ export function handleOracleReplaced(event: OracleReplacedEvent): void {
   if (!oracle) {
     oracle = new Oracle(oracleId);
     oracle.oracleId = event.params.oracleId;
-    oracle.totalDelegatedAmount = BigInt.zero();
+    // oracle.totalDelegatedAmount = BigInt.zero();
     oracle.lastUpdateBlockNumber = event.block.number;
     oracle.lastUpdateBlockTimestamp = event.block.timestamp;
     oracle.lastUpdateTransactionHash = event.transaction.hash;

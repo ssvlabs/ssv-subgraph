@@ -9,7 +9,7 @@ type Account @entity(immutable: false) {
   feeRecipient: Bytes! #address
   stakedAmount: BigInt!
   unstakePendingAmount: BigInt!
-  delegatedOracles: [OracleDelegation!] @derivedFrom(field: "delegator")
+  # delegatedOracles: [OracleDelegation!] @derivedFrom(field: "delegator")
 }
 
 type Cluster @entity(immutable: false) {
@@ -139,19 +139,19 @@ type Oracle @entity(immutable: false) {
   id: String!
   oracleId: BigInt!
   oracleAddress: Bytes! # address
-  delegators: [OracleDelegation!] @derivedFrom(field: "delegatedOracle")
-  totalDelegatedAmount: BigInt! # uint256
+  # delegators: [OracleDelegation!] @derivedFrom(field: "delegatedOracle")
+  # totalDelegatedAmount: BigInt! # uint256
   lastUpdateBlockNumber: BigInt! # uint256
   lastUpdateBlockTimestamp: BigInt!
   lastUpdateTransactionHash: Bytes!
 }
 
-type OracleDelegation @entity(immutable: false) {
-  id: String!
-  delegator: Account!
-  delegatedOracle: Oracle!
-  amount: BigInt!
-}
+# type OracleDelegation @entity(immutable: false) {
+#   id: String!
+#   delegator: Account!
+#   delegatedOracle: Oracle!
+#   amount: BigInt!
+# }
 
 type ClusterBalanceUpdated @entity(immutable: true) {
   id: String!

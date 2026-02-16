@@ -141,14 +141,6 @@ export class Account extends Entity {
   set unstakePendingAmount(value: BigInt) {
     this.set("unstakePendingAmount", Value.fromBigInt(value));
   }
-
-  get delegatedOracles(): OracleDelegationLoader {
-    return new OracleDelegationLoader(
-      "Account",
-      this.get("id")!.toBytes().toHexString(),
-      "delegatedOracles",
-    );
-  }
 }
 
 export class Cluster extends Entity {
@@ -1375,27 +1367,6 @@ export class Oracle extends Entity {
     this.set("oracleAddress", Value.fromBytes(value));
   }
 
-  get delegators(): OracleDelegationLoader {
-    return new OracleDelegationLoader(
-      "Oracle",
-      this.get("id")!.toString(),
-      "delegators",
-    );
-  }
-
-  get totalDelegatedAmount(): BigInt {
-    let value = this.get("totalDelegatedAmount");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set totalDelegatedAmount(value: BigInt) {
-    this.set("totalDelegatedAmount", Value.fromBigInt(value));
-  }
-
   get lastUpdateBlockNumber(): BigInt {
     let value = this.get("lastUpdateBlockNumber");
     if (!value || value.kind == ValueKind.NULL) {
@@ -1433,89 +1404,6 @@ export class Oracle extends Entity {
 
   set lastUpdateTransactionHash(value: Bytes) {
     this.set("lastUpdateTransactionHash", Value.fromBytes(value));
-  }
-}
-
-export class OracleDelegation extends Entity {
-  constructor(id: string) {
-    super();
-    this.set("id", Value.fromString(id));
-  }
-
-  save(): void {
-    let id = this.get("id");
-    assert(id != null, "Cannot save OracleDelegation entity without an ID");
-    if (id) {
-      assert(
-        id.kind == ValueKind.STRING,
-        `Entities of type OracleDelegation must have an ID of type String but the id '${id.displayData()}' is of type ${id.displayKind()}`,
-      );
-      store.set("OracleDelegation", id.toString(), this);
-    }
-  }
-
-  static loadInBlock(id: string): OracleDelegation | null {
-    return changetype<OracleDelegation | null>(
-      store.get_in_block("OracleDelegation", id),
-    );
-  }
-
-  static load(id: string): OracleDelegation | null {
-    return changetype<OracleDelegation | null>(
-      store.get("OracleDelegation", id),
-    );
-  }
-
-  get id(): string {
-    let value = this.get("id");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toString();
-    }
-  }
-
-  set id(value: string) {
-    this.set("id", Value.fromString(value));
-  }
-
-  get delegator(): Bytes {
-    let value = this.get("delegator");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBytes();
-    }
-  }
-
-  set delegator(value: Bytes) {
-    this.set("delegator", Value.fromBytes(value));
-  }
-
-  get delegatedOracle(): string {
-    let value = this.get("delegatedOracle");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toString();
-    }
-  }
-
-  set delegatedOracle(value: string) {
-    this.set("delegatedOracle", Value.fromString(value));
-  }
-
-  get amount(): BigInt {
-    let value = this.get("amount");
-    if (!value || value.kind == ValueKind.NULL) {
-      throw new Error("Cannot return null for a required field.");
-    } else {
-      return value.toBigInt();
-    }
-  }
-
-  set amount(value: BigInt) {
-    this.set("amount", Value.fromBigInt(value));
   }
 }
 
@@ -7268,23 +7156,5 @@ export class OperatorLoader extends Entity {
   load(): Operator[] {
     let value = store.loadRelated(this._entity, this._id, this._field);
     return changetype<Operator[]>(value);
-  }
-}
-
-export class OracleDelegationLoader extends Entity {
-  _entity: string;
-  _field: string;
-  _id: string;
-
-  constructor(entity: string, id: string, field: string) {
-    super();
-    this._entity = entity;
-    this._id = id;
-    this._field = field;
-  }
-
-  load(): OracleDelegation[] {
-    let value = store.loadRelated(this._entity, this._id, this._field);
-    return changetype<OracleDelegation[]>(value);
   }
 }
