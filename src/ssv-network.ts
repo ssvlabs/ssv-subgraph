@@ -2690,6 +2690,27 @@ export function handleRootCommitted(event: RootCommittedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   entity.save();
+
+  let dao = DAOValues.load(event.address);
+  if (!dao) {
+    log.error(
+      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: ROOT_COMMITTED`,
+      [],
+    );
+    dao = new DAOValues(event.address);
+    return;
+  }
+  dao.updateType = "ROOT_COMMITTED";
+  dao.latestMerkleRoot = event.params.merkleRoot;
+  dao.lastUpdateBlockNumber = event.block.number;
+  dao.lastUpdateBlockTimestamp = event.block.timestamp;
+  dao.lastUpdateTransactionHash = event.transaction.hash;
+
+  log.info(
+    `Dao Values update type: ${dao.updateType}, new latest merkle root: ${dao.latestMerkleRoot.toHexString()}`,
+    [],
+  );
+  dao.save();
 }
 
 // export function handleDelegationUpdated(event: DelegationUpdatedEvent): void {
