@@ -857,6 +857,8 @@ export function handleClusterBalanceUpdated(
       [],
     );
     cluster = new Cluster(clusterId);
+    cluster.effectiveBalance = DEFAULT_BALANCE;
+    cluster.feeAsset = "SSV";
   }
 
   cluster.owner = owner.id;
@@ -2117,6 +2119,13 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
     );
     operator.feeIndexBlockNumber = event.block.number;
     operator.fee = new BigInt(0);
+    operator.ssvFeeIndex = operator.ssvFeeIndex.plus(
+      event.block.number
+        .minus(operator.ssvFeeIndexBlockNumber)
+        .times(operator.ssvFee),
+    );
+    operator.ssvFeeIndexBlockNumber = event.block.number;
+    operator.ssvFee = new BigInt(0);
     operator.lastUpdateBlockNumber = event.block.number;
     operator.validatorCount = new BigInt(0);
     operator.lastUpdateBlockTimestamp = event.block.timestamp;
