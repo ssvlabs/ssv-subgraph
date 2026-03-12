@@ -651,8 +651,8 @@ export class Operator extends Entity {
     this.set("declaredFee", Value.fromBigInt(value));
   }
 
-  get ssvFee(): BigInt {
-    let value = this.get("ssvFee");
+  get feeSSV(): BigInt {
+    let value = this.get("feeSSV");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -660,12 +660,12 @@ export class Operator extends Entity {
     }
   }
 
-  set ssvFee(value: BigInt) {
-    this.set("ssvFee", Value.fromBigInt(value));
+  set feeSSV(value: BigInt) {
+    this.set("feeSSV", Value.fromBigInt(value));
   }
 
-  get ssvFeeIndex(): BigInt {
-    let value = this.get("ssvFeeIndex");
+  get feeIndexSSV(): BigInt {
+    let value = this.get("feeIndexSSV");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -673,12 +673,12 @@ export class Operator extends Entity {
     }
   }
 
-  set ssvFeeIndex(value: BigInt) {
-    this.set("ssvFeeIndex", Value.fromBigInt(value));
+  set feeIndexSSV(value: BigInt) {
+    this.set("feeIndexSSV", Value.fromBigInt(value));
   }
 
-  get ssvFeeIndexBlockNumber(): BigInt {
-    let value = this.get("ssvFeeIndexBlockNumber");
+  get feeIndexBlockNumberSSV(): BigInt {
+    let value = this.get("feeIndexBlockNumberSSV");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -686,8 +686,8 @@ export class Operator extends Entity {
     }
   }
 
-  set ssvFeeIndexBlockNumber(value: BigInt) {
-    this.set("ssvFeeIndexBlockNumber", Value.fromBigInt(value));
+  set feeIndexBlockNumberSSV(value: BigInt) {
+    this.set("feeIndexBlockNumberSSV", Value.fromBigInt(value));
   }
 
   get declaredSSVFee(): BigInt {
@@ -1703,6 +1703,19 @@ export class ClusterMigratedToETH extends Entity {
 
   set effectiveBalance(value: BigInt) {
     this.set("effectiveBalance", Value.fromBigInt(value));
+  }
+
+  get cluster(): string {
+    let value = this.get("cluster");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toString();
+    }
+  }
+
+  set cluster(value: string) {
+    this.set("cluster", Value.fromString(value));
   }
 
   get cluster_validatorCount(): BigInt {

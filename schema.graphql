@@ -58,9 +58,9 @@ type Operator @entity(immutable: false) {
   feeIndex: BigInt! # uint256
   feeIndexBlockNumber: BigInt! # uint256
   declaredFee: BigInt! # uint256
-  ssvFee: BigInt! # uint256
-  ssvFeeIndex: BigInt! # uint256
-  ssvFeeIndexBlockNumber: BigInt! # uint256
+  feeSSV: BigInt! # uint256
+  feeIndexSSV: BigInt! # uint256
+  feeIndexBlockNumberSSV: BigInt! # uint256
   declaredSSVFee: BigInt! # uint256
   whitelisted: [Account!]!
   whitelistedContract: Bytes! #address
@@ -175,6 +175,7 @@ type ClusterMigratedToETH @entity(immutable: true) {
   ethDeposited: BigInt! # uint256
   ssvRefunded: BigInt! # uint256
   effectiveBalance: BigInt! # uint256
+  cluster: Cluster!
   cluster_validatorCount: BigInt! # uint32
   cluster_networkFeeIndex: BigInt! # uint64
   cluster_index: BigInt! # uint64

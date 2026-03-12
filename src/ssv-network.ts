@@ -101,6 +101,8 @@ import { log } from "matchstick-as";
 const VUNITS_PRECISION = BigInt.fromI32(100000);
 const DEFAULT_BALANCE = BigInt.fromI32(32);
 const SSV_STAKING_UPDATE_BLOCK_NUMBER = BigInt.fromI32(2219331);
+const OPERATOR_ZERO_FEE_FIX_BLOCK_NUMBER = BigInt.fromI32(2259628);
+const ETH_FEE_FIX_BLOCK = BigInt.fromI32(2259628);
 const DEFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(1_770_000_000);
 
 // ###### DAO Events ######
@@ -127,38 +129,7 @@ export function handleDeclareOperatorFeePeriodUpdated(
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
       [],
     );
-    dao = new DAOValues(event.address);
-    dao.networkFee = BigInt.zero();
-    dao.networkFeeIndex = BigInt.zero();
-    dao.networkFeeIndexBlockNumber = BigInt.zero();
-    dao.liquidationThreshold = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateral = BigInt.fromString("1000000000000000000");
-    dao.networkFeeSSV = BigInt.zero();
-    dao.networkFeeIndexSSV = BigInt.zero();
-    dao.networkFeeIndexBlockNumberSSV = BigInt.zero();
-    dao.liquidationThresholdSSV = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateralSSV = BigInt.fromString(
-      "1000000000000000000",
-    );
-    dao.operatorFeeIncreaseLimit = BigInt.fromI32(1000);
-    dao.declareOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.operatorMaximumFee = BigInt.zero();
-    dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
-    dao.accEthPerShare = BigInt.zero();
-    dao.newFeesWei = BigInt.zero();
-    dao.quorum = 0;
-    dao.version = "";
-    dao.latestMerkleRoot = Bytes.empty();
-    dao.totalAccounts = BigInt.zero();
-    dao.totalOperators = BigInt.zero();
-    dao.totalValidators = BigInt.zero();
-    dao.totalEffectiveBalance = BigInt.zero();
-    dao.validatorsAdded = BigInt.zero();
-    dao.validatorsRemoved = BigInt.zero();
-    dao.operatorsAdded = BigInt.zero();
-    dao.operatorsRemoved = BigInt.zero();
+    return;
   }
   dao.updateType = "DECLARE_OPERATOR_FEE_PERIOD";
   dao.declareOperatorFeePeriod = event.params.value;
@@ -190,38 +161,7 @@ export function handleExecuteOperatorFeePeriodUpdated(
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: EXECUTE_OPERATOR_FEE_PERIOD`,
       [],
     );
-    dao = new DAOValues(event.address);
-    dao.networkFee = BigInt.zero();
-    dao.networkFeeIndex = BigInt.zero();
-    dao.networkFeeIndexBlockNumber = BigInt.zero();
-    dao.liquidationThreshold = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateral = BigInt.fromString("1000000000000000000");
-    dao.networkFeeSSV = BigInt.zero();
-    dao.networkFeeIndexSSV = BigInt.zero();
-    dao.networkFeeIndexBlockNumberSSV = BigInt.zero();
-    dao.liquidationThresholdSSV = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateralSSV = BigInt.fromString(
-      "1000000000000000000",
-    );
-    dao.operatorFeeIncreaseLimit = BigInt.fromI32(1000);
-    dao.declareOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.operatorMaximumFee = BigInt.zero();
-    dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
-    dao.accEthPerShare = BigInt.zero();
-    dao.newFeesWei = BigInt.zero();
-    dao.quorum = 0;
-    dao.version = "";
-    dao.latestMerkleRoot = Bytes.empty();
-    dao.totalAccounts = BigInt.zero();
-    dao.totalOperators = BigInt.zero();
-    dao.totalValidators = BigInt.zero();
-    dao.totalEffectiveBalance = BigInt.zero();
-    dao.validatorsAdded = BigInt.zero();
-    dao.validatorsRemoved = BigInt.zero();
-    dao.operatorsAdded = BigInt.zero();
-    dao.operatorsRemoved = BigInt.zero();
+return;
   }
   dao.updateType = "EXECUTE_OPERATOR_FEE_PERIOD";
   dao.executeOperatorFeePeriod = event.params.value;
@@ -285,41 +225,24 @@ export function handleLiquidationThresholdPeriodUpdated(
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: LIQUIDATION_THRESHOLD`,
       [],
     );
-    dao = new DAOValues(event.address);
-    dao.networkFee = BigInt.zero();
-    dao.networkFeeIndex = BigInt.zero();
-    dao.networkFeeIndexBlockNumber = BigInt.zero();
-    dao.liquidationThreshold = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateral = BigInt.fromString("1000000000000000000");
-    dao.networkFeeSSV = BigInt.zero();
-    dao.networkFeeIndexSSV = BigInt.zero();
-    dao.networkFeeIndexBlockNumberSSV = BigInt.zero();
-    dao.liquidationThresholdSSV = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateralSSV = BigInt.fromString(
-      "1000000000000000000",
-    );
-    dao.operatorFeeIncreaseLimit = BigInt.fromI32(1000);
-    dao.declareOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.operatorMaximumFee = BigInt.zero();
-    dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
-    dao.accEthPerShare = BigInt.zero();
-    dao.newFeesWei = BigInt.zero();
-    dao.quorum = 0;
-    dao.version = "";
-    dao.latestMerkleRoot = Bytes.empty();
-    dao.totalAccounts = BigInt.zero();
-    dao.totalOperators = BigInt.zero();
-    dao.totalValidators = BigInt.zero();
-    dao.totalEffectiveBalance = BigInt.zero();
-    dao.validatorsAdded = BigInt.zero();
-    dao.validatorsRemoved = BigInt.zero();
-    dao.operatorsAdded = BigInt.zero();
-    dao.operatorsRemoved = BigInt.zero();
+    return;
   }
-  dao.updateType = "LIQUIDATION_THRESHOLD";
-  dao.liquidationThreshold = event.params.value;
+  // if the dao variable update happened before the ssv staking update, it refers to the ssv value
+  if (event.block.number < SSV_STAKING_UPDATE_BLOCK_NUMBER) {
+    log.info(
+      `Liquidation Threshold Period for SSV fees updated to ${event.params.value} at block ${event.block.number}`,
+      [],
+    );
+    dao.updateType = "LIQUIDATION_THRESHOLD_SSV";
+    dao.liquidationThresholdSSV = event.params.value;
+  } else {
+    log.error(
+      `Liquidation Threshold Period for ETH fees updated to ${event.params.value} at block ${event.block.number}`,
+      [],
+    );
+    dao.updateType = "LIQUIDATION_THRESHOLD";
+    dao.liquidationThreshold = event.params.value;
+  }
   dao.lastUpdateBlockNumber = event.block.number;
   dao.lastUpdateBlockTimestamp = event.block.timestamp;
   dao.lastUpdateTransactionHash = event.transaction.hash;
@@ -347,41 +270,10 @@ export function handleLiquidationThresholdPeriodSSVUpdated(
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: LIQUIDATION_THRESHOLD`,
       [],
     );
-    dao = new DAOValues(event.address);
-    dao.networkFee = BigInt.zero();
-    dao.networkFeeIndex = BigInt.zero();
-    dao.networkFeeIndexBlockNumber = BigInt.zero();
-    dao.liquidationThreshold = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateral = BigInt.fromString("1000000000000000000");
-    dao.networkFeeSSV = BigInt.zero();
-    dao.networkFeeIndexSSV = BigInt.zero();
-    dao.networkFeeIndexBlockNumberSSV = BigInt.zero();
-    dao.liquidationThresholdSSV = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateralSSV = BigInt.fromString(
-      "1000000000000000000",
-    );
-    dao.operatorFeeIncreaseLimit = BigInt.fromI32(1000);
-    dao.declareOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.operatorMaximumFee = BigInt.zero();
-    dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
-    dao.accEthPerShare = BigInt.zero();
-    dao.newFeesWei = BigInt.zero();
-    dao.quorum = 0;
-    dao.version = "";
-    dao.latestMerkleRoot = Bytes.empty();
-    dao.totalAccounts = BigInt.zero();
-    dao.totalOperators = BigInt.zero();
-    dao.totalValidators = BigInt.zero();
-    dao.totalEffectiveBalance = BigInt.zero();
-    dao.validatorsAdded = BigInt.zero();
-    dao.validatorsRemoved = BigInt.zero();
-    dao.operatorsAdded = BigInt.zero();
-    dao.operatorsRemoved = BigInt.zero();
+return;
   }
   dao.updateType = "LIQUIDATION_THRESHOLD_SSV";
-  dao.liquidationThreshold = event.params.value;
+  dao.liquidationThresholdSSV = event.params.value;
   dao.lastUpdateBlockNumber = event.block.number;
   dao.lastUpdateBlockTimestamp = event.block.timestamp;
   dao.lastUpdateTransactionHash = event.transaction.hash;
@@ -410,41 +302,25 @@ export function handleMinimumLiquidationCollateralUpdated(
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: MIN_LIQUIDATION_COLLATERAL`,
       [],
     );
-    dao = new DAOValues(event.address);
-    dao.networkFee = BigInt.zero();
-    dao.networkFeeIndex = BigInt.zero();
-    dao.networkFeeIndexBlockNumber = BigInt.zero();
-    dao.liquidationThreshold = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateral = BigInt.fromString("1000000000000000000");
-    dao.networkFeeSSV = BigInt.zero();
-    dao.networkFeeIndexSSV = BigInt.zero();
-    dao.networkFeeIndexBlockNumberSSV = BigInt.zero();
-    dao.liquidationThresholdSSV = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateralSSV = BigInt.fromString(
-      "1000000000000000000",
-    );
-    dao.operatorFeeIncreaseLimit = BigInt.fromI32(1000);
-    dao.declareOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.operatorMaximumFee = BigInt.zero();
-    dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
-    dao.accEthPerShare = BigInt.zero();
-    dao.newFeesWei = BigInt.zero();
-    dao.quorum = 0;
-    dao.version = "";
-    dao.latestMerkleRoot = Bytes.empty();
-    dao.totalAccounts = BigInt.zero();
-    dao.totalOperators = BigInt.zero();
-    dao.totalValidators = BigInt.zero();
-    dao.totalEffectiveBalance = BigInt.zero();
-    dao.validatorsAdded = BigInt.zero();
-    dao.validatorsRemoved = BigInt.zero();
-    dao.operatorsAdded = BigInt.zero();
-    dao.operatorsRemoved = BigInt.zero();
+    return;
   }
-  dao.updateType = "MIN_LIQUIDATION_COLLATERAL";
-  dao.minimumLiquidationCollateral = event.params.value;
+  
+  // if the dao variable update happened before the ssv staking update, it refers to the ssv value
+  if (event.block.number < SSV_STAKING_UPDATE_BLOCK_NUMBER) {
+    log.info(
+      `Minimum Liquidation Collateral for SSV fees updated to ${event.params.value} at block ${event.block.number}`,
+      [],
+    );
+    dao.updateType = "MIN_LIQUIDATION_COLLATERAL_SSV";
+    dao.minimumLiquidationCollateral = event.params.value;
+  } else {
+    log.error(
+      `Minimum Liquidation Collateral for ETH fees updated to ${event.params.value} at block ${event.block.number}`,
+      [],
+    );
+    dao.updateType = "MIN_LIQUIDATION_COLLATERAL";
+    dao.minimumLiquidationCollateral = event.params.value;
+  }
   dao.lastUpdateBlockNumber = event.block.number;
   dao.lastUpdateBlockTimestamp = event.block.timestamp;
   dao.lastUpdateTransactionHash = event.transaction.hash;
@@ -473,41 +349,10 @@ export function handleMinimumLiquidationCollateralSSVUpdated(
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: MIN_LIQUIDATION_COLLATERAL`,
       [],
     );
-    dao = new DAOValues(event.address);
-    dao.networkFee = BigInt.zero();
-    dao.networkFeeIndex = BigInt.zero();
-    dao.networkFeeIndexBlockNumber = BigInt.zero();
-    dao.liquidationThreshold = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateral = BigInt.fromString("1000000000000000000");
-    dao.networkFeeSSV = BigInt.zero();
-    dao.networkFeeIndexSSV = BigInt.zero();
-    dao.networkFeeIndexBlockNumberSSV = BigInt.zero();
-    dao.liquidationThresholdSSV = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateralSSV = BigInt.fromString(
-      "1000000000000000000",
-    );
-    dao.operatorFeeIncreaseLimit = BigInt.fromI32(1000);
-    dao.declareOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.operatorMaximumFee = BigInt.zero();
-    dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
-    dao.accEthPerShare = BigInt.zero();
-    dao.newFeesWei = BigInt.zero();
-    dao.quorum = 0;
-    dao.version = "";
-    dao.latestMerkleRoot = Bytes.empty();
-    dao.totalAccounts = BigInt.zero();
-    dao.totalOperators = BigInt.zero();
-    dao.totalValidators = BigInt.zero();
-    dao.totalEffectiveBalance = BigInt.zero();
-    dao.validatorsAdded = BigInt.zero();
-    dao.validatorsRemoved = BigInt.zero();
-    dao.operatorsAdded = BigInt.zero();
-    dao.operatorsRemoved = BigInt.zero();
+    return
   }
   dao.updateType = "MIN_LIQUIDATION_COLLATERAL_SSV";
-  dao.minimumLiquidationCollateral = event.params.value;
+  dao.minimumLiquidationCollateralSSV = event.params.value;
   dao.lastUpdateBlockNumber = event.block.number;
   dao.lastUpdateBlockTimestamp = event.block.timestamp;
   dao.lastUpdateTransactionHash = event.transaction.hash;
@@ -553,38 +398,7 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: NETWORK_FEE`,
       [],
     );
-    dao = new DAOValues(event.address);
-    dao.networkFee = BigInt.zero();
-    dao.networkFeeIndex = BigInt.zero();
-    dao.networkFeeIndexBlockNumber = BigInt.zero();
-    dao.liquidationThreshold = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateral = BigInt.fromString("1000000000000000000");
-    dao.networkFeeSSV = BigInt.zero();
-    dao.networkFeeIndexSSV = BigInt.zero();
-    dao.networkFeeIndexBlockNumberSSV = BigInt.zero();
-    dao.liquidationThresholdSSV = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateralSSV = BigInt.fromString(
-      "1000000000000000000",
-    );
-    dao.operatorFeeIncreaseLimit = BigInt.fromI32(1000);
-    dao.declareOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.operatorMaximumFee = BigInt.zero();
-    dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
-    dao.accEthPerShare = BigInt.zero();
-    dao.newFeesWei = BigInt.zero();
-    dao.quorum = 0;
-    dao.version = "";
-    dao.latestMerkleRoot = Bytes.empty();
-    dao.totalAccounts = BigInt.zero();
-    dao.totalOperators = BigInt.zero();
-    dao.totalValidators = BigInt.zero();
-    dao.totalEffectiveBalance = BigInt.zero();
-    dao.validatorsAdded = BigInt.zero();
-    dao.validatorsRemoved = BigInt.zero();
-    dao.operatorsAdded = BigInt.zero();
-    dao.operatorsRemoved = BigInt.zero();
+return;
   }
   dao.updateType = "NETWORK_FEE";
 
@@ -637,38 +451,7 @@ export function handleNetworkFeeUpdatedSSV(
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: NETWORK_FEE`,
       [],
     );
-    dao = new DAOValues(event.address);
-    dao.networkFee = BigInt.zero();
-    dao.networkFeeIndex = BigInt.zero();
-    dao.networkFeeIndexBlockNumber = BigInt.zero();
-    dao.liquidationThreshold = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateral = BigInt.fromString("1000000000000000000");
-    dao.networkFeeSSV = BigInt.zero();
-    dao.networkFeeIndexSSV = BigInt.zero();
-    dao.networkFeeIndexBlockNumberSSV = BigInt.zero();
-    dao.liquidationThresholdSSV = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateralSSV = BigInt.fromString(
-      "1000000000000000000",
-    );
-    dao.operatorFeeIncreaseLimit = BigInt.fromI32(1000);
-    dao.declareOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.operatorMaximumFee = BigInt.zero();
-    dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
-    dao.accEthPerShare = BigInt.zero();
-    dao.newFeesWei = BigInt.zero();
-    dao.quorum = 0;
-    dao.version = "";
-    dao.latestMerkleRoot = Bytes.empty();
-    dao.totalAccounts = BigInt.zero();
-    dao.totalOperators = BigInt.zero();
-    dao.totalValidators = BigInt.zero();
-    dao.totalEffectiveBalance = BigInt.zero();
-    dao.validatorsAdded = BigInt.zero();
-    dao.validatorsRemoved = BigInt.zero();
-    dao.operatorsAdded = BigInt.zero();
-    dao.operatorsRemoved = BigInt.zero();
+return;
   }
   dao.updateType = "NETWORK_FEE_SSV";
   // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
@@ -707,38 +490,7 @@ export function handleOperatorFeeIncreaseLimitUpdated(
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: OPERATOR_FEE_INCREASE_LIMIT`,
       [],
     );
-    dao = new DAOValues(event.address);
-    dao.networkFee = BigInt.zero();
-    dao.networkFeeIndex = BigInt.zero();
-    dao.networkFeeIndexBlockNumber = BigInt.zero();
-    dao.liquidationThreshold = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateral = BigInt.fromString("1000000000000000000");
-    dao.networkFeeSSV = BigInt.zero();
-    dao.networkFeeIndexSSV = BigInt.zero();
-    dao.networkFeeIndexBlockNumberSSV = BigInt.zero();
-    dao.liquidationThresholdSSV = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateralSSV = BigInt.fromString(
-      "1000000000000000000",
-    );
-    dao.operatorFeeIncreaseLimit = BigInt.fromI32(1000);
-    dao.declareOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.operatorMaximumFee = BigInt.zero();
-    dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
-    dao.accEthPerShare = BigInt.zero();
-    dao.newFeesWei = BigInt.zero();
-    dao.quorum = 0;
-    dao.version = "";
-    dao.latestMerkleRoot = Bytes.empty();
-    dao.totalAccounts = BigInt.zero();
-    dao.totalOperators = BigInt.zero();
-    dao.totalValidators = BigInt.zero();
-    dao.totalEffectiveBalance = BigInt.zero();
-    dao.validatorsAdded = BigInt.zero();
-    dao.validatorsRemoved = BigInt.zero();
-    dao.operatorsAdded = BigInt.zero();
-    dao.operatorsRemoved = BigInt.zero();
+return;
   }
   dao.updateType = "OPERATOR_FEE_INCREASE_LIMIT";
   dao.operatorFeeIncreaseLimit = event.params.value;
@@ -770,38 +522,7 @@ export function handleOperatorMaximumFeeUpdated(
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
       [],
     );
-    dao = new DAOValues(event.address);
-    dao.networkFee = BigInt.zero();
-    dao.networkFeeIndex = BigInt.zero();
-    dao.networkFeeIndexBlockNumber = BigInt.zero();
-    dao.liquidationThreshold = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateral = BigInt.fromString("1000000000000000000");
-    dao.networkFeeSSV = BigInt.zero();
-    dao.networkFeeIndexSSV = BigInt.zero();
-    dao.networkFeeIndexBlockNumberSSV = BigInt.zero();
-    dao.liquidationThresholdSSV = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateralSSV = BigInt.fromString(
-      "1000000000000000000",
-    );
-    dao.operatorFeeIncreaseLimit = BigInt.fromI32(1000);
-    dao.declareOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.executeOperatorFeePeriod = BigInt.fromI32(604800);
-    dao.operatorMaximumFee = BigInt.zero();
-    dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
-    dao.accEthPerShare = BigInt.zero();
-    dao.newFeesWei = BigInt.zero();
-    dao.quorum = 0;
-    dao.version = "";
-    dao.latestMerkleRoot = Bytes.empty();
-    dao.totalAccounts = BigInt.zero();
-    dao.totalOperators = BigInt.zero();
-    dao.totalValidators = BigInt.zero();
-    dao.totalEffectiveBalance = BigInt.zero();
-    dao.validatorsAdded = BigInt.zero();
-    dao.validatorsRemoved = BigInt.zero();
-    dao.operatorsAdded = BigInt.zero();
-    dao.operatorsRemoved = BigInt.zero();
+return;
   }
   dao.updateType = "OPERATOR_MAX_FEE";
   dao.operatorMaximumFee = event.params.maxFee;
@@ -888,42 +609,7 @@ export function handleClusterBalanceUpdated(
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
       [],
     );
-    dao = new DAOValues(event.address);
-
-    dao.networkFee = BigInt.zero();
-    dao.networkFeeIndex = BigInt.zero();
-    dao.networkFeeIndexBlockNumber = BigInt.zero();
-    dao.liquidationThreshold = BigInt.zero();
-    dao.minimumLiquidationCollateral = BigInt.zero();
-    dao.networkFeeSSV = BigInt.zero();
-    dao.networkFeeIndexSSV = BigInt.zero();
-    dao.networkFeeIndexBlockNumberSSV = BigInt.zero();
-    dao.liquidationThresholdSSV = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateralSSV = BigInt.fromString(
-      "1000000000000000000",
-    );
-    dao.operatorFeeIncreaseLimit = BigInt.zero();
-    dao.declareOperatorFeePeriod = BigInt.zero();
-    dao.executeOperatorFeePeriod = BigInt.zero();
-    dao.operatorMaximumFee = BigInt.zero();
-    dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
-    dao.accEthPerShare = BigInt.zero();
-    dao.newFeesWei = BigInt.zero();
-    dao.quorum = 0;
-    dao.version = "";
-    dao.latestMerkleRoot = Bytes.empty();
-    dao.totalAccounts = BigInt.zero();
-    dao.totalOperators = BigInt.zero();
-    dao.totalValidators = BigInt.zero();
-    dao.totalEffectiveBalance = BigInt.zero();
-    dao.validatorsAdded = BigInt.zero();
-    dao.validatorsRemoved = BigInt.zero();
-    dao.operatorsAdded = BigInt.zero();
-    dao.operatorsRemoved = BigInt.zero();
-    dao.lastUpdateBlockNumber = event.block.number;
-    dao.lastUpdateBlockTimestamp = event.block.timestamp;
-    dao.lastUpdateTransactionHash = event.transaction.hash;
+    return;
   }
 
   dao.updateType = "CLUSTER_BALANCE_UPDATED";
@@ -956,8 +642,7 @@ export function handleClusterMigratedToETH(
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
 
-  entity.save();
-
+  
   let owner = Account.load(event.params.owner);
   if (!owner) {
     owner = new Account(event.params.owner);
@@ -968,7 +653,7 @@ export function handleClusterMigratedToETH(
     owner.unstakePendingAmount = BigInt.zero();
     owner.save();
   }
-
+  
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join(
     "-",
   )}`;
@@ -979,6 +664,27 @@ export function handleClusterMigratedToETH(
       [],
     );
     cluster = new Cluster(clusterId);
+  }
+  
+  // establish cluster relation so it's easier to track down edge cases
+  entity.cluster = cluster.id;
+  entity.save();
+
+  let fixOperatorCounter = false;
+  if (!cluster.active) {
+    // fix DAO and operators counters
+    fixOperatorCounter = true;
+    let dao = DAOValues.load(event.address);
+    if (!dao) {
+      log.error(
+        `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: CLUSTER_MIGRATED_TO_ETH`,
+        [],
+      );
+      return;
+    }
+    dao.totalEffectiveBalance = dao.totalEffectiveBalance.plus(cluster.effectiveBalance);
+    dao.totalValidators = dao.totalValidators.plus(event.params.cluster.validatorCount);
+    dao.save();
   }
 
   cluster.owner = owner.id;
@@ -1015,7 +721,23 @@ export function handleClusterMigratedToETH(
         [],
       );
     } else {
-      operator.fee = DEFAULT_OPERATOR_ETH_FEE;
+      // if the block number is lower than the block where fix for zero-fee of operator upon migratioh: apply fee = 0, otherwise apply the default fee for ETH clusters
+      // operator.fee = event.block.number < OPERATOR_ZERO_FEE_FIX_BLOCK_NUMBER ? operator.fee : DEFAULT_OPERATOR_ETH_FEE;
+      if (event.block.number < OPERATOR_ZERO_FEE_FIX_BLOCK_NUMBER) {
+        log.error(
+          `Cluster migrated to ETH at block ${event.block.number}, which is before the fix for zero-fee of operator upon migration, so the fee of operator ${operator.id} will be set to 0`,
+          [],
+        );
+        operator.fee = BigInt.zero();
+      } else {
+        log.error(
+          `Cluster migrated to ETH at block ${event.block.number}, which is after the fix for zero-fee of operator upon migration, so the fee of operator ${operator.id} will be set to default fee for ETH clusters: ${DEFAULT_OPERATOR_ETH_FEE}`,
+          [],
+        );
+        operator.fee = DEFAULT_OPERATOR_ETH_FEE;
+      }
+      // this is set a few lines above, to avoid repeating this loop multiple times
+      if (fixOperatorCounter) operator.validatorCount = operator.validatorCount.plus(event.params.cluster.validatorCount);
       operator.totalEffectiveBalance = operator.totalEffectiveBalance.plus(
         cluster.effectiveBalance,
       );
@@ -1139,10 +861,25 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
     cluster.effectiveBalance = DEFAULT_BALANCE;
     cluster.vUnits = BigInt.fromI32(100);
   }
+  
+  // update dao values before updating cluster and operators, so we can use current values before they are updated.
+  let dao = DAOValues.load(event.address);
+  if (!dao) {
+    log.error(
+      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
+      [],
+    );
+    return;
+  }
+  dao.totalValidators = dao.totalValidators.minus(event.params.cluster.validatorCount);
+  dao.totalEffectiveBalance = dao.totalEffectiveBalance.minus(cluster.effectiveBalance);
+  dao.save();
 
   cluster.owner = owner.id;
   cluster.operatorIds = event.params.operatorIds;
-  cluster.validatorCount = event.params.cluster.validatorCount;
+  // used to be event.params.cluster.validatorCount now changed to 0 because when cluster is liquidated, 
+  // the validator count for operators and the dao is decreased, so keeping it consistent for cluster as well
+  cluster.validatorCount = BigInt.zero();
   log.info(
     `Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`,
     [],
@@ -1168,8 +905,7 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
         `Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`,
         [],
       );
-    } else {
-      operator.operatorId = event.params.operatorIds[i];
+    } else if (!operator.removed) {
       operator.validatorCount = operator.validatorCount.minus(
         event.params.cluster.validatorCount,
       );
@@ -1229,6 +965,19 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
     cluster.effectiveBalance = DEFAULT_BALANCE;
     cluster.vUnits = BigInt.fromI32(100);
   }
+  
+  // update dao values before updating cluster and operators, so we can use current values before they are updated.
+  let dao = DAOValues.load(event.address);
+  if (!dao) {
+    log.error(
+      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
+      [],
+    );
+    return;
+  }
+  dao.totalValidators = dao.totalValidators.minus(event.params.cluster.validatorCount);
+  dao.totalEffectiveBalance = dao.totalEffectiveBalance.minus(cluster.effectiveBalance);
+  dao.save();
 
   cluster.owner = owner.id;
   cluster.operatorIds = event.params.operatorIds;
@@ -1258,8 +1007,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
         `Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`,
         [],
       );
-    } else {
-      operator.operatorId = event.params.operatorIds[i];
+    } else if (!operator.removed) {
       operator.validatorCount = operator.validatorCount.plus(
         event.params.cluster.validatorCount,
       );
@@ -1363,42 +1111,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
       [],
     );
-    dao = new DAOValues(event.address);
-
-    dao.networkFee = BigInt.zero();
-    dao.networkFeeIndex = BigInt.zero();
-    dao.networkFeeIndexBlockNumber = BigInt.zero();
-    dao.liquidationThreshold = BigInt.zero();
-    dao.minimumLiquidationCollateral = BigInt.zero();
-    dao.networkFeeSSV = BigInt.zero();
-    dao.networkFeeIndexSSV = BigInt.zero();
-    dao.networkFeeIndexBlockNumberSSV = BigInt.zero();
-    dao.liquidationThresholdSSV = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateralSSV = BigInt.fromString(
-      "1000000000000000000",
-    );
-    dao.operatorFeeIncreaseLimit = BigInt.zero();
-    dao.declareOperatorFeePeriod = BigInt.zero();
-    dao.executeOperatorFeePeriod = BigInt.zero();
-    dao.operatorMaximumFee = BigInt.zero();
-    dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
-    dao.accEthPerShare = BigInt.zero();
-    dao.newFeesWei = BigInt.zero();
-    dao.quorum = 0;
-    dao.version = "";
-    dao.latestMerkleRoot = Bytes.empty();
-    dao.totalAccounts = BigInt.zero();
-    dao.totalOperators = BigInt.zero();
-    dao.totalValidators = BigInt.zero();
-    dao.totalEffectiveBalance = BigInt.zero();
-    dao.validatorsAdded = BigInt.zero();
-    dao.validatorsRemoved = BigInt.zero();
-    dao.operatorsAdded = BigInt.zero();
-    dao.operatorsRemoved = BigInt.zero();
-    dao.lastUpdateBlockNumber = event.block.number;
-    dao.lastUpdateBlockTimestamp = event.block.timestamp;
-    dao.lastUpdateTransactionHash = event.transaction.hash;
+    return;
   }
   dao.updateType = "VALIDATOR_ADDED";
   dao.totalEffectiveBalance = dao.totalEffectiveBalance.plus(DEFAULT_BALANCE);
@@ -1482,11 +1195,11 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     validator = new Validator(validatorId);
   }
 
-  validator.owner = owner.id; // this does not sound right 🧐
+  validator.owner = owner.id;
   validator.operators = event.params.operatorIds.map<string>((id: BigInt) =>
     id.toString(),
   );
-  validator.cluster = cluster.id; // this does not sound right 🧐
+  validator.cluster = cluster.id;
   validator.removed = false;
   validator.shares = event.params.shares;
   validator.lastUpdateBlockNumber = event.block.number;
@@ -1550,42 +1263,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
       [],
     );
-    dao = new DAOValues(event.address);
-
-    dao.networkFee = BigInt.zero();
-    dao.networkFeeIndex = BigInt.zero();
-    dao.networkFeeIndexBlockNumber = BigInt.zero();
-    dao.liquidationThreshold = BigInt.zero();
-    dao.minimumLiquidationCollateral = BigInt.zero();
-    dao.networkFeeSSV = BigInt.zero();
-    dao.networkFeeIndexSSV = BigInt.zero();
-    dao.networkFeeIndexBlockNumberSSV = BigInt.zero();
-    dao.liquidationThresholdSSV = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateralSSV = BigInt.fromString(
-      "1000000000000000000",
-    );
-    dao.operatorFeeIncreaseLimit = BigInt.zero();
-    dao.declareOperatorFeePeriod = BigInt.zero();
-    dao.executeOperatorFeePeriod = BigInt.zero();
-    dao.operatorMaximumFee = BigInt.zero();
-    dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
-    dao.accEthPerShare = BigInt.zero();
-    dao.newFeesWei = BigInt.zero();
-    dao.quorum = 0;
-    dao.version = "";
-    dao.latestMerkleRoot = Bytes.empty();
-    dao.totalAccounts = BigInt.zero();
-    dao.totalOperators = BigInt.zero();
-    dao.totalValidators = BigInt.zero();
-    dao.totalEffectiveBalance = BigInt.zero();
-    dao.validatorsAdded = BigInt.zero();
-    dao.validatorsRemoved = BigInt.zero();
-    dao.operatorsAdded = BigInt.zero();
-    dao.operatorsRemoved = BigInt.zero();
-    dao.lastUpdateBlockNumber = event.block.number;
-    dao.lastUpdateBlockTimestamp = event.block.timestamp;
-    dao.lastUpdateTransactionHash = event.transaction.hash;
+    return;
   }
   dao.updateType = "VALIDATOR_REMOVED";
   dao.totalEffectiveBalance = dao.totalEffectiveBalance.minus(DEFAULT_BALANCE);
@@ -1680,19 +1358,17 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
         `Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`,
         [],
       );
-    } else {
-      // We only want to amend the validator details for this cluster if it is active
+      // We only want to amend the validator details if the cluster and the operator are active
       // This keeps the data in line when liquidations/reactivation events are parsed
-      if (cluster.active) {
-        operator.operatorId = event.params.operatorIds[i];
-        operator.validatorCount = operator.validatorCount.minus(
-          BigInt.fromI32(1),
-        );
-        operator.lastUpdateBlockNumber = event.block.number;
-        operator.lastUpdateBlockTimestamp = event.block.timestamp;
-        operator.lastUpdateTransactionHash = event.transaction.hash;
-        operator.save();
-      }
+    } else if (!operator.removed && cluster.active) {
+      operator.operatorId = event.params.operatorIds[i];
+      operator.validatorCount = operator.validatorCount.minus(
+        BigInt.fromI32(1),
+      );
+      operator.lastUpdateBlockNumber = event.block.number;
+      operator.lastUpdateBlockTimestamp = event.block.timestamp;
+      operator.lastUpdateTransactionHash = event.transaction.hash;
+      operator.save();
     }
   }
   // always save dao totals counter
@@ -1792,16 +1468,18 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     // if (dao.version == "v.2.0") {
     if (event.block.number >= SSV_STAKING_UPDATE_BLOCK_NUMBER) {
       operator.fee = event.params.fee;
-      operator.ssvFee = BigInt.zero();
+      operator.feeIndexBlockNumber = event.block.number;
+      operator.feeSSV = BigInt.zero();
+      operator.feeIndexBlockNumberSSV = BigInt.zero();
     } else {
       operator.fee = BigInt.zero();
-      operator.ssvFee = event.params.fee;
+      operator.feeIndexBlockNumber = BigInt.zero();
+      operator.feeSSV = event.params.fee;
+      operator.feeIndexBlockNumberSSV = event.block.number;
     }
     operator.feeIndex = BigInt.zero();
-    operator.feeIndexBlockNumber = event.block.number;
     operator.declaredFee = BigInt.zero();
-    operator.ssvFeeIndex = BigInt.zero();
-    operator.ssvFeeIndexBlockNumber = event.block.number;
+    operator.feeIndexSSV = BigInt.zero();
     operator.totalEffectiveBalance = BigInt.zero();
     operator.declaredSSVFee = BigInt.zero();
     operator.whitelisted = [];
@@ -2009,6 +1687,9 @@ export function handleOperatorFeeExecuted(
     operator.operatorId = event.params.operatorId;
     operator.owner = owner.id;
     // if (dao.version == "v.2.0") {
+    // TODO when the version with OperatorFeeExecuted event emitted on cluster migration, this needs to check if it's
+    // a migration or a legit fee change (check declared fee?) and reset the fee index in the first case, or update it like this in the second case
+    // For now, we assume all fee executions after the SSV_STAKING_UPDATE_BLOCK_NUMBER are legit fee changes, as the migration is not yet live
     if (event.block.number >= SSV_STAKING_UPDATE_BLOCK_NUMBER) {
       // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
       operator.feeIndex = operator.feeIndex.plus(
@@ -2021,13 +1702,13 @@ export function handleOperatorFeeExecuted(
       operator.declaredFee = BigInt.zero(); // reset declared fee, as fee change was executed
     } else {
       // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
-      operator.ssvFeeIndex = operator.feeIndex.plus(
+      operator.feeIndexSSV = operator.feeIndex.plus(
         event.block.number
-          .minus(operator.ssvFeeIndexBlockNumber)
-          .times(operator.ssvFee),
+          .minus(operator.feeIndexBlockNumberSSV)
+          .times(operator.feeSSV),
       );
-      operator.ssvFeeIndexBlockNumber = event.block.number;
-      operator.ssvFee = event.params.fee;
+      operator.feeIndexBlockNumberSSV = event.block.number;
+      operator.feeSSV = event.params.fee;
       operator.declaredSSVFee = BigInt.zero(); // reset declared fee, as fee change was executed
     }
     operator.lastUpdateBlockNumber = event.block.number;
@@ -2057,42 +1738,7 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
       [],
     );
-    dao = new DAOValues(event.address);
-
-    dao.networkFee = BigInt.zero();
-    dao.networkFeeIndex = BigInt.zero();
-    dao.networkFeeIndexBlockNumber = BigInt.zero();
-    dao.liquidationThreshold = BigInt.zero();
-    dao.minimumLiquidationCollateral = BigInt.zero();
-    dao.networkFeeSSV = BigInt.zero();
-    dao.networkFeeIndexSSV = BigInt.zero();
-    dao.networkFeeIndexBlockNumberSSV = BigInt.zero();
-    dao.liquidationThresholdSSV = BigInt.fromI32(214800);
-    dao.minimumLiquidationCollateralSSV = BigInt.fromString(
-      "1000000000000000000",
-    );
-    dao.operatorFeeIncreaseLimit = BigInt.zero();
-    dao.declareOperatorFeePeriod = BigInt.zero();
-    dao.executeOperatorFeePeriod = BigInt.zero();
-    dao.operatorMaximumFee = BigInt.zero();
-    dao.operatorMaximumFeeSSV = BigInt.zero();
-    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
-    dao.accEthPerShare = BigInt.zero();
-    dao.newFeesWei = BigInt.zero();
-    dao.quorum = 0;
-    dao.version = "";
-    dao.latestMerkleRoot = Bytes.empty();
-    dao.totalAccounts = BigInt.zero();
-    dao.totalOperators = BigInt.zero();
-    dao.totalValidators = BigInt.zero();
-    dao.totalEffectiveBalance = BigInt.zero();
-    dao.validatorsAdded = BigInt.zero();
-    dao.validatorsRemoved = BigInt.zero();
-    dao.operatorsAdded = BigInt.zero();
-    dao.operatorsRemoved = BigInt.zero();
-    dao.lastUpdateBlockNumber = event.block.number;
-    dao.lastUpdateBlockTimestamp = event.block.timestamp;
-    dao.lastUpdateTransactionHash = event.transaction.hash;
+    return;
   }
   dao.updateType = "OPERATOR_REMOVED";
   dao.operatorsRemoved = dao.operatorsRemoved.plus(BigInt.fromI32(1));
@@ -2119,13 +1765,13 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
     );
     operator.feeIndexBlockNumber = event.block.number;
     operator.fee = new BigInt(0);
-    operator.ssvFeeIndex = operator.ssvFeeIndex.plus(
+    operator.feeIndexSSV = operator.feeIndexSSV.plus(
       event.block.number
-        .minus(operator.ssvFeeIndexBlockNumber)
-        .times(operator.ssvFee),
+        .minus(operator.feeIndexBlockNumberSSV)
+        .times(operator.feeSSV),
     );
-    operator.ssvFeeIndexBlockNumber = event.block.number;
-    operator.ssvFee = new BigInt(0);
+    operator.feeIndexBlockNumberSSV = event.block.number;
+    operator.feeSSV = new BigInt(0);
     operator.lastUpdateBlockNumber = event.block.number;
     operator.validatorCount = new BigInt(0);
     operator.lastUpdateBlockTimestamp = event.block.timestamp;
@@ -2546,20 +2192,21 @@ export function handleFeesSynced(event: FeesSyncedEvent): void {
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: QUORUM_UPDATED`,
       [],
     );
-  } else {
-    dao.updateType = "FEES_SYNCED";
-    dao.accEthPerShare = event.params.accEthPerShare;
-    dao.newFeesWei = event.params.newFeesWei;
-    dao.lastUpdateBlockNumber = event.block.number;
-    dao.lastUpdateBlockTimestamp = event.block.timestamp;
-    dao.lastUpdateTransactionHash = event.transaction.hash;
-
-    log.info(
-      `Dao Values update type: ${dao.updateType}, new ETH per share: ${dao.accEthPerShare}, new fees wei: ${dao.newFeesWei}`,
-      [],
-    );
-    dao.save();
+    return;
   }
+  
+  dao.updateType = "FEES_SYNCED";
+  dao.accEthPerShare = event.params.accEthPerShare;
+  dao.newFeesWei = event.params.newFeesWei;
+  dao.lastUpdateBlockNumber = event.block.number;
+  dao.lastUpdateBlockTimestamp = event.block.timestamp;
+  dao.lastUpdateTransactionHash = event.transaction.hash;
+
+  log.info(
+    `Dao Values update type: ${dao.updateType}, new ETH per share: ${dao.accEthPerShare}, new fees wei: ${dao.newFeesWei}`,
+    [],
+  );
+  dao.save();
 }
 
 export function handleRewardsClaimed(event: RewardsClaimedEvent): void {
@@ -2706,7 +2353,6 @@ export function handleRootCommitted(event: RootCommittedEvent): void {
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: ROOT_COMMITTED`,
       [],
     );
-    dao = new DAOValues(event.address);
     return;
   }
   dao.updateType = "ROOT_COMMITTED";
@@ -2829,19 +2475,20 @@ export function handleQuorumUpdated(event: QuorumUpdatedEvent): void {
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: QUORUM_UPDATED`,
       [],
     );
-  } else {
-    dao.updateType = "QUORUM_UPDATED";
-    dao.quorum = event.params.newQuorum;
-    dao.lastUpdateBlockNumber = event.block.number;
-    dao.lastUpdateBlockTimestamp = event.block.timestamp;
-    dao.lastUpdateTransactionHash = event.transaction.hash;
-
-    log.info(
-      `Dao Values update type: ${dao.updateType}, new quorum: ${dao.quorum}`,
-      [],
-    );
-    dao.save();
+    return;
   }
+  
+  dao.updateType = "QUORUM_UPDATED";
+  dao.quorum = event.params.newQuorum;
+  dao.lastUpdateBlockNumber = event.block.number;
+  dao.lastUpdateBlockTimestamp = event.block.timestamp;
+  dao.lastUpdateTransactionHash = event.transaction.hash;
+
+  log.info(
+    `Dao Values update type: ${dao.updateType}, new quorum: ${dao.quorum}`,
+    [],
+  );
+  dao.save();
 }
 
 export function handleWeightedRootProposed(
@@ -2887,24 +2534,24 @@ export function handleSSVNetworkUpgradeBlock(
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: QUORUM_UPDATED`,
       [],
     );
-  } else {
-    dao.updateType = "SSV_NETWORK_UPGRADE";
-    dao.version = event.params.version;
-    if (compareSemver(dao.version, "v2.0.0") >= 0) {
-    // if (event.block.number >= SSV_STAKING_UPDATE_BLOCK_NUMBER) {
-      dao.networkFeeIndex = BigInt.zero();
-      dao.networkFeeIndexBlockNumber = event.params.blockNumber;
-    }
-    dao.lastUpdateBlockNumber = event.block.number;
-    dao.lastUpdateBlockTimestamp = event.block.timestamp;
-    dao.lastUpdateTransactionHash = event.transaction.hash;
-
-    log.info(
-      `Dao Values update type: ${dao.updateType}, contract upgraded to version ${dao.version}`,
-      [],
-    );
-    dao.save();
+    return;
   }
+  dao.updateType = "SSV_NETWORK_UPGRADE";
+  dao.version = event.params.version;
+  if (compareSemver(dao.version, "v2.0.0") >= 0) {
+  // if (event.block.number >= SSV_STAKING_UPDATE_BLOCK_NUMBER) {
+    dao.networkFeeIndex = BigInt.zero();
+    dao.networkFeeIndexBlockNumber = event.params.blockNumber;
+  }
+  dao.lastUpdateBlockNumber = event.block.number;
+  dao.lastUpdateBlockTimestamp = event.block.timestamp;
+  dao.lastUpdateTransactionHash = event.transaction.hash;
+
+  log.info(
+    `Dao Values update type: ${dao.updateType}, contract upgraded to version ${dao.version}`,
+    [],
+  );
+  dao.save();
 }
 
 function compareSemver(version1:string, version2: string): number {
