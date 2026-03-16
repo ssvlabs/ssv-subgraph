@@ -726,13 +726,9 @@ export function handleClusterMigratedToETH(
       // replicate contract's ensureETHDefaults() but in reverse (since we set default fee across the board upon creation)
       // if validator was added after ssv staking upgrade
       if (event.block.number > SSV_STAKING_UPDATE_BLOCK_NUMBER && event.block.number < OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER) {
-        // but before the fix for zero-fee of operator upon migration: apply fee = 0, otherwise apply the default fee for ETH clusters
-        if (event.block.number < ETH_FEE_FIX_BLOCK && operator.feeIndexBlockNumber.equals(BigInt.zero()) && 
-              !operator.feeSSV.equals(BigInt.zero())) {
-            operator.fee = BigInt.zero();
-        }
-        // only if the fee index block nymber is zero (operator untouched since ssv staking upgrade), set fee index block, so it won't risk being touched again
-        else if (operator.feeIndexBlockNumber.equals(BigInt.zero())) {
+        // only if the fee index block number is zero (operator untouched since ssv staking upgrade)
+        // set fee index block, so it won't risk being touched again. Fee has already been set to 0 or default upon operator creation.
+        if (operator.feeIndexBlockNumber.equals(BigInt.zero())) {
           operator.feeIndexBlockNumber = event.block.number;
         }
       }
@@ -1224,19 +1220,17 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     operator.validatorCount = operator.validatorCount.plus(BigInt.fromI32(1));
 
     // replicate contract's ensureETHDefaults() but in reverse (since we set default fee across the board upon creation)
-    // if validator was added after ssv staking upgrade
-    if (event.block.number > SSV_STAKING_UPDATE_BLOCK_NUMBER
-       && event.block.number < OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER
+    // if validator was added after ssv staking upgrade, but before the fix when OperatorFeeExecuted event is emitted, 
+    // and this is the first time we encounter this operator since the upgrade
+    if (event.block.number > SSV_STAKING_UPDATE_BLOCK_NUMBER && 
+      event.block.number < OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER &&
+      operator.feeIndexBlockNumber.equals(BigInt.zero())
     ) {
-      // but before the fix for zero-fee of operator upon migration: apply fee = 0, otherwise apply the default fee for ETH clusters
-      if (event.block.number < ETH_FEE_FIX_BLOCK && 
-        operator.feeIndexBlockNumber.equals(BigInt.zero()) && 
-        !operator.feeSSV.equals(BigInt.zero())) {
+      // set fee index block, so it won't risk being touched again
+      operator.feeIndexBlockNumber = event.block.number;
+      // if this is happening before the fix for zero-fee of operator upon migration: apply fee = 0, otherwise default fee will be applied upon operator creation, and we don't want to override it
+      if (event.block.number < ETH_FEE_FIX_BLOCK) {
           operator.fee = BigInt.zero();
-      }
-      // only if the fee index block nymber is zero (operator untouched since ssv staking upgrade), set fee index block, so it won't risk being touched again
-      else if (operator.feeIndexBlockNumber.equals(BigInt.zero())) {
-        operator.feeIndexBlockNumber = event.block.number;
       }
     }
 
@@ -1729,6 +1723,9 @@ export function handleOperatorFeeExecuted(
       operator.feeIndexBlockNumberSSV = event.block.number;
       operator.feeSSV = event.params.fee;
       operator.declaredSSVFee = BigInt.zero(); // reset declared fee, as fee change was executed
+      if (event.params.fee.equals(BigInt.zero())) {
+        operator.fee = event.params.fee; // if fee is set to 0 for SSV, also set it to 0 for ETH, to avoid confusion (as fee field is used for both SSV and ETH fee depending on the cluster type)
+      }
     }
     operator.lastUpdateBlockNumber = event.block.number;
     operator.lastUpdateBlockTimestamp = event.block.timestamp;
@@ -2167,15 +2164,6 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
       [],
     );
   } else {
-    // replicate contract's ensureETHDefaults() but in reverse (since we set default fee across the board upon creation)
-    // if has withdrawn after ssv staking upgrade
-    if (event.block.number > SSV_STAKING_UPDATE_BLOCK_NUMBER && event.block.number < OPERATOR_WITHDRAWN_FIX_BLOCK_NUMBER) {
-      // but before the fix for operator withdrawn incorrectly setting fees: apply fee = 0
-      if (event.block.number < ETH_FEE_FIX_BLOCK && operator.feeIndexBlockNumber.equals(BigInt.zero()) && 
-            !operator.feeSSV.equals(BigInt.zero())) {
-          operator.fee = BigInt.zero();
-      }
-    }
     operator.operatorId = event.params.operatorId;
     operator.totalWithdrawn.minus(event.params.value);
     operator.lastUpdateBlockNumber = event.block.number;
