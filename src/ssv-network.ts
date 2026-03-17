@@ -103,9 +103,6 @@ import { log } from "matchstick-as";
 const VUNITS_PRECISION = BigInt.fromI32(100000);
 const DEFAULT_BALANCE = BigInt.fromI32(32);
 const SSV_STAKING_UPDATE_BLOCK_NUMBER = BigInt.fromI32(2219331);
-const ETH_FEE_FIX_BLOCK = BigInt.fromI32(2259628);
-const OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER = BigInt.fromI32(2434756);
-// const OPERATOR_WITHDRAWN_FIX_BLOCK_NUMBER = BigInt.fromI32(2440543);
 const DEFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(1_770_000_000);
 
 // ###### DAO Events ######
@@ -406,7 +403,7 @@ return;
   dao.updateType = "NETWORK_FEE";
 
   // if (dao.version == "v.2.0") {
-  if (event.block.number >= SSV_STAKING_UPDATE_BLOCK_NUMBER) {
+  if (compareSemver(dao.version, "v2.0.0") >= 0) {
     // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
     dao.networkFeeIndex = dao.networkFeeIndex.plus(
       event.block.number
@@ -673,23 +670,6 @@ export function handleClusterMigratedToETH(
   entity.cluster = cluster.id;
   entity.save();
 
-  let fixOperatorCounter = false;
-  if (!cluster.active && event.block.number < ETH_FEE_FIX_BLOCK) {
-    // fix DAO and operators counters
-    fixOperatorCounter = true;
-    let dao = DAOValues.load(event.address);
-    if (!dao) {
-      log.error(
-        `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: CLUSTER_MIGRATED_TO_ETH`,
-        [],
-      );
-      return;
-    }
-    dao.totalEffectiveBalance = dao.totalEffectiveBalance.plus(cluster.effectiveBalance);
-    dao.totalValidators = dao.totalValidators.plus(event.params.cluster.validatorCount);
-    dao.save();
-  }
-
   cluster.owner = owner.id;
   cluster.operatorIds = event.params.operatorIds;
   cluster.validatorCount = event.params.cluster.validatorCount;
@@ -725,21 +705,6 @@ export function handleClusterMigratedToETH(
       );
     } else {
 
-      // replicate contract's ensureETHDefaults() but in reverse (since we set default fee across the board upon creation)
-      // if validator was added after ssv staking upgrade
-      if (event.block.number > SSV_STAKING_UPDATE_BLOCK_NUMBER && event.block.number < OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER) {
-        // only if the fee index block number is zero (operator untouched since ssv staking upgrade)
-        // set fee index block, so it won't risk being touched again. Fee has already been set to 0 or default upon operator creation.
-        if (operator.feeIndexBlockNumber.equals(BigInt.zero())) {
-          operator.feeIndexBlockNumber = event.block.number;
-        }
-      }
-
-      // this is set a few lines above, to avoid repeating this loop multiple times
-      if (fixOperatorCounter) operator.validatorCount = operator.validatorCount.plus(event.params.cluster.validatorCount);
-      operator.totalEffectiveBalance = operator.totalEffectiveBalance.plus(
-        cluster.effectiveBalance,
-      );
       operator.lastUpdateBlockNumber = event.block.number;
       operator.lastUpdateBlockTimestamp = event.block.timestamp;
       operator.lastUpdateTransactionHash = event.transaction.hash;
@@ -1221,21 +1186,6 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     operator.operatorId = event.params.operatorIds[i];
     operator.validatorCount = operator.validatorCount.plus(BigInt.fromI32(1));
 
-    // replicate contract's ensureETHDefaults() but in reverse (since we set default fee across the board upon creation)
-    // if validator was added after ssv staking upgrade, but before the fix when OperatorFeeExecuted event is emitted, 
-    // and this is the first time we encounter this operator since the upgrade
-    if (event.block.number > SSV_STAKING_UPDATE_BLOCK_NUMBER && 
-      event.block.number < OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER &&
-      operator.feeIndexBlockNumber.equals(BigInt.zero())
-    ) {
-      // set fee index block, so it won't risk being touched again
-      operator.feeIndexBlockNumber = event.block.number;
-      // if this is happening before the fix for zero-fee of operator upon migration: apply fee = 0, otherwise default fee will be applied upon operator creation, and we don't want to override it
-      if (event.block.number < ETH_FEE_FIX_BLOCK) {
-          operator.fee = BigInt.zero();
-      }
-    }
-
     operator.lastUpdateBlockNumber = event.block.number;
     operator.lastUpdateBlockTimestamp = event.block.timestamp;
     operator.lastUpdateTransactionHash = event.transaction.hash;
@@ -1480,7 +1430,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.publicKey = event.params.publicKey;
     operator.removed = false;
     // if (dao.version == "v.2.0") {
-    if (event.block.number >= SSV_STAKING_UPDATE_BLOCK_NUMBER) {
+    if (compareSemver(dao.version, "v2.0.0") >= 0) {
       operator.fee = event.params.fee;
       operator.feeIndexBlockNumber = event.block.number;
       operator.feeSSV = BigInt.zero();
@@ -1703,10 +1653,7 @@ export function handleOperatorFeeExecuted(
     operator.operatorId = event.params.operatorId;
     operator.owner = owner.id;
     // if (dao.version == "v.2.0") {
-    // TODO when the version with OperatorFeeExecuted event emitted on cluster migration, this needs to check if it's
-    // a migration or a legit fee change (check declared fee?) and reset the fee index in the first case, or update it like this in the second case
-    // For now, we assume all fee executions after the SSV_STAKING_UPDATE_BLOCK_NUMBER are legit fee changes, as the migration is not yet live
-    if (event.block.number >= SSV_STAKING_UPDATE_BLOCK_NUMBER) {
+    if (compareSemver(dao.version, "v2.0.0") >= 0) {
       // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
       operator.feeIndex = operator.feeIndex.plus(
         event.block.number
@@ -1778,7 +1725,7 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
     operator.operatorId = event.params.operatorId;
     operator.removed = true;
     // only touch index and index block of eth fees if after the staking update
-    if (event.block.number >= SSV_STAKING_UPDATE_BLOCK_NUMBER) {
+    if (compareSemver(dao.version, "v2.0.0") >= 0) {
       // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
       operator.feeIndex = operator.feeIndex.plus(
         event.block.number
@@ -2168,8 +2115,7 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
     );
   } else {
     operator.operatorId = event.params.operatorId;
-    // TODO use SSV_STAKING_UPDATE_BLOCK_NUMBER for mainnet
-    if (event.block.number < OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER) {
+    if (event.block.number < SSV_STAKING_UPDATE_BLOCK_NUMBER) {
       operator.totalWithdrawnSSV = operator.totalWithdrawnSSV.plus(event.params.value);
     } else { 
       operator.totalWithdrawn = operator.totalWithdrawn.plus(event.params.value);
