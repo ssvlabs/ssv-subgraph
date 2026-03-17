@@ -44,6 +44,7 @@ dataSources:
         - OperatorRemoved
         - OperatorWhitelistingContractUpdated
         - OperatorWithdrawn
+        - OperatorWithdrawnSSV
         - OwnershipTransferStarted
         - SSVNetworkOwnershipTransferred
         - SSVNetworkUpgraded
@@ -122,6 +123,8 @@ dataSources:
           handler: handleOperatorPrivacyStatusUpdated
         - event: OperatorWithdrawn(indexed address,indexed uint64,uint256)
           handler: handleOperatorWithdrawn
+        - event: OperatorWithdrawnSSV(indexed address,indexed uint64,uint256)
+          handler: handleOperatorWithdrawnSSV
         - event: RewardsClaimed(indexed address,uint256)
           handler: handleRewardsClaimed
         - event: RewardsSettled(indexed address,uint256,uint256,uint256)

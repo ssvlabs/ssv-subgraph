@@ -5,9 +5,9 @@
       "startBlock": 900
     }
   },
-  "hoodi-testnet": {
+  "hoodi-fresh": {
     "SSVNetwork": {
-      "address": "0x5Ec6aBaC8cB238D68d310A2b1656405161988bFC",
+      "address": "0x84402789b921aA3cB43e2D2c0A6AA336110dd85F",
       "startBlock": 900
     }
   },
@@ -21,24 +21,6 @@
     "SSVNetwork": {
       "address": "0x58410Bef803ECd7E63B23664C586A6DB72DAf59c",
       "startBlock": 900
-    }
-  },
-  "holesky": {
-    "SSVNetwork": {
-      "address": "0x0d33801785340072C452b994496B19f196b7eE15",
-      "startBlock": 84599
-    }
-  },
-  "holesky-prod": {
-    "SSVNetwork": {
-      "address": "0x38A4794cCEd47d3baf7370CcC43B560D3a1beEFA",
-      "startBlock": 181612
-    }
-  },
-  "holesky-stage": {
-    "SSVNetwork": {
-      "address": "0x0d33801785340072C452b994496B19f196b7eE15",
-      "startBlock": 84599
     }
   },
   "mainnet": {

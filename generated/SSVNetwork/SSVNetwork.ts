@@ -556,6 +556,24 @@ export class LiquidationThresholdPeriodUpdated__Params {
   }
 }
 
+export class MinBlocksBetweenUpdatesUpdated extends ethereum.Event {
+  get params(): MinBlocksBetweenUpdatesUpdated__Params {
+    return new MinBlocksBetweenUpdatesUpdated__Params(this);
+  }
+}
+
+export class MinBlocksBetweenUpdatesUpdated__Params {
+  _event: MinBlocksBetweenUpdatesUpdated;
+
+  constructor(event: MinBlocksBetweenUpdatesUpdated) {
+    this._event = event;
+  }
+
+  get newMinBlocksBetweenUpdates(): BigInt {
+    return this._event.parameters[0].value.toBigInt();
+  }
+}
+
 export class MinimumLiquidationCollateralSSVUpdated extends ethereum.Event {
   get params(): MinimumLiquidationCollateralSSVUpdated__Params {
     return new MinimumLiquidationCollateralSSVUpdated__Params(this);
@@ -984,6 +1002,32 @@ export class OperatorWithdrawn__Params {
   _event: OperatorWithdrawn;
 
   constructor(event: OperatorWithdrawn) {
+    this._event = event;
+  }
+
+  get owner(): Address {
+    return this._event.parameters[0].value.toAddress();
+  }
+
+  get operatorId(): BigInt {
+    return this._event.parameters[1].value.toBigInt();
+  }
+
+  get value(): BigInt {
+    return this._event.parameters[2].value.toBigInt();
+  }
+}
+
+export class OperatorWithdrawnSSV extends ethereum.Event {
+  get params(): OperatorWithdrawnSSV__Params {
+    return new OperatorWithdrawnSSV__Params(this);
+  }
+}
+
+export class OperatorWithdrawnSSV__Params {
+  _event: OperatorWithdrawnSSV;
+
+  constructor(event: OperatorWithdrawnSSV) {
     this._event = event;
   }
 
@@ -2991,66 +3035,6 @@ export class SetOperatorsWhitelistsCall__Outputs {
   }
 }
 
-export class SetQuorumBpsCall extends ethereum.Call {
-  get inputs(): SetQuorumBpsCall__Inputs {
-    return new SetQuorumBpsCall__Inputs(this);
-  }
-
-  get outputs(): SetQuorumBpsCall__Outputs {
-    return new SetQuorumBpsCall__Outputs(this);
-  }
-}
-
-export class SetQuorumBpsCall__Inputs {
-  _call: SetQuorumBpsCall;
-
-  constructor(call: SetQuorumBpsCall) {
-    this._call = call;
-  }
-
-  get quorum(): i32 {
-    return this._call.inputValues[0].value.toI32();
-  }
-}
-
-export class SetQuorumBpsCall__Outputs {
-  _call: SetQuorumBpsCall;
-
-  constructor(call: SetQuorumBpsCall) {
-    this._call = call;
-  }
-}
-
-export class SetUnstakeCooldownDurationCall extends ethereum.Call {
-  get inputs(): SetUnstakeCooldownDurationCall__Inputs {
-    return new SetUnstakeCooldownDurationCall__Inputs(this);
-  }
-
-  get outputs(): SetUnstakeCooldownDurationCall__Outputs {
-    return new SetUnstakeCooldownDurationCall__Outputs(this);
-  }
-}
-
-export class SetUnstakeCooldownDurationCall__Inputs {
-  _call: SetUnstakeCooldownDurationCall;
-
-  constructor(call: SetUnstakeCooldownDurationCall) {
-    this._call = call;
-  }
-
-  get duration(): BigInt {
-    return this._call.inputValues[0].value.toBigInt();
-  }
-}
-
-export class SetUnstakeCooldownDurationCall__Outputs {
-  _call: SetUnstakeCooldownDurationCall;
-
-  constructor(call: SetUnstakeCooldownDurationCall) {
-    this._call = call;
-  }
-}
-
 export class StakeCall extends ethereum.Call {
   get inputs(): StakeCall__Inputs {
     return new StakeCall__Inputs(this);
@@ -3361,6 +3345,36 @@ export class UpdateMaximumOperatorFeeCall__Outputs {
   }
 }
 
+export class UpdateMinBlocksBetweenUpdatesCall extends ethereum.Call {
+  get inputs(): UpdateMinBlocksBetweenUpdatesCall__Inputs {
+    return new UpdateMinBlocksBetweenUpdatesCall__Inputs(this);
+  }
+
+  get outputs(): UpdateMinBlocksBetweenUpdatesCall__Outputs {
+    return new UpdateMinBlocksBetweenUpdatesCall__Outputs(this);
+  }
+}
+
+export class UpdateMinBlocksBetweenUpdatesCall__Inputs {
+  _call: UpdateMinBlocksBetweenUpdatesCall;
+
+  constructor(call: UpdateMinBlocksBetweenUpdatesCall) {
+    this._call = call;
+  }
+
+  get blocks(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class UpdateMinBlocksBetweenUpdatesCall__Outputs {
+  _call: UpdateMinBlocksBetweenUpdatesCall;
+
+  constructor(call: UpdateMinBlocksBetweenUpdatesCall) {
+    this._call = call;
+  }
+}
+
 export class UpdateMinimumLiquidationCollateralCall extends ethereum.Call {
   get inputs(): UpdateMinimumLiquidationCollateralCall__Inputs {
     return new UpdateMinimumLiquidationCollateralCall__Inputs(this);
@@ -3571,6 +3585,66 @@ export class UpdateOperatorFeeIncreaseLimitCall__Outputs {
   _call: UpdateOperatorFeeIncreaseLimitCall;
 
   constructor(call: UpdateOperatorFeeIncreaseLimitCall) {
+    this._call = call;
+  }
+}
+
+export class UpdateQuorumBpsCall extends ethereum.Call {
+  get inputs(): UpdateQuorumBpsCall__Inputs {
+    return new UpdateQuorumBpsCall__Inputs(this);
+  }
+
+  get outputs(): UpdateQuorumBpsCall__Outputs {
+    return new UpdateQuorumBpsCall__Outputs(this);
+  }
+}
+
+export class UpdateQuorumBpsCall__Inputs {
+  _call: UpdateQuorumBpsCall;
+
+  constructor(call: UpdateQuorumBpsCall) {
+    this._call = call;
+  }
+
+  get quorum(): i32 {
+    return this._call.inputValues[0].value.toI32();
+  }
+}
+
+export class UpdateQuorumBpsCall__Outputs {
+  _call: UpdateQuorumBpsCall;
+
+  constructor(call: UpdateQuorumBpsCall) {
+    this._call = call;
+  }
+}
+
+export class UpdateUnstakeCooldownDurationCall extends ethereum.Call {
+  get inputs(): UpdateUnstakeCooldownDurationCall__Inputs {
+    return new UpdateUnstakeCooldownDurationCall__Inputs(this);
+  }
+
+  get outputs(): UpdateUnstakeCooldownDurationCall__Outputs {
+    return new UpdateUnstakeCooldownDurationCall__Outputs(this);
+  }
+}
+
+export class UpdateUnstakeCooldownDurationCall__Inputs {
+  _call: UpdateUnstakeCooldownDurationCall;
+
+  constructor(call: UpdateUnstakeCooldownDurationCall) {
+    this._call = call;
+  }
+
+  get duration(): BigInt {
+    return this._call.inputValues[0].value.toBigInt();
+  }
+}
+
+export class UpdateUnstakeCooldownDurationCall__Outputs {
+  _call: UpdateUnstakeCooldownDurationCall;
+
+  constructor(call: UpdateUnstakeCooldownDurationCall) {
     this._call = call;
   }
 }

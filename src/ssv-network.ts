@@ -30,6 +30,7 @@ import {
   OperatorMultipleWhitelistUpdated as OperatorMultipleWhitelistUpdatedEvent,
   OperatorPrivacyStatusUpdated as OperatorPrivacyStatusUpdatedEvent,
   OperatorWithdrawn as OperatorWithdrawnEvent,
+  OperatorWithdrawnSSV as OperatorWithdrawnSSVEvent,
   OracleReplaced as OracleReplacedEvent,
   QuorumUpdated as QuorumUpdatedEvent,
   RewardsClaimed as RewardsClaimedEvent,
@@ -95,6 +96,7 @@ import {
   ClusterMigratedToETH,
   WeightedRootProposed,
   Oracle,
+  OperatorWithdrawnSSV,
 } from "../generated/schema";
 import { log } from "matchstick-as";
 
@@ -102,8 +104,8 @@ const VUNITS_PRECISION = BigInt.fromI32(100000);
 const DEFAULT_BALANCE = BigInt.fromI32(32);
 const SSV_STAKING_UPDATE_BLOCK_NUMBER = BigInt.fromI32(2219331);
 const ETH_FEE_FIX_BLOCK = BigInt.fromI32(2259628);
-const OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER = BigInt.fromI32(2440543);
-const OPERATOR_WITHDRAWN_FIX_BLOCK_NUMBER = BigInt.fromI32(2440543);
+const OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER = BigInt.fromI32(2434756);
+// const OPERATOR_WITHDRAWN_FIX_BLOCK_NUMBER = BigInt.fromI32(2440543);
 const DEFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(1_770_000_000);
 
 // ###### DAO Events ######
@@ -1501,6 +1503,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
       "0x0000000000000000000000000000000000000000",
     );
     operator.totalWithdrawn = BigInt.zero();
+    operator.totalWithdrawnSSV = BigInt.zero();
     operator.validatorCount = BigInt.zero();
 
     // if it's a new operator, also increase total counter
@@ -2165,7 +2168,66 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
     );
   } else {
     operator.operatorId = event.params.operatorId;
-    operator.totalWithdrawn.minus(event.params.value);
+    // TODO use SSV_STAKING_UPDATE_BLOCK_NUMBER for mainnet
+    if (event.block.number < OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER) {
+      operator.totalWithdrawnSSV = operator.totalWithdrawnSSV.plus(event.params.value);
+    } else { 
+      operator.totalWithdrawn = operator.totalWithdrawn.plus(event.params.value);
+    }
+    operator.lastUpdateBlockNumber = event.block.number;
+    operator.lastUpdateBlockTimestamp = event.block.timestamp;
+    operator.lastUpdateTransactionHash = event.transaction.hash;
+    operator.save();
+  }
+}
+
+export function handleOperatorWithdrawnSSV(event: OperatorWithdrawnSSVEvent): void {
+  let entity = new OperatorWithdrawnSSV(
+    `${event.transaction.hash.toHexString()}-${event.logIndex
+      .toString()
+      .padStart(5, "0")}`,
+  );
+  entity.owner = event.params.owner;
+  entity.operatorId = event.params.operatorId;
+  entity.value = event.params.value;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+
+  let owner = Account.load(event.params.owner);
+  if (!owner) {
+    log.error(
+      `Executing fees change for Operator ${
+        event.params.operatorId
+      }, but Owner ${event.params.owner.toHexString()} did not exist on the database`,
+      [],
+    );
+    owner = new Account(event.params.owner);
+    owner.nonce = BigInt.zero();
+    owner.validatorCount = BigInt.zero();
+    owner.feeRecipient = event.params.owner;
+    owner.stakedAmount = BigInt.zero();
+    owner.unstakePendingAmount = BigInt.zero();
+    owner.save();
+  }
+
+  let operatorId = event.params.operatorId.toString();
+  let operator = Operator.load(operatorId);
+  if (!operator) {
+    log.error(
+      `Executing fees change for Operator ${event.params.operatorId}, but it does not exist on the database`,
+      [],
+    );
+    log.error(
+      `Could not create ${operatorId} on the database, because of missing publicKey and fee information`,
+      [],
+    );
+  } else {
+    operator.operatorId = event.params.operatorId;
+    operator.totalWithdrawnSSV = operator.totalWithdrawnSSV.plus(event.params.value);
     operator.lastUpdateBlockNumber = event.block.number;
     operator.lastUpdateBlockTimestamp = event.block.timestamp;
     operator.lastUpdateTransactionHash = event.transaction.hash;

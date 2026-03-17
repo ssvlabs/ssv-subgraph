@@ -66,6 +66,7 @@ type Operator @entity(immutable: false) {
   whitelistedContract: Bytes! #address
   isPrivate: Boolean! # bool
   totalWithdrawn: BigInt! # uint256
+  totalWithdrawnSSV: BigInt! # uint256
   totalEffectiveBalance: BigInt! # uint256
   lastUpdateBlockNumber: BigInt! # uint256
   lastUpdateBlockTimestamp: BigInt!
@@ -459,6 +460,16 @@ type OperatorPrivacyStatusUpdated @entity(immutable: true) {
 }
 
 type OperatorWithdrawn @entity(immutable: true) {
+  id: String!
+  owner: Bytes! # address
+  operatorId: BigInt! # uint64
+  value: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OperatorWithdrawnSSV @entity(immutable: true) {
   id: String!
   owner: Bytes! # address
   operatorId: BigInt! # uint64
