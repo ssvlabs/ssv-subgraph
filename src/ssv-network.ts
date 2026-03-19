@@ -101,7 +101,7 @@ import {
 
 const VUNITS_PRECISION = BigInt.fromI32(100000);
 const DEFAULT_BALANCE = BigInt.fromI32(32);
-const SSV_STAKING_UPDATE_BLOCK_NUMBER = BigInt.fromI32(2219331);
+const SSV_STAKING_UPDATE_BLOCK_NUMBER = BigInt.fromI32(2442571);
 const DEFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(1_770_000_000);
 
 // ###### DAO Events ######
@@ -332,7 +332,7 @@ export function handleLiquidationThresholdPeriodUpdated(
     dao.lastUpdateTransactionHash = event.transaction.hash;
   }
   // if the dao variable update happened before the ssv staking update, it refers to the ssv value
-  if (event.block.number < SSV_STAKING_UPDATE_BLOCK_NUMBER) {
+  if (compareSemver(dao.version, "v2.0.0") >= 0) {
     log.info(
       `Liquidation Threshold Period for SSV fees updated to ${event.params.value} at block ${event.block.number}`,
       [],
@@ -480,7 +480,7 @@ export function handleMinimumLiquidationCollateralUpdated(
   }
   
   // if the dao variable update happened before the ssv staking update, it refers to the ssv value
-  if (event.block.number < SSV_STAKING_UPDATE_BLOCK_NUMBER) {
+  if (compareSemver(dao.version, "v2.0.0") >= 0) {
     log.info(
       `Minimum Liquidation Collateral for SSV fees updated to ${event.params.value} at block ${event.block.number}`,
       [],
@@ -1115,10 +1115,7 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
       `Cluster ${clusterId} is being deposited, but it does not exist on the database`,
       [],
     );
-    cluster = new Cluster(clusterId);
-    cluster.feeAsset = "SSV";
-    cluster.effectiveBalance = DEFAULT_BALANCE;
-    cluster.vUnits = BigInt.fromI32(100);
+    return;
   }
 
   cluster.owner = owner.id;
@@ -1179,10 +1176,7 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
       `Cluster ${clusterId} is being liquidated, but it does not exist on the database`,
       [],
     );
-    cluster = new Cluster(clusterId);
-    cluster.feeAsset = "SSV";
-    cluster.effectiveBalance = DEFAULT_BALANCE;
-    cluster.vUnits = BigInt.fromI32(100);
+    return;
   }
   
   // update dao values before updating cluster and operators, so we can use current values before they are updated.
@@ -1278,10 +1272,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
       `Cluster ${clusterId} is being reactivated, but it does not exist on the database`,
       [],
     );
-    cluster = new Cluster(clusterId);
-    cluster.feeAsset = "SSV";
-    cluster.effectiveBalance = DEFAULT_BALANCE;
-    cluster.vUnits = BigInt.fromI32(100);
+    return;
   }
   
   // update dao values before updating cluster and operators, so we can use current values before they are updated.
@@ -1381,10 +1372,7 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
       `Cluster ${clusterId} is being withdrawn, but it does not exist on the database`,
       [],
     );
-    cluster = new Cluster(clusterId);
-    cluster.feeAsset = "SSV";
-    cluster.effectiveBalance = DEFAULT_BALANCE;
-    cluster.vUnits = BigInt.fromI32(100);
+    return;
   }
 
   cluster.owner = owner.id;
@@ -1477,8 +1465,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   );
   cluster = new Cluster(clusterId);
   cluster.effectiveBalance = BigInt.fromI32(0);
-  // if (compareSemver(dao.version, "v2.0.0") >=0){
-    if (event.block.number >= SSV_STAKING_UPDATE_BLOCK_NUMBER){
+  if (compareSemver(dao.version, "v2.0.0") >= 0) {
       cluster.feeAsset = "ETH";
     } else {
       cluster.feeAsset = "SSV";
@@ -1617,12 +1604,7 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
       `Validator ${event.params.publicKey.toHexString()} is being removed from Cluster ${clusterId} which does not exist on DB`,
       [],
     );
-    cluster = new Cluster(clusterId);
-    cluster.feeAsset = "SSV";
-    // this is a bit of a trick: initialize with 32, then subtract 32 (~10 lines below here)
-    // But this line of code should technically NEVER happen:
-    // how can you remove validators from a cluster that does not exist?!
-    cluster.effectiveBalance = DEFAULT_BALANCE;
+    return;
   }
 
   cluster.owner = owner.id;
@@ -1853,7 +1835,16 @@ export function handleOperatorFeeDeclarationCancelled(
   } else {
     operator.operatorId = event.params.operatorId;
     operator.owner = owner.id;
-    if (event.block.number < SSV_STAKING_UPDATE_BLOCK_NUMBER) {
+
+    let dao = DAOValues.load(event.address);
+    if (!dao) {
+      log.error(
+        `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: OPERATOR_FEE_DECLARATION_CANCELLED`,
+        [],
+      );
+      return;
+    }
+    if (compareSemver(dao.version, "v2.0.0") >= 0) {
       operator.declaredSSVFee = BigInt.zero();
     } else {
       operator.declaredFee = BigInt.zero(); // reset declared fee, as fee change was cancelled
@@ -1915,7 +1906,16 @@ export function handleOperatorFeeDeclared(
   } else {
     operator.operatorId = event.params.operatorId;
     operator.owner = owner.id;
-    if (event.block.number < SSV_STAKING_UPDATE_BLOCK_NUMBER) {
+
+    let dao = DAOValues.load(event.address);
+    if (!dao) {
+      log.error(
+        `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: OPERATOR_FEE_DECLARED`,
+        [],
+      );
+      return;
+    }
+    if (compareSemver(dao.version, "v2.0.0") >= 0) {
       operator.declaredSSVFee = event.params.fee; // storing declared fee, in case fee change gets cancelled
     } else {
       operator.declaredFee = event.params.fee; // storing declared fee, in case fee change gets cancelled
@@ -1930,6 +1930,12 @@ export function handleOperatorFeeDeclared(
 export function handleOperatorFeeExecuted(
   event: OperatorFeeExecutedEvent,
 ): void {
+  log.warning("OperatorFeeExecuted event received. Transaction hash: {}, block number: {}, operatorId: {}, fee: {}", [
+    event.transaction.hash.toHexString(),
+    event.block.number.toString(),
+    event.params.operatorId.toString(),
+    event.params.fee.toString(),
+  ]);
   let entity = new OperatorFeeExecuted(
     `${event.transaction.hash.toHexString()}-${event.logIndex
       .toString()
@@ -1954,13 +1960,7 @@ export function handleOperatorFeeExecuted(
       }, but Owner ${event.params.owner.toHexString()} did not exist on the database`,
       [],
     );
-    owner = new Account(event.params.owner);
-    owner.nonce = BigInt.zero();
-    owner.validatorCount = BigInt.zero();
-    owner.feeRecipient = event.params.owner;
-    owner.stakedAmount = BigInt.zero();
-    owner.unstakePendingAmount = BigInt.zero();
-    owner.save();
+    return;
   }
 
   let operatorId = event.params.operatorId.toString();
@@ -2459,7 +2459,16 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
     );
   } else {
     operator.operatorId = event.params.operatorId;
-    if (event.block.number < SSV_STAKING_UPDATE_BLOCK_NUMBER) {
+
+    let dao = DAOValues.load(event.address);
+    if (!dao) {
+      log.error(
+        `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: OPERATOR_WITHDRAWN`,
+        [],
+      );
+      return;
+    }
+    if (compareSemver(dao.version, "v2.0.0") >= 0) {
       operator.totalWithdrawnSSV = operator.totalWithdrawnSSV.plus(event.params.value);
     } else { 
       operator.totalWithdrawn = operator.totalWithdrawn.plus(event.params.value);
