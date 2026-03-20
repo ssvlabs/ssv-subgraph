@@ -102,7 +102,9 @@ import {
 const VUNITS_PRECISION = BigInt.fromI32(100000);
 const DEFAULT_BALANCE = BigInt.fromI32(32);
 const SSV_STAKING_UPDATE_BLOCK_NUMBER = BigInt.fromI32(2442571);
-const DEFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(1_778_800_000);
+const DEFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(1_770_000_000);
+const ETH_FEE_FIX_BLOCK = BigInt.fromI32(2259628);
+const OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER = BigInt.fromI32(2434756);
 
 // ###### DAO Events ######
 
@@ -1042,6 +1044,25 @@ export function handleClusterMigratedToETH(
   entity.cluster = cluster.id;
   entity.save();
 
+  // Hoodi-specific fix: if the cluster is not active, and this migration happened before fix where `ClusterReactivated` 
+  // event is emitted, we need to manually fix the dao and operator counters
+  let fixOperatorCounter = false;
+  if (!cluster.active && event.block.number < ETH_FEE_FIX_BLOCK) {
+    // fix DAO and operators counters
+    fixOperatorCounter = true;
+    let dao = DAOValues.load(event.address);
+    if (!dao) {
+      log.error(
+        `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: CLUSTER_MIGRATED_TO_ETH`,
+        [],
+      );
+      return;
+    }
+    dao.totalEffectiveBalance = dao.totalEffectiveBalance.plus(cluster.effectiveBalance);
+    dao.totalValidators = dao.totalValidators.plus(event.params.cluster.validatorCount);
+    dao.save();
+  }
+
   cluster.owner = owner.id;
   cluster.operatorIds = event.params.operatorIds;
   cluster.validatorCount = event.params.cluster.validatorCount;
@@ -1076,6 +1097,22 @@ export function handleClusterMigratedToETH(
         [],
       );
     } else {
+
+      // replicate contract's ensureETHDefaults() but in reverse (since we set default fee across the board upon creation)
+      // if validator was added after ssv staking upgrade
+      if (event.block.number > SSV_STAKING_UPDATE_BLOCK_NUMBER && event.block.number < OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER) {
+        // only if the fee index block number is zero (operator untouched since ssv staking upgrade)
+        // set fee index block, so it won't risk being touched again. Fee has already been set to 0 or default upon operator creation.
+        if (operator.feeIndexBlockNumber.equals(BigInt.zero())) {
+          operator.feeIndexBlockNumber = event.block.number;
+        }
+      }
+
+      // this is set a few lines above, to avoid repeating this loop multiple times
+      if (fixOperatorCounter) operator.validatorCount = operator.validatorCount.plus(event.params.cluster.validatorCount);
+      operator.totalEffectiveBalance = operator.totalEffectiveBalance.plus(
+        cluster.effectiveBalance,
+      );
       operator.lastUpdateBlockNumber = event.block.number;
       operator.lastUpdateBlockTimestamp = event.block.timestamp;
       operator.lastUpdateTransactionHash = event.transaction.hash;
@@ -1562,6 +1599,21 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     operator.operatorId = event.params.operatorIds[i];
     operator.validatorCount = operator.validatorCount.plus(BigInt.fromI32(1));
 
+    // replicate contract's ensureETHDefaults() but in reverse (since we set default fee across the board upon creation)
+    // if validator was added after ssv staking upgrade, but before the fix when OperatorFeeExecuted event is emitted, 
+    // and this is the first time we encounter this operator since the upgrade
+    if (event.block.number > SSV_STAKING_UPDATE_BLOCK_NUMBER && 
+      event.block.number < OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER &&
+      operator.feeIndexBlockNumber.equals(BigInt.zero())
+    ) {
+      // set fee index block, so it won't risk being touched again
+      operator.feeIndexBlockNumber = event.block.number;
+      // if this is happening before the fix for zero-fee of operator upon migration: apply fee = 0, otherwise default fee will be applied upon operator creation, and we don't want to override it
+      if (event.block.number < ETH_FEE_FIX_BLOCK) {
+          operator.fee = BigInt.zero();
+      }
+    }
+    
     operator.lastUpdateBlockNumber = event.block.number;
     operator.lastUpdateBlockTimestamp = event.block.timestamp;
     operator.lastUpdateTransactionHash = event.transaction.hash;
