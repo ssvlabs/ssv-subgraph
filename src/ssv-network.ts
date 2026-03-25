@@ -340,14 +340,14 @@ export function handleLiquidationThresholdPeriodUpdated(
       [],
     );
     dao.updateType = "LIQUIDATION_THRESHOLD_SSV";
-    dao.liquidationThresholdSSV = event.params.value;
+    dao.liquidationThreshold = event.params.value;
   } else {
     log.error(
       `Liquidation Threshold Period for ETH fees updated to ${event.params.value} at block ${event.block.number}`,
       [],
     );
     dao.updateType = "LIQUIDATION_THRESHOLD";
-    dao.liquidationThreshold = event.params.value;
+    dao.liquidationThresholdSSV = event.params.value;
   }
   dao.lastUpdateBlockNumber = event.block.number;
   dao.lastUpdateBlockTimestamp = event.block.timestamp;
@@ -487,15 +487,15 @@ export function handleMinimumLiquidationCollateralUpdated(
       `Minimum Liquidation Collateral for SSV fees updated to ${event.params.value} at block ${event.block.number}`,
       [],
     );
-    dao.updateType = "MIN_LIQUIDATION_COLLATERAL_SSV";
+    dao.updateType = "MIN_LIQUIDATION_COLLATERAL";
     dao.minimumLiquidationCollateral = event.params.value;
   } else {
     log.error(
       `Minimum Liquidation Collateral for ETH fees updated to ${event.params.value} at block ${event.block.number}`,
       [],
     );
-    dao.updateType = "MIN_LIQUIDATION_COLLATERAL";
-    dao.minimumLiquidationCollateral = event.params.value;
+    dao.updateType = "MIN_LIQUIDATION_COLLATERAL_SSV";
+    dao.minimumLiquidationCollateralSSV = event.params.value;
   }
   dao.lastUpdateBlockNumber = event.block.number;
   dao.lastUpdateBlockTimestamp = event.block.timestamp;
@@ -1762,7 +1762,43 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
       [],
     );
-    return;
+    
+    dao = new DAOValues(event.address);
+
+    dao.networkFee = BigInt.zero();
+    dao.networkFeeIndex = BigInt.zero();
+    dao.networkFeeIndexBlockNumber = BigInt.zero();
+    dao.liquidationThreshold = BigInt.zero();
+    dao.minimumLiquidationCollateral = BigInt.zero();
+    dao.networkFeeSSV = BigInt.zero();
+    dao.networkFeeIndexSSV = BigInt.zero();
+    dao.networkFeeIndexBlockNumberSSV = BigInt.zero();
+    dao.liquidationThresholdSSV = BigInt.fromI32(214800);
+    dao.minimumLiquidationCollateralSSV = BigInt.fromString(
+      "1000000000000000000",
+    );
+    dao.operatorFeeIncreaseLimit = BigInt.zero();
+    dao.declareOperatorFeePeriod = BigInt.zero();
+    dao.executeOperatorFeePeriod = BigInt.zero();
+    dao.operatorMaximumFee = BigInt.zero();
+    dao.operatorMaximumFeeSSV = BigInt.zero();
+    dao.validatorsPerOperatorLimit = BigInt.fromI32(3000);
+    dao.accEthPerShare = BigInt.zero();
+    dao.newFeesWei = BigInt.zero();
+    dao.quorum = 0;
+    dao.version = "v1.2.0";
+    dao.latestMerkleRoot = Bytes.empty();
+    dao.totalAccounts = BigInt.zero();
+    dao.totalOperators = BigInt.zero();
+    dao.totalValidators = BigInt.zero();
+    dao.totalEffectiveBalance = BigInt.zero();
+    dao.validatorsAdded = BigInt.zero();
+    dao.validatorsRemoved = BigInt.zero();
+    dao.operatorsAdded = BigInt.zero();
+    dao.operatorsRemoved = BigInt.zero();
+    dao.lastUpdateBlockNumber = event.block.number;
+    dao.lastUpdateBlockTimestamp = event.block.timestamp;
+    dao.lastUpdateTransactionHash = event.transaction.hash;
   }
   dao.updateType = "OPERATOR_ADDED";
   dao.operatorsAdded = dao.operatorsAdded.plus(BigInt.fromI32(1));
@@ -1896,9 +1932,9 @@ export function handleOperatorFeeDeclarationCancelled(
       return;
     }
     if (compareSemver(dao.version, "v2.0.0") >= 0) {
-      operator.declaredSSVFee = BigInt.zero();
-    } else {
       operator.declaredFee = BigInt.zero(); // reset declared fee, as fee change was cancelled
+    } else {
+      operator.declaredSSVFee = BigInt.zero();
     }
     operator.lastUpdateBlockNumber = event.block.number;
     operator.lastUpdateBlockTimestamp = event.block.timestamp;
@@ -1967,9 +2003,9 @@ export function handleOperatorFeeDeclared(
       return;
     }
     if (compareSemver(dao.version, "v2.0.0") >= 0) {
-      operator.declaredSSVFee = event.params.fee; // storing declared fee, in case fee change gets cancelled
-    } else {
       operator.declaredFee = event.params.fee; // storing declared fee, in case fee change gets cancelled
+    } else {
+      operator.declaredSSVFee = event.params.fee; // storing declared fee, in case fee change gets cancelled
     }
     operator.lastUpdateBlockNumber = event.block.number;
     operator.lastUpdateBlockTimestamp = event.block.timestamp;
@@ -2520,9 +2556,9 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
       return;
     }
     if (compareSemver(dao.version, "v2.0.0") >= 0) {
-      operator.totalWithdrawnSSV = operator.totalWithdrawnSSV.plus(event.params.value);
-    } else { 
       operator.totalWithdrawn = operator.totalWithdrawn.plus(event.params.value);
+    } else { 
+      operator.totalWithdrawnSSV = operator.totalWithdrawnSSV.plus(event.params.value);
     }
     operator.lastUpdateBlockNumber = event.block.number;
     operator.lastUpdateBlockTimestamp = event.block.timestamp;
