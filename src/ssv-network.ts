@@ -2026,12 +2026,15 @@ export function handleOperatorFeeExecuted(
       `Operator fee executed event block number ${event.block.number.toString()} is after SSV staking update block number ${SSV_STAKING_UPDATE_BLOCK_NUMBER.toString()}, updating ETH operator fee`,
       [],
     );
-      // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
-      operator.feeIndex = operator.feeIndex.plus(
-        event.block.number
+      // index block number equal to zero means this operator was never migrated. If that's the case, we should not be updating the index
+      if (operator.feeIndexBlockNumber.notEqual(BigInt.zero())) {
+        // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
+        operator.feeIndex = operator.feeIndex.plus(
+          event.block.number
           .minus(operator.feeIndexBlockNumber)
           .times(operator.fee),
-      );
+        );
+      }
       operator.feeIndexBlockNumber = event.block.number;
       operator.fee = event.params.fee;
       operator.declaredFee = BigInt.zero(); // reset declared fee, as fee change was executed
