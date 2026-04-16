@@ -102,9 +102,11 @@ import {
 const VUNITS_PRECISION = BigInt.fromI32(100000);
 const DEFAULT_BALANCE = BigInt.fromI32(32);
 const SSV_STAKING_UPDATE_BLOCK_NUMBER = BigInt.fromI32(2219331);
-const DEFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(1_770_000_000);
+const OLD_EFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(1_770_000_000);
+const DEFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(1_778_800_000);
 const ETH_FEE_FIX_BLOCK = BigInt.fromI32(2259628);
 const OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER = BigInt.fromI32(2434756);
+const OPERAATOR_FEE_DEFAULT_CHANGED_BLOCK = BigInt.fromI32(2569939);
 
 // ###### DAO Events ######
 
@@ -1044,7 +1046,7 @@ export function handleClusterMigratedToETH(
   entity.cluster = cluster.id;
   entity.save();
 
-  // Hoodi-specific fix: if the cluster is not active, and this migration happened before fix where `ClusterReactivated` 
+  // Hoodi-specific fix: if the cluster is not active, and this migration happened before fix where `ClusterReactivated`
   // event is emitted, we need to manually fix the dao and operator counters
   let fixOperatorCounter = false;
   if (!cluster.active && event.block.number < ETH_FEE_FIX_BLOCK) {
@@ -1058,8 +1060,12 @@ export function handleClusterMigratedToETH(
       );
       return;
     }
-    dao.totalEffectiveBalance = dao.totalEffectiveBalance.plus(cluster.effectiveBalance);
-    dao.totalValidators = dao.totalValidators.plus(event.params.cluster.validatorCount);
+    dao.totalEffectiveBalance = dao.totalEffectiveBalance.plus(
+      cluster.effectiveBalance,
+    );
+    dao.totalValidators = dao.totalValidators.plus(
+      event.params.cluster.validatorCount,
+    );
     dao.save();
   }
 
@@ -1097,19 +1103,31 @@ export function handleClusterMigratedToETH(
         [],
       );
     } else {
-
       // replicate contract's ensureETHDefaults() but in reverse (since we set default fee across the board upon creation)
       // if validator was added after ssv staking upgrade
-      if (event.block.number > SSV_STAKING_UPDATE_BLOCK_NUMBER && event.block.number < OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER) {
+      if (
+        event.block.number > SSV_STAKING_UPDATE_BLOCK_NUMBER &&
+        event.block.number < OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER
+      ) {
         // only if the fee index block number is zero (operator untouched since ssv staking upgrade)
         // set fee index block, so it won't risk being touched again. Fee has already been set to 0 or default upon operator creation.
         if (operator.feeIndexBlockNumber.equals(BigInt.zero())) {
           operator.feeIndexBlockNumber = event.block.number;
         }
       }
+      // new Hoodi exception! Past a certain block, the default fee was changed, so for clusters migrated BEFORE such block number, we "revert" to a different defailt fee
+      // checking if the operator fee is non-zero to avoid setting the default fee to those who should have it as zero instead
+      if (
+        operator.fee != BigInt.zero() &&
+        event.block.number < OPERAATOR_FEE_DEFAULT_CHANGED_BLOCK
+      )
+        operator.fee = OLD_EFAULT_OPERATOR_ETH_FEE;
 
       // this is set a few lines above, to avoid repeating this loop multiple times
-      if (fixOperatorCounter) operator.validatorCount = operator.validatorCount.plus(event.params.cluster.validatorCount);
+      if (fixOperatorCounter)
+        operator.validatorCount = operator.validatorCount.plus(
+          event.params.cluster.validatorCount,
+        );
       operator.totalEffectiveBalance = operator.totalEffectiveBalance.plus(
         cluster.effectiveBalance,
       );
@@ -1328,7 +1346,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   owner.validatorCount = owner.validatorCount.plus(
     event.params.cluster.validatorCount,
   );
-  owner.effectiveBalance = owner.effectiveBalance.minus(
+  owner.effectiveBalance = owner.effectiveBalance.plus(
     cluster.effectiveBalance,
   );
   owner.save();
@@ -1600,9 +1618,10 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     operator.validatorCount = operator.validatorCount.plus(BigInt.fromI32(1));
 
     // replicate contract's ensureETHDefaults() but in reverse (since we set default fee across the board upon creation)
-    // if validator was added after ssv staking upgrade, but before the fix when OperatorFeeExecuted event is emitted, 
+    // if validator was added after ssv staking upgrade, but before the fix when OperatorFeeExecuted event is emitted,
     // and this is the first time we encounter this operator since the upgrade
-    if (event.block.number > SSV_STAKING_UPDATE_BLOCK_NUMBER && 
+    if (
+      event.block.number > SSV_STAKING_UPDATE_BLOCK_NUMBER &&
       event.block.number < OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER &&
       operator.feeIndexBlockNumber.equals(BigInt.zero())
     ) {
@@ -1610,10 +1629,14 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
       operator.feeIndexBlockNumber = event.block.number;
       // if this is happening before the fix for zero-fee of operator upon migration: apply fee = 0, otherwise default fee will be applied upon operator creation, and we don't want to override it
       if (event.block.number < ETH_FEE_FIX_BLOCK) {
-          operator.fee = BigInt.zero();
+        operator.fee = BigInt.zero();
+      } else {
+        // new Hoodi exception! Past a certain block, the default fee was changed, so for clusters migrated BEFORE such block number, we "revert" to a different defailt fee
+        // checking if the operator fee is non-zero to avoid setting the default fee to those who should have it as zero instead
+        operator.fee = OLD_EFAULT_OPERATOR_ETH_FEE;
       }
     }
-    
+
     operator.lastUpdateBlockNumber = event.block.number;
     operator.lastUpdateBlockTimestamp = event.block.timestamp;
     operator.lastUpdateTransactionHash = event.transaction.hash;
@@ -2036,6 +2059,16 @@ export function handleOperatorFeeDeclared(
     }
     if (compareSemver(dao.version, "v2.0.0") >= 0) {
       operator.declaredFee = event.params.fee; // storing declared fee, in case fee change gets cancelled
+      // yet another Hoodi-specific exception and SSV Staking magic: when a non-migrated operator declares a fee, the "default" fee is assigned
+      // so if they cancel the fee declaration, the fee reverts back to default. Problem is that default was changed at some point
+      // and an exception to the rule has to be made to correctly assign the "old" default fee
+      if (
+        event.block.number < OPERAATOR_FEE_DEFAULT_CHANGED_BLOCK &&
+        operator.feeIndexBlockNumber.equals(BigInt.zero())
+      ) {
+        operator.fee = OLD_EFAULT_OPERATOR_ETH_FEE;
+        operator.feeIndexBlockNumber = event.block.number;
+      }
     } else {
       operator.declaredSSVFee = event.params.fee; // storing declared fee, in case fee change gets cancelled
     }
