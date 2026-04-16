@@ -102,9 +102,11 @@ import {
 const VUNITS_PRECISION = BigInt.fromI32(100000);
 const DEFAULT_BALANCE = BigInt.fromI32(32);
 const SSV_STAKING_UPDATE_BLOCK_NUMBER = BigInt.fromI32(2219331);
-const DEFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(1_770_000_000);
+const OLD_EFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(1_770_000_000);
+const DEFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(1_778_800_000);
 const ETH_FEE_FIX_BLOCK = BigInt.fromI32(2259628);
 const OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER = BigInt.fromI32(2434756);
+const OPERAATOR_FEE_DEFAULT_CHANGED_BLOCK = BigInt.fromI32(2569939);
 
 // ###### DAO Events ######
 
@@ -480,7 +482,7 @@ export function handleMinimumLiquidationCollateralUpdated(
     dao.lastUpdateBlockTimestamp = event.block.timestamp;
     dao.lastUpdateTransactionHash = event.transaction.hash;
   }
-  
+
   // if the dao variable update happened before the ssv staking update, it refers to the ssv value
   if (compareSemver(dao.version, "v2.0.0") >= 0) {
     log.info(
@@ -1005,7 +1007,6 @@ export function handleClusterMigratedToETH(
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
 
-  
   let owner = Account.load(event.params.owner);
   if (!owner) {
     owner = new Account(event.params.owner);
@@ -1016,7 +1017,7 @@ export function handleClusterMigratedToETH(
     owner.unstakePendingAmount = BigInt.zero();
     owner.save();
   }
-  
+
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join(
     "-",
   )}`;
@@ -1028,12 +1029,12 @@ export function handleClusterMigratedToETH(
     );
     cluster = new Cluster(clusterId);
   }
-  
+
   // establish cluster relation so it's easier to track down edge cases
   entity.cluster = cluster.id;
   entity.save();
 
-  // Hoodi-specific fix: if the cluster is not active, and this migration happened before fix where `ClusterReactivated` 
+  // Hoodi-specific fix: if the cluster is not active, and this migration happened before fix where `ClusterReactivated`
   // event is emitted, we need to manually fix the dao and operator counters
   let fixOperatorCounter = false;
   if (!cluster.active && event.block.number < ETH_FEE_FIX_BLOCK) {
@@ -1047,8 +1048,12 @@ export function handleClusterMigratedToETH(
       );
       return;
     }
-    dao.totalEffectiveBalance = dao.totalEffectiveBalance.plus(cluster.effectiveBalance);
-    dao.totalValidators = dao.totalValidators.plus(event.params.cluster.validatorCount);
+    dao.totalEffectiveBalance = dao.totalEffectiveBalance.plus(
+      cluster.effectiveBalance,
+    );
+    dao.totalValidators = dao.totalValidators.plus(
+      event.params.cluster.validatorCount,
+    );
     dao.save();
   }
 
@@ -1086,19 +1091,31 @@ export function handleClusterMigratedToETH(
         [],
       );
     } else {
-
       // replicate contract's ensureETHDefaults() but in reverse (since we set default fee across the board upon creation)
       // if validator was added after ssv staking upgrade
-      if (event.block.number > SSV_STAKING_UPDATE_BLOCK_NUMBER && event.block.number < OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER) {
+      if (
+        event.block.number > SSV_STAKING_UPDATE_BLOCK_NUMBER &&
+        event.block.number < OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER
+      ) {
         // only if the fee index block number is zero (operator untouched since ssv staking upgrade)
         // set fee index block, so it won't risk being touched again. Fee has already been set to 0 or default upon operator creation.
         if (operator.feeIndexBlockNumber.equals(BigInt.zero())) {
           operator.feeIndexBlockNumber = event.block.number;
         }
       }
+      // new Hoodi exception! Past a certain block, the default fee was changed, so for clusters migrated BEFORE such block number, we "revert" to a different defailt fee
+      // checking if the operator fee is non-zero to avoid setting the default fee to those who should have it as zero instead
+      if (
+        operator.fee != BigInt.zero() &&
+        event.block.number < OPERAATOR_FEE_DEFAULT_CHANGED_BLOCK
+      )
+        operator.fee = OLD_EFAULT_OPERATOR_ETH_FEE;
 
       // this is set a few lines above, to avoid repeating this loop multiple times
-      if (fixOperatorCounter) operator.validatorCount = operator.validatorCount.plus(event.params.cluster.validatorCount);
+      if (fixOperatorCounter)
+        operator.validatorCount = operator.validatorCount.plus(
+          event.params.cluster.validatorCount,
+        );
       operator.totalEffectiveBalance = operator.totalEffectiveBalance.plus(
         cluster.effectiveBalance,
       );
@@ -1214,7 +1231,7 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
     );
     return;
   }
-  
+
   // update dao values before updating cluster and operators, so we can use current values before they are updated.
   let dao = DAOValues.load(event.address);
   if (!dao) {
@@ -1224,8 +1241,12 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
     );
     return;
   }
-  dao.totalValidators = dao.totalValidators.minus(event.params.cluster.validatorCount);
-  dao.totalEffectiveBalance = dao.totalEffectiveBalance.minus(cluster.effectiveBalance);
+  dao.totalValidators = dao.totalValidators.minus(
+    event.params.cluster.validatorCount,
+  );
+  dao.totalEffectiveBalance = dao.totalEffectiveBalance.minus(
+    cluster.effectiveBalance,
+  );
   dao.save();
 
   cluster.owner = owner.id;
@@ -1310,7 +1331,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
     );
     return;
   }
-  
+
   // update dao values before updating cluster and operators, so we can use current values before they are updated.
   let dao = DAOValues.load(event.address);
   if (!dao) {
@@ -1320,8 +1341,12 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
     );
     return;
   }
-  dao.totalValidators = dao.totalValidators.plus(event.params.cluster.validatorCount);
-  dao.totalEffectiveBalance = dao.totalEffectiveBalance.plus(cluster.effectiveBalance);
+  dao.totalValidators = dao.totalValidators.plus(
+    event.params.cluster.validatorCount,
+  );
+  dao.totalEffectiveBalance = dao.totalEffectiveBalance.plus(
+    cluster.effectiveBalance,
+  );
   dao.save();
 
   cluster.owner = owner.id;
@@ -1339,7 +1364,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   cluster.lastUpdateBlockTimestamp = event.block.timestamp;
   cluster.lastUpdateTransactionHash = event.transaction.hash;
   cluster.save();
-  
+
   entity.cluster = cluster.id;
   entity.save();
 
@@ -1448,7 +1473,6 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
 
-  
   let dao = DAOValues.load(event.address);
   if (!dao) {
     log.error(
@@ -1462,7 +1486,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   dao.save();
   dao.validatorsAdded = dao.validatorsAdded.plus(BigInt.fromI32(1));
   dao.totalValidators = dao.totalValidators.plus(BigInt.fromI32(1));
-  
+
   let owner = Account.load(event.params.owner);
   if (!owner) {
     owner = new Account(event.params.owner);
@@ -1489,25 +1513,25 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   );
   owner.validatorCount = owner.validatorCount.plus(BigInt.fromI32(1));
   owner.save();
-  
+
   let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join(
     "-",
   )}`;
   let cluster = Cluster.load(clusterId);
   if (!cluster) {
-  log.info(
-    `Validator ${event.params.publicKey.toHexString()} is being added to new Cluster ${clusterId}`,
-    [],
-  );
-  cluster = new Cluster(clusterId);
-  cluster.effectiveBalance = BigInt.fromI32(0);
-  if (compareSemver(dao.version, "v2.0.0") >= 0) {
+    log.info(
+      `Validator ${event.params.publicKey.toHexString()} is being added to new Cluster ${clusterId}`,
+      [],
+    );
+    cluster = new Cluster(clusterId);
+    cluster.effectiveBalance = BigInt.fromI32(0);
+    if (compareSemver(dao.version, "v2.0.0") >= 0) {
       cluster.feeAsset = "ETH";
     } else {
       cluster.feeAsset = "SSV";
     }
   }
-  
+
   cluster.owner = owner.id;
   cluster.operatorIds = event.params.operatorIds;
   cluster.validatorCount = event.params.cluster.validatorCount;
@@ -1517,8 +1541,8 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   );
   cluster.effectiveBalance = cluster.effectiveBalance.plus(DEFAULT_BALANCE);
   cluster.vUnits = cluster.effectiveBalance
-  .div(DEFAULT_BALANCE)
-  .times(VUNITS_PRECISION);
+    .div(DEFAULT_BALANCE)
+    .times(VUNITS_PRECISION);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex;
   cluster.index = event.params.cluster.index;
   cluster.active = event.params.cluster.active;
@@ -1530,7 +1554,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
 
   entity.cluster = cluster.id;
   entity.save();
-    
+
   let validatorId = event.params.publicKey;
   let validator = Validator.load(validatorId);
   if (!validator) {
@@ -1571,9 +1595,10 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     operator.validatorCount = operator.validatorCount.plus(BigInt.fromI32(1));
 
     // replicate contract's ensureETHDefaults() but in reverse (since we set default fee across the board upon creation)
-    // if validator was added after ssv staking upgrade, but before the fix when OperatorFeeExecuted event is emitted, 
+    // if validator was added after ssv staking upgrade, but before the fix when OperatorFeeExecuted event is emitted,
     // and this is the first time we encounter this operator since the upgrade
-    if (event.block.number > SSV_STAKING_UPDATE_BLOCK_NUMBER && 
+    if (
+      event.block.number > SSV_STAKING_UPDATE_BLOCK_NUMBER &&
       event.block.number < OPERATOR_FEE_EXECUTED_FIX_BLOCK_NUMBER &&
       operator.feeIndexBlockNumber.equals(BigInt.zero())
     ) {
@@ -1581,10 +1606,14 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
       operator.feeIndexBlockNumber = event.block.number;
       // if this is happening before the fix for zero-fee of operator upon migration: apply fee = 0, otherwise default fee will be applied upon operator creation, and we don't want to override it
       if (event.block.number < ETH_FEE_FIX_BLOCK) {
-          operator.fee = BigInt.zero();
+        operator.fee = BigInt.zero();
+      } else {
+        // new Hoodi exception! Past a certain block, the default fee was changed, so for clusters migrated BEFORE such block number, we "revert" to a different defailt fee
+        // checking if the operator fee is non-zero to avoid setting the default fee to those who should have it as zero instead
+        operator.fee = OLD_EFAULT_OPERATOR_ETH_FEE;
       }
     }
-    
+
     operator.lastUpdateBlockNumber = event.block.number;
     operator.lastUpdateBlockTimestamp = event.block.timestamp;
     operator.lastUpdateTransactionHash = event.transaction.hash;
@@ -1762,7 +1791,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
       `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
       [],
     );
-    
+
     dao = new DAOValues(event.address);
 
     dao.networkFee = BigInt.zero();
@@ -1825,21 +1854,24 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     operator.publicKey = event.params.publicKey;
     operator.removed = false;
     if (compareSemver(dao.version, "v2.0.0") >= 0) {
-    log.info(
-      `Operator added event block number ${event.block.number.toString()} is after SSV staking update block number ${SSV_STAKING_UPDATE_BLOCK_NUMBER.toString()}, updating ETH operator fee`,
-      [],
-    );
+      log.info(
+        `Operator added event block number ${event.block.number.toString()} is after SSV staking update block number ${SSV_STAKING_UPDATE_BLOCK_NUMBER.toString()}, updating ETH operator fee`,
+        [],
+      );
       operator.fee = event.params.fee;
       operator.feeIndexBlockNumber = event.block.number;
       operator.feeSSV = BigInt.zero();
       operator.feeIndexBlockNumberSSV = BigInt.zero();
     } else {
-    log.info(
-      `Operator added event block number ${event.block.number.toString()} is after SSV staking update block number ${SSV_STAKING_UPDATE_BLOCK_NUMBER.toString()}, updating SSV network fee`,
-      [],
-    );
+      log.info(
+        `Operator added event block number ${event.block.number.toString()} is after SSV staking update block number ${SSV_STAKING_UPDATE_BLOCK_NUMBER.toString()}, updating SSV network fee`,
+        [],
+      );
       // set the operator's fee to the default fee for ETH clusters, if the operator has declared a non-zero fee for SSV clusters
-      operator.fee = event.params.fee == BigInt.zero() ? BigInt.zero() : DEFAULT_OPERATOR_ETH_FEE;
+      operator.fee =
+        event.params.fee == BigInt.zero()
+          ? BigInt.zero()
+          : DEFAULT_OPERATOR_ETH_FEE;
       operator.feeIndexBlockNumber = BigInt.zero();
       operator.feeSSV = event.params.fee;
       operator.feeIndexBlockNumberSSV = event.block.number;
@@ -2004,6 +2036,16 @@ export function handleOperatorFeeDeclared(
     }
     if (compareSemver(dao.version, "v2.0.0") >= 0) {
       operator.declaredFee = event.params.fee; // storing declared fee, in case fee change gets cancelled
+      // yet another Hoodi-specific exception and SSV Staking magic: when a non-migrated operator declares a fee, the "default" fee is assigned
+      // so if they cancel the fee declaration, the fee reverts back to default. Problem is that default was changed at some point
+      // and an exception to the rule has to be made to correctly assign the "old" default fee
+      if (
+        event.block.number < OPERAATOR_FEE_DEFAULT_CHANGED_BLOCK &&
+        operator.feeIndexBlockNumber.equals(BigInt.zero())
+      ) {
+        operator.fee = OLD_EFAULT_OPERATOR_ETH_FEE;
+        operator.feeIndexBlockNumber = event.block.number;
+      }
     } else {
       operator.declaredSSVFee = event.params.fee; // storing declared fee, in case fee change gets cancelled
     }
@@ -2017,12 +2059,15 @@ export function handleOperatorFeeDeclared(
 export function handleOperatorFeeExecuted(
   event: OperatorFeeExecutedEvent,
 ): void {
-  log.warning("OperatorFeeExecuted event received. Transaction hash: {}, block number: {}, operatorId: {}, fee: {}", [
-    event.transaction.hash.toHexString(),
-    event.block.number.toString(),
-    event.params.operatorId.toString(),
-    event.params.fee.toString(),
-  ]);
+  log.warning(
+    "OperatorFeeExecuted event received. Transaction hash: {}, block number: {}, operatorId: {}, fee: {}",
+    [
+      event.transaction.hash.toHexString(),
+      event.block.number.toString(),
+      event.params.operatorId.toString(),
+      event.params.fee.toString(),
+    ],
+  );
   let entity = new OperatorFeeExecuted(
     `${event.transaction.hash.toHexString()}-${event.logIndex
       .toString()
@@ -2073,27 +2118,27 @@ export function handleOperatorFeeExecuted(
     operator.operatorId = event.params.operatorId;
     operator.owner = owner.id;
     if (compareSemver(dao.version, "v2.0.0") >= 0) {
-    log.info(
-      `Operator fee executed event block number ${event.block.number.toString()} is after SSV staking update block number ${SSV_STAKING_UPDATE_BLOCK_NUMBER.toString()}, updating ETH operator fee`,
-      [],
-    );
+      log.info(
+        `Operator fee executed event block number ${event.block.number.toString()} is after SSV staking update block number ${SSV_STAKING_UPDATE_BLOCK_NUMBER.toString()}, updating ETH operator fee`,
+        [],
+      );
       // index block number equal to zero means this operator was never migrated. If that's the case, we should not be updating the index
       if (operator.feeIndexBlockNumber.notEqual(BigInt.zero())) {
         // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
         operator.feeIndex = operator.feeIndex.plus(
           event.block.number
-          .minus(operator.feeIndexBlockNumber)
-          .times(operator.fee),
+            .minus(operator.feeIndexBlockNumber)
+            .times(operator.fee),
         );
       }
       operator.feeIndexBlockNumber = event.block.number;
       operator.fee = event.params.fee;
       operator.declaredFee = BigInt.zero(); // reset declared fee, as fee change was executed
     } else {
-    log.info(
-      `Operator fee executed event block number ${event.block.number.toString()} is before SSV staking update block number ${SSV_STAKING_UPDATE_BLOCK_NUMBER.toString()}, updating SSV operator fee`,
-      [],
-    );
+      log.info(
+        `Operator fee executed event block number ${event.block.number.toString()} is before SSV staking update block number ${SSV_STAKING_UPDATE_BLOCK_NUMBER.toString()}, updating SSV operator fee`,
+        [],
+      );
       // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
       operator.feeIndexSSV = operator.feeIndex.plus(
         event.block.number
@@ -2156,10 +2201,10 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
     operator.removed = true;
     // only touch index and index block of eth fees if after the staking update
     if (compareSemver(dao.version, "v2.0.0") >= 0) {
-    log.info(
-      `Operator removed event block number ${event.block.number.toString()} is after SSV staking update block number ${SSV_STAKING_UPDATE_BLOCK_NUMBER.toString()}, updating ETH operator fee index and block number`,
-      [],
-    );
+      log.info(
+        `Operator removed event block number ${event.block.number.toString()} is after SSV staking update block number ${SSV_STAKING_UPDATE_BLOCK_NUMBER.toString()}, updating ETH operator fee index and block number`,
+        [],
+      );
       // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
       operator.feeIndex = operator.feeIndex.plus(
         event.block.number
@@ -2167,8 +2212,8 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
           .times(operator.fee),
       );
       operator.feeIndexBlockNumber = event.block.number;
-   }
-    
+    }
+
     operator.fee = new BigInt(0);
     operator.declaredFee = BigInt.zero(); // reset declared fee, as fee change was executed
     // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
@@ -2180,7 +2225,7 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
     operator.feeIndexBlockNumberSSV = event.block.number;
     operator.feeSSV = new BigInt(0);
     operator.declaredSSVFee = BigInt.zero(); // reset declared fee, as fee change was executed
-    
+
     operator.lastUpdateBlockNumber = event.block.number;
     operator.validatorCount = new BigInt(0);
     operator.lastUpdateBlockTimestamp = event.block.timestamp;
@@ -2559,9 +2604,13 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
       return;
     }
     if (compareSemver(dao.version, "v2.0.0") >= 0) {
-      operator.totalWithdrawn = operator.totalWithdrawn.plus(event.params.value);
-    } else { 
-      operator.totalWithdrawnSSV = operator.totalWithdrawnSSV.plus(event.params.value);
+      operator.totalWithdrawn = operator.totalWithdrawn.plus(
+        event.params.value,
+      );
+    } else {
+      operator.totalWithdrawnSSV = operator.totalWithdrawnSSV.plus(
+        event.params.value,
+      );
     }
     operator.lastUpdateBlockNumber = event.block.number;
     operator.lastUpdateBlockTimestamp = event.block.timestamp;
@@ -2570,7 +2619,9 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
   }
 }
 
-export function handleOperatorWithdrawnSSV(event: OperatorWithdrawnSSVEvent): void {
+export function handleOperatorWithdrawnSSV(
+  event: OperatorWithdrawnSSVEvent,
+): void {
   let entity = new OperatorWithdrawnSSV(
     `${event.transaction.hash.toHexString()}-${event.logIndex
       .toString()
@@ -2616,7 +2667,9 @@ export function handleOperatorWithdrawnSSV(event: OperatorWithdrawnSSVEvent): vo
     );
   } else {
     operator.operatorId = event.params.operatorId;
-    operator.totalWithdrawnSSV = operator.totalWithdrawnSSV.plus(event.params.value);
+    operator.totalWithdrawnSSV = operator.totalWithdrawnSSV.plus(
+      event.params.value,
+    );
     operator.lastUpdateBlockNumber = event.block.number;
     operator.lastUpdateBlockTimestamp = event.block.timestamp;
     operator.lastUpdateTransactionHash = event.transaction.hash;
@@ -2670,7 +2723,7 @@ export function handleFeesSynced(event: FeesSyncedEvent): void {
     );
     return;
   }
-  
+
   dao.updateType = "FEES_SYNCED";
   dao.accEthPerShare = event.params.accEthPerShare;
   dao.newFeesWei = event.params.newFeesWei;
@@ -2953,7 +3006,7 @@ export function handleQuorumUpdated(event: QuorumUpdatedEvent): void {
     );
     return;
   }
-  
+
   dao.updateType = "QUORUM_UPDATED";
   dao.quorum = event.params.newQuorum;
   dao.lastUpdateBlockNumber = event.block.number;
@@ -3029,22 +3082,22 @@ export function handleSSVNetworkUpgradeBlock(
   dao.save();
 }
 
-function compareSemver(version1:string, version2: string): number {
-  const components1 = version1.split(".")
-  const components2 = version2.split(".")
+function compareSemver(version1: string, version2: string): number {
+  const components1 = version1.split(".");
+  const components2 = version2.split(".");
 
-  const major1 = parseInt(components1[0].replace("v", ""))
-  const major2 = parseInt(components2[0].replace("v", ""))
-  const minor1 = parseInt(components1[0])
-  const minor2 = parseInt(components2[0])
-  const patch1 = parseInt(components1[0])
-  const patch2 = parseInt(components2[0])
+  const major1 = parseInt(components1[0].replace("v", ""));
+  const major2 = parseInt(components2[0].replace("v", ""));
+  const minor1 = parseInt(components1[0]);
+  const minor2 = parseInt(components2[0]);
+  const patch1 = parseInt(components1[0]);
+  const patch2 = parseInt(components2[0]);
 
-  if (major1 > major2) return 1
-  if (major1 < major2) return -1
-  if (minor1 > minor2) return 1
-  if (minor1 < minor2) return -1
-  if (patch1 > patch2) return 1
-  if (patch1 < patch2) return -1
-  return 0
+  if (major1 > major2) return 1;
+  if (major1 < major2) return -1;
+  if (minor1 > minor2) return 1;
+  if (minor1 < minor2) return -1;
+  if (patch1 > patch2) return 1;
+  if (patch1 < patch2) return -1;
+  return 0;
 }
