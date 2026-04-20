@@ -1,66 +1,3 @@
-type BApp @entity(immutable: false) {
-  id: Bytes! # address
-  bAppTokens: [BAppToken!]! @derivedFrom(field: "bApp")
-  metadataURI: String
-  strategies: [StrategyBAppOptIn!]! @derivedFrom(field: "bApp")
-}
-
-type BAppToken @entity(immutable: false) {
-  id: String! # Set to `bApp.id.concat(token.id);`
-  bApp: BApp!
-  token: Bytes!
-  sharedRiskLevel: BigInt!
-  totalObligatedBalance: BigInt!
-}
-
-type Strategy @entity(immutable: false) {
-  id: String! # uint256
-  strategyId: BigInt! # uint256
-  metadataURI: String
-  owner: Account! # address
-  fee: BigInt! # uint256
-  feeProposed: BigInt! # uint256
-  feeProposedTimestamp: BigInt! # uint256
-  bApps: [StrategyBAppOptIn!]! @derivedFrom(field: "strategy")
-  deposits: [StrategyUserBalance!]! @derivedFrom(field: "strategy")
-  balances: [StrategyTokenBalance!]! @derivedFrom(field: "strategy")
-}
-
-type StrategyBAppOptIn @entity(immutable: false) {
-  id: String! # Set to `strategy.id.concat(bApp.id)`
-  strategy: Strategy!
-  bApp: BApp!
-  obligations: [Obligation!]! @derivedFrom(field: "strategyBAppOptIn")
-}
-
-type Obligation @entity(immutable: false) {
-  id: String! # Set to `StrategyBAppOptIn.id.concat(token.id)`
-  token: Bytes! # address
-  obligatedBalance: BigInt!
-  percentage: BigInt!
-  percentageProposed: BigInt!
-  percentageProposedTimestamp: BigInt! # uint256
-  strategyBAppOptIn: StrategyBAppOptIn!
-}
-
-type StrategyUserBalance @entity(immutable: false) {
-  id: String! # Set to `strategy.id.concat(account.id.concat(token.id))`
-  contributor: Account!
-  strategy: Strategy!
-  token: Bytes! # address
-  depositAmount: BigInt!
-  proposedWithdrawal: BigInt!
-  proposedWithdrawalTimestamp: BigInt!
-}
-
-type StrategyTokenBalance @entity(immutable: false) {
-  id: String! # Set to `strategy.id.concat(token.id))`
-  strategy: Strategy!
-  token: Bytes! # address
-  balance: BigInt!
-  riskValue: BigInt!
-}
-
 type Account @entity(immutable: false) {
   id: Bytes! # address
   # DVT stuff 🔥
@@ -69,361 +6,11 @@ type Account @entity(immutable: false) {
   clusters: [Cluster!] @derivedFrom(field: "owner")
   validators: [Validator!] @derivedFrom(field: "owner")
   operators: [Operator!] @derivedFrom(field: "owner")
+  effectiveBalance: BigInt! # uint256
   feeRecipient: Bytes! #address
-  # BApp stuff 😎
-  metadataURI: String
-  strategies: [Strategy!]! @derivedFrom(field: "owner")
-  totalDelegatedPercentage: BigInt! # uint256
-  delegators: [Delegation!]! @derivedFrom(field: "receiver")
-  receivers: [Delegation!]! @derivedFrom(field: "delegator")
-  deposits: [StrategyUserBalance!]! @derivedFrom(field: "contributor")
-}
-
-type BAppConstants @entity(immutable: false) {
-  id: Bytes! # address
-  _feeExpireTime: BigInt!
-  _feeTimelockPeriod: BigInt!
-  _obligationExpireTime: BigInt!
-  _obligationTimelockPeriod: BigInt!
-  _strategyMaxFeeIncrement: BigInt!
-  _strategyMaxShares: BigInt!
-  _withdrawalExpireTime: BigInt!
-  _withdrawalTimelockPeriod: BigInt!
-  totalAccounts: BigInt!
-  totalBApps: BigInt!
-  totalStrategies: BigInt!
-}
-
-type Delegation @entity(immutable: false) {
-  id: String! # Set to `account.id.concat(account.id)` (delegator => receiver)
-  delegator: Account!
-  receiver: Account!
-  percentage: BigInt!
-}
-
-type FeeExpireTimeUpdated @entity(immutable: true) {
-  id: Bytes!
-  feeExpireTime: BigInt!
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type FeeTimelockPeriodUpdated @entity(immutable: true) {
-  id: Bytes!
-  feeTimelockPeriod: BigInt!
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type ObligationExpireTimeUpdated @entity(immutable: true) {
-  id: Bytes!
-  obligationExpireTime: BigInt!
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type ObligationTimelockPeriodUpdated @entity(immutable: true) {
-  id: Bytes!
-  obligationTimelockPeriod: BigInt!
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type StrategyMaxFeeIncrementUpdated @entity(immutable: true) {
-  id: Bytes!
-  strategyMaxFeeIncrement: BigInt!
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type StrategyMaxSharesUpdated @entity(immutable: true) {
-  id: Bytes!
-  strategyMaxShares: BigInt!
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type WithdrawalTimelockPeriodUpdated @entity(immutable: true) {
-  id: Bytes!
-  withdrawalTimelockPeriod: BigInt!
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type WithdrawalExpireTimeUpdated @entity(immutable: true) {
-  id: Bytes!
-  withdrawalExpireTime: BigInt!
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type BAppMetadataURIUpdated @entity(immutable: true) {
-  id: Bytes!
-  bAppAddress: Bytes! # address
-  metadataURI: String! # string
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type BAppOptedInByStrategy @entity(immutable: true) {
-  id: Bytes!
-  strategyId: BigInt! # uint256
-  bApp: Bytes! # address
-  data: Bytes! # bytes
-  tokens: [Bytes!]! # address[]
-  obligationPercentages: [BigInt!]! # uint32[]
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type BAppRegistered @entity(immutable: true) {
-  id: Bytes!
-  bAppAddress: Bytes! # address
-  tokens: [Bytes!]! # address[]
-  sharedRiskLevel: [BigInt!]! # uint32[]
-  metadataURI: String! # string
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type BAppTokensCreated @entity(immutable: true) {
-  id: Bytes!
-  bAppAddress: Bytes! # address
-  tokens: [Bytes!]! # address[]
-  sharedRiskLevels: [BigInt!]! # uint32[]
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type BAppTokensRemoved @entity(immutable: true) {
-  id: Bytes!
-  bAppAddress: Bytes! # address
-  tokens: [Bytes!]! # address[]
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type BAppTokensUpdated @entity(immutable: true) {
-  id: Bytes!
-  bAppAddress: Bytes! # address
-  tokens: [Bytes!]! # address[]
-  sharedRiskLevels: [BigInt!]! # uint32[]
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type DelegationCreated @entity(immutable: true) {
-  id: Bytes!
-  delegator: Bytes! # address
-  receiver: Bytes! # address
-  percentage: BigInt! # uint32
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type DelegationRemoved @entity(immutable: true) {
-  id: Bytes!
-  delegator: Bytes! # address
-  receiver: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type DelegationUpdated @entity(immutable: true) {
-  id: Bytes!
-  delegator: Bytes! # address
-  receiver: Bytes! # address
-  percentage: BigInt! # uint32
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type Initialized @entity(immutable: true) {
-  id: Bytes!
-  version: BigInt! # uint64
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type MaxFeeIncrementSet @entity(immutable: true) {
-  id: Bytes!
-  newMaxFeeIncrement: BigInt! # uint32
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type ObligationCreated @entity(immutable: true) {
-  id: Bytes!
-  strategyId: BigInt! # uint256
-  bApp: Bytes! # address
-  token: Bytes! # address
-  obligationPercentage: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type ObligationUpdateProposed @entity(immutable: true) {
-  id: Bytes!
-  strategyId: BigInt! # uint256
-  bApp: Bytes! # address
-  token: Bytes! # address
-  percentage: BigInt! # uint32
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type ObligationUpdated @entity(immutable: true) {
-  id: Bytes!
-  strategyId: BigInt! # uint256
-  bApp: Bytes! # address
-  token: Bytes! # address
-  percentage: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type OwnershipTransferred @entity(immutable: true) {
-  id: Bytes!
-  previousOwner: Bytes! # address
-  newOwner: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type SlashingFundWithdrawn @entity(immutable: true) {
-  id: Bytes!
-  token: Bytes! # address
-  amount: BigInt! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type StrategyCreated @entity(immutable: true) {
-  id: Bytes!
-  strategyId: BigInt! # uint256
-  owner: Bytes! # address
-  fee: BigInt! # uint32
-  metadataURI: String
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type StrategyDeposit @entity(immutable: true) {
-  id: Bytes!
-  strategyId: BigInt! # uint256
-  contributor: Bytes! # address
-  token: Bytes! # address
-  amount: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type StrategyFeeUpdateProposed @entity(immutable: true) {
-  id: Bytes!
-  strategyId: BigInt! # uint256
-  owner: Bytes! # address
-  proposedFee: BigInt! # uint32
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type StrategyFeeUpdated @entity(immutable: true) {
-  id: Bytes!
-  strategyId: BigInt! # uint256
-  owner: Bytes! # address
-  fee: BigInt! # uint32
-  isFast: Boolean!
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type StrategySlashed @entity(immutable: true) {
-  id: Bytes!
-  strategyId: BigInt! # uint256
-  bAppAddress: Bytes! # address
-  token: Bytes! # address
-  percentage: BigInt!
-  receiver: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type StrategyWithdrawal @entity(immutable: true) {
-  id: Bytes!
-  strategyId: BigInt! # uint256
-  contributor: Bytes! # address
-  token: Bytes! # address
-  amount: BigInt! # uint256
-  isFast: Boolean! # bool
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type StrategyWithdrawalProposed @entity(immutable: true) {
-  id: Bytes!
-  strategyId: BigInt! # uint256
-  account: Bytes! # address
-  token: Bytes! # address
-  amount: BigInt! # uint256
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type StrategyMetadataURIUpdated @entity(immutable: true) {
-  id: Bytes!
-  strategyId: BigInt! # uint32
-  metadataURI: String!
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type AccountMetadataURIUpdated @entity(immutable: true) {
-  id: Bytes!
-  account: Bytes! # address
-  metadataURI: String!
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
-}
-
-type Upgraded @entity(immutable: true) {
-  id: Bytes!
-  implementation: Bytes! # address
-  blockNumber: BigInt!
-  blockTimestamp: BigInt!
-  transactionHash: Bytes!
+  stakedAmount: BigInt!
+  unstakePendingAmount: BigInt!
+  # delegatedOracles: [OracleDelegation!] @derivedFrom(field: "delegator")
 }
 
 type Cluster @entity(immutable: false) {
@@ -431,7 +18,10 @@ type Cluster @entity(immutable: false) {
   owner: Account! # address
   operatorIds: [BigInt!]! # uint64[]
   validatorCount: BigInt! # uint32
+  effectiveBalance: BigInt! # uint256
+  vUnits: BigInt! # uint256
   validators: [Validator!] @derivedFrom(field: "cluster")
+  feeAsset: ClusterFeeAssetTypes!
   networkFeeIndex: BigInt! # uint64
   index: BigInt! # uint64
   active: Boolean! # bool
@@ -439,6 +29,11 @@ type Cluster @entity(immutable: false) {
   lastUpdateBlockNumber: BigInt! # uint256
   lastUpdateBlockTimestamp: BigInt!
   lastUpdateTransactionHash: Bytes!
+}
+
+enum ClusterFeeAssetTypes {
+  SSV
+  ETH
 }
 
 type Validator @entity(immutable: false) {
@@ -464,26 +59,22 @@ type Operator @entity(immutable: false) {
   feeIndex: BigInt! # uint256
   feeIndexBlockNumber: BigInt! # uint256
   declaredFee: BigInt! # uint256
+  feeSSV: BigInt! # uint256
+  feeIndexSSV: BigInt! # uint256
+  feeIndexBlockNumberSSV: BigInt! # uint256
+  declaredSSVFee: BigInt! # uint256
   whitelisted: [Account!]!
   whitelistedContract: Bytes! #address
   isPrivate: Boolean! # bool
   totalWithdrawn: BigInt! # uint256
+  totalWithdrawnSSV: BigInt! # uint256
+  totalEffectiveBalance: BigInt! # uint256
   lastUpdateBlockNumber: BigInt! # uint256
   lastUpdateBlockTimestamp: BigInt!
   lastUpdateTransactionHash: Bytes!
   validatorCount: BigInt! # uint256
   validators: [Validator!] @derivedFrom(field: "operators")
 }
-
-# type Account @entity(immutable: false) {
-#   id: Bytes! # address
-#   nonce: BigInt!
-#   validatorCount: BigInt! # uint256
-#   clusters: [Cluster!] @derivedFrom(field: "owner")
-#   validators: [Validator!] @derivedFrom(field: "owner")
-#   operators: [Operator!] @derivedFrom(field: "owner")
-#   feeRecipient: Bytes! #address
-# }
 
 type DAOValues @entity(immutable: false) {
   id: Bytes!
@@ -492,15 +83,28 @@ type DAOValues @entity(immutable: false) {
   networkFeeIndexBlockNumber: BigInt! # uint256
   liquidationThreshold: BigInt! # uint256
   minimumLiquidationCollateral: BigInt! # uint256
+  networkFeeSSV: BigInt! # uint256
+  networkFeeIndexSSV: BigInt! # uint256
+  networkFeeIndexBlockNumberSSV: BigInt! # uint256
+  liquidationThresholdSSV: BigInt! # uint256
+  minimumLiquidationCollateralSSV: BigInt! # uint256
   operatorFeeIncreaseLimit: BigInt! # uint256
   declareOperatorFeePeriod: BigInt! # uint256
   executeOperatorFeePeriod: BigInt! # uint256
   operatorMaximumFee: BigInt! # uint256
+  operatorMaximumFeeSSV: BigInt! # uint256
   validatorsPerOperatorLimit: BigInt!
   updateType: DAOUpdateTypes!
+  accEthPerShare: BigInt!
+  newFeesWei: BigInt!
+  quorum: Int!
+  version: String!
+  latestMerkleRoot: Bytes!
   totalAccounts: BigInt!
   totalValidators: BigInt!
   totalOperators: BigInt!
+  totalEffectiveBalance: BigInt!
+  effectiveBalanceETH: BigInt!
   validatorsAdded: BigInt!
   validatorsRemoved: BigInt!
   operatorsAdded: BigInt!
@@ -513,16 +117,76 @@ type DAOValues @entity(immutable: false) {
 enum DAOUpdateTypes {
   INITIALIZATION
   NETWORK_FEE
+  NETWORK_FEE_SSV
   LIQUIDATION_THRESHOLD
+  LIQUIDATION_THRESHOLD_SSV
   MIN_LIQUIDATION_COLLATERAL
+  MIN_LIQUIDATION_COLLATERAL_SSV
   OPERATOR_FEE_INCREASE_LIMIT
   DECLARE_OPERATOR_FEE_PERIOD
   EXECUTE_OPERATOR_FEE_PERIOD
   OPERATOR_MAX_FEE
+  OPERATOR_MAX_FEE_SSV
+  CLUSTER_BALANCE_UPDATED
+  QUORUM_UPDATED
+  FEES_SYNCED
+  ROOT_COMMITTED
   VALIDATOR_ADDED
   VALIDATOR_REMOVED
   OPERATOR_ADDED
   OPERATOR_REMOVED
+  SSV_NETWORK_UPGRADE
+}
+
+type Oracle @entity(immutable: false) {
+  id: String!
+  oracleId: BigInt!
+  oracleAddress: Bytes! # address
+  # delegators: [OracleDelegation!] @derivedFrom(field: "delegatedOracle")
+  # totalDelegatedAmount: BigInt! # uint256
+  lastUpdateBlockNumber: BigInt! # uint256
+  lastUpdateBlockTimestamp: BigInt!
+  lastUpdateTransactionHash: Bytes!
+}
+
+# type OracleDelegation @entity(immutable: false) {
+#   id: String!
+#   delegator: Account!
+#   delegatedOracle: Oracle!
+#   amount: BigInt!
+# }
+
+type ClusterBalanceUpdated @entity(immutable: true) {
+  id: String!
+  owner: Bytes! # address
+  operatorIds: [BigInt!]! # uint64[]
+  effectiveBalance: BigInt! # uint256
+  cluster_validatorCount: BigInt! # uint32
+  cluster_networkFeeIndex: BigInt! # uint64
+  cluster_index: BigInt! # uint64
+  cluster_active: Boolean! # bool
+  cluster_balance: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type ClusterMigratedToETH @entity(immutable: true) {
+  id: String!
+  owner: Bytes! # address
+  operatorIds: [BigInt!]! # uint64[]
+  ethDeposited: BigInt! # uint256
+  ssvRefunded: BigInt! # uint256
+  effectiveBalance: BigInt! # uint256
+  cluster: Cluster!
+  cluster_validatorCount: BigInt! # uint32
+  cluster_networkFeeIndex: BigInt! # uint64
+  cluster_index: BigInt! # uint64
+  cluster_active: Boolean! # bool
+  cluster_balance: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
 }
 
 type ClusterDeposited @entity(immutable: true) {
@@ -544,6 +208,7 @@ type ClusterLiquidated @entity(immutable: true) {
   id: String!
   owner: Bytes! # address
   operatorIds: [BigInt!]! # uint64[]
+  cluster: Cluster!
   cluster_validatorCount: BigInt! # uint32
   cluster_networkFeeIndex: BigInt! # uint64
   cluster_index: BigInt! # uint64
@@ -558,6 +223,7 @@ type ClusterReactivated @entity(immutable: true) {
   id: String!
   owner: Bytes! # address
   operatorIds: [BigInt!]! # uint64[]
+  cluster: Cluster!
   cluster_validatorCount: BigInt! # uint32
   cluster_networkFeeIndex: BigInt! # uint64
   cluster_index: BigInt! # uint64
@@ -591,6 +257,16 @@ type DeclareOperatorFeePeriodUpdated @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+type ERC20Rescued @entity(immutable: true) {
+  id: String!
+  token: Bytes! # address
+  to: Bytes! # address
+  amount: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
 type ExecuteOperatorFeePeriodUpdated @entity(immutable: true) {
   id: String!
   value: BigInt! # uint64
@@ -608,6 +284,15 @@ type FeeRecipientAddressUpdated @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+type FeesSynced @entity(immutable: true) {
+  id: String!
+  newFeesWei: BigInt!
+  accEthPerShare: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
 type LiquidationThresholdPeriodUpdated @entity(immutable: true) {
   id: String!
   value: BigInt! # uint64
@@ -616,7 +301,23 @@ type LiquidationThresholdPeriodUpdated @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+type LiquidationThresholdPeriodSSVUpdated @entity(immutable: true) {
+  id: String!
+  value: BigInt! # uint64
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
 type MinimumLiquidationCollateralUpdated @entity(immutable: true) {
+  id: String!
+  value: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type MinimumLiquidationCollateralSSVUpdated @entity(immutable: true) {
   id: String!
   value: BigInt! # uint256
   blockNumber: BigInt!
@@ -634,6 +335,15 @@ type NetworkEarningsWithdrawn @entity(immutable: true) {
 }
 
 type NetworkFeeUpdated @entity(immutable: true) {
+  id: String!
+  oldFee: BigInt! # uint256
+  newFee: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type NetworkFeeUpdatedSSV @entity(immutable: true) {
   id: String!
   oldFee: BigInt! # uint256
   newFee: BigInt! # uint256
@@ -761,12 +471,79 @@ type OperatorWithdrawn @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+type OperatorWithdrawnSSV @entity(immutable: true) {
+  id: String!
+  owner: Bytes! # address
+  operatorId: BigInt! # uint64
+  value: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type RewardsClaimed @entity(immutable: true) {
+  id: String!
+  user: Bytes! # address
+  amount: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type RewardsSettled @entity(immutable: true) {
+  id: String!
+  user: Bytes! # address
+  pending: BigInt!
+  accrued: BigInt!
+  userIndex: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Staked @entity(immutable: true) {
+  id: String!
+  user: Bytes! # address
+  amount: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type SSVNetworkUpgradeBlock @entity(immutable: true) {
+  id: String!
+  version: String!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type UnstakeRequested @entity(immutable: true) {
+  id: String!
+  user: Bytes! # address
+  amount: BigInt!
+  unlockTime: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type UnstakedWithdrawn @entity(immutable: true) {
+  id: String!
+  user: Bytes! # address
+  amount: BigInt!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
 type ValidatorAdded @entity(immutable: true) {
   id: String!
   owner: Bytes! # address
   operatorIds: [BigInt!]! # uint64[]
   publicKey: Bytes! # bytes
   shares: Bytes! # bytes
+  cluster: Cluster!
   cluster_validatorCount: BigInt! # uint32
   cluster_networkFeeIndex: BigInt! # uint64
   cluster_index: BigInt! # uint64
@@ -782,11 +559,77 @@ type ValidatorRemoved @entity(immutable: true) {
   owner: Bytes! # address
   operatorIds: [BigInt!]! # uint64[]
   publicKey: Bytes! # bytes
+  cluster: Cluster!
   cluster_validatorCount: BigInt! # uint32
   cluster_networkFeeIndex: BigInt! # uint64
   cluster_index: BigInt! # uint64
   cluster_active: Boolean! # bool
   cluster_balance: BigInt! # uint256
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type Upgraded @entity(immutable: true) {
+  id: Bytes!
+  implementation: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type RootCommitted @entity(immutable: true) {
+  id: String!
+  sender: Bytes! #address
+  merkleRoot: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type RootProposed @entity(immutable: true) {
+  id: String!
+  merkleRoot: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type DelegationUpdated @entity(immutable: true) {
+  id: String!
+  user: Bytes! # address
+  oracleIds: [BigInt!]!
+  amounts: [BigInt!]!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OracleReplaced @entity(immutable: true) {
+  id: String!
+  oracleId: BigInt! # address
+  oldOracle: Bytes!
+  newOracle: Bytes!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type QuorumUpdated @entity(immutable: true) {
+  id: String!
+  newQuorum: Int!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type WeightedRootProposed @entity(immutable: true) {
+  id: String!
+  merkleRoot: Bytes!
+  accumulatedWeight: BigInt!
+  quorum: BigInt!
+  oracleId: BigInt!
+  oracle: Bytes!
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
