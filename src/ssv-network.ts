@@ -1291,7 +1291,7 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   owner.validatorCount = owner.validatorCount.plus(
     event.params.cluster.validatorCount,
   );
-  owner.effectiveBalance = owner.effectiveBalance.minus(
+  owner.effectiveBalance = owner.effectiveBalance.plus(
     cluster.effectiveBalance,
   );
   owner.save();
