@@ -2078,7 +2078,7 @@ export function handleOperatorFeeExecuted(
         [],
       );
       // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
-      operator.feeIndexSSV = operator.feeIndex.plus(
+      operator.feeIndexSSV = operator.feeIndexSSV.plus(
         event.block.number
           .minus(operator.feeIndexBlockNumberSSV)
           .times(operator.feeSSV),
@@ -2155,7 +2155,7 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
     operator.fee = new BigInt(0);
     operator.declaredFee = BigInt.zero(); // reset declared fee, as fee change was executed
     // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
-    operator.feeIndexSSV = operator.feeIndex.plus(
+    operator.feeIndexSSV = operator.feeIndexSSV.plus(
       event.block.number
         .minus(operator.feeIndexBlockNumberSSV)
         .times(operator.feeSSV),
