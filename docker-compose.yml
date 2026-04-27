@@ -1,7 +1,7 @@
 version: "3"
 services:
   graph-node:
-    image: graphprotocol/graph-node@sha256:97138dfdce3ea63157efec1a77f895a3de573d741a1f392b2d71f21109dc1e45
+    image: graphprotocol/graph-node@sha256:7dc172f738d62dbf9fddebc9249566d4f8727825b56b6a1ae218e2ad9334428b
     ports:
       - "8000:8000"
       - "8001:8001"
@@ -22,13 +22,13 @@ services:
       ethereum: "mainnet:http://host.docker.internal:8545"
       GRAPH_LOG: info
   ipfs:
-    image: ipfs/kubo:v0.40.1@sha256:9c70a3dba0b5f362bf99317a02384a194f5c91cf5388abdb8fe7d64d83dd20bb
+    image: ipfs/kubo:v0.41.0@sha256:0661819c2e0972f02d2c27759c217d7d739d461e52fc685e79113254af8f2f6b
     ports:
       - "5001:5001"
     volumes:
       - ./data/ipfs:/data/ipfs
   postgres:
-    image: postgres:18@sha256:a9abf4275f9e99bff8e6aed712b3b7dfec9cac1341bba01c1ffdfce9ff9fc34a
+    image: postgres:18@sha256:78481659c47e862334611ccdaf7c369c986b3046da9857112f3b309114a65fb4
     ports:
       - "5432:5432"
     command:
