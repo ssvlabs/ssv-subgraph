@@ -962,8 +962,8 @@ export function handleClusterBalanceUpdated(
   let clusterPreviousBalance = cluster.effectiveBalance;
   cluster.effectiveBalance = event.params.effectiveBalance;
   cluster.vUnits = cluster.effectiveBalance
-    .div(DEFAULT_BALANCE)
-    .times(VUNITS_PRECISION);
+    .times(VUNITS_PRECISION)
+    .div(DEFAULT_BALANCE);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex;
   cluster.index = event.params.cluster.index;
   cluster.active = event.params.cluster.active;
@@ -1052,8 +1052,8 @@ export function handleClusterMigratedToETH(
   cluster.feeAsset = "ETH";
   cluster.effectiveBalance = event.params.effectiveBalance;
   cluster.vUnits = cluster.effectiveBalance
-    .div(DEFAULT_BALANCE)
-    .times(VUNITS_PRECISION);
+    .times(VUNITS_PRECISION)
+    .div(DEFAULT_BALANCE);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex;
   cluster.index = event.params.cluster.index;
   cluster.active = event.params.cluster.active;
@@ -1509,8 +1509,8 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   );
   cluster.effectiveBalance = cluster.effectiveBalance.plus(DEFAULT_BALANCE);
   cluster.vUnits = cluster.effectiveBalance
-    .div(DEFAULT_BALANCE)
-    .times(VUNITS_PRECISION);
+    .times(VUNITS_PRECISION)
+    .div(DEFAULT_BALANCE);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex;
   cluster.index = event.params.cluster.index;
   cluster.active = event.params.cluster.active;
@@ -1649,8 +1649,8 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   );
   cluster.effectiveBalance = cluster.effectiveBalance.minus(DEFAULT_BALANCE);
   cluster.vUnits = cluster.effectiveBalance
-    .div(DEFAULT_BALANCE)
-    .times(VUNITS_PRECISION);
+    .times(VUNITS_PRECISION)
+    .div(DEFAULT_BALANCE);
   cluster.networkFeeIndex = event.params.cluster.networkFeeIndex;
   cluster.index = event.params.cluster.index;
   cluster.active = event.params.cluster.active;
