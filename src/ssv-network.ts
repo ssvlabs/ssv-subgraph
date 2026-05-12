@@ -97,6 +97,7 @@ import {
   WeightedRootProposed,
   Oracle,
   OperatorWithdrawnSSV,
+  ValidatorExited,
 } from "../generated/schema";
 
 const VUNITS_PRECISION = BigInt.fromI32(100000);
@@ -1797,6 +1798,35 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     );
   }
   dao.save();
+}
+
+export function handleValidatorExited(event: ValidatorAddedEvent): void {
+  let entity = new ValidatorExited(
+    `${event.transaction.hash.toHexString()}-${event.logIndex
+      .toString()
+      .padStart(5, "0")}`,
+  );
+  entity.owner = event.params.owner;
+  entity.operatorIds = event.params.operatorIds;
+  entity.publicKey = event.params.publicKey;
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  let clusterId = `${event.params.owner.toHexString()}-${event.params.operatorIds.join(
+    "-",
+  )}`;
+  let cluster = Cluster.load(clusterId);
+  if (!cluster) {
+    log.error(
+      `Validator ${event.params.publicKey.toHexString()} is being removed from Cluster ${clusterId} which does not exist on DB`,
+      [],
+    );
+    return;
+  }
+
+  entity.cluster = cluster.id;
+  entity.save();
 }
 
 // ###### Operator Events ######
