@@ -97,6 +97,8 @@ dataSources:
         - event: ValidatorRemoved(indexed
             address,uint64[],bytes,(uint32,uint64,uint64,bool,uint256))
           handler: handleValidatorRemoved
+        - event: ValidatorExited(indexed address,uint64[],bytes)
+          handler: handleValidatorExited
         - event: OperatorAdded(indexed uint64,indexed address,bytes,uint256)
           handler: handleOperatorAdded
         - event: OperatorFeeDeclarationCancelled(indexed address,indexed uint64)

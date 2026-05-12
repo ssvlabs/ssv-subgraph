@@ -570,6 +570,17 @@ type ValidatorRemoved @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+type ValidatorExited @entity(immutable: true) {
+  id: String!
+  owner: Bytes! # address
+  operatorIds: [BigInt!]! # uint64[]
+  publicKey: Bytes! # bytes
+  cluster: Cluster!
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
 type Upgraded @entity(immutable: true) {
   id: Bytes!
   implementation: Bytes! # address
