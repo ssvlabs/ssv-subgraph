@@ -122,13 +122,7 @@ import {
   usesEthFeeRegime,
 } from "./helpers/dao";
 import { buildClusterId, buildEventEntityId } from "./helpers/ids";
-import {
-  saveClusterProjection,
-  saveOperatorProjection,
-  saveValidatorProjection,
-  stampDAOUpdate,
-  stampOracleUpdate,
-} from "./helpers/metadata";
+import { stampUpdate } from "./helpers/metadata";
 import { loadLoopOperatorOrLog } from "./helpers/operator";
 
 const VUNITS_PRECISION = BigInt.fromI32(100000);
@@ -184,7 +178,7 @@ export function handleDeclareOperatorFeePeriodUpdated(
   );
   dao.updateType = "DECLARE_OPERATOR_FEE_PERIOD";
   dao.declareOperatorFeePeriod = event.params.value;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -211,7 +205,7 @@ export function handleExecuteOperatorFeePeriodUpdated(
   );
   dao.updateType = "EXECUTE_OPERATOR_FEE_PERIOD";
   dao.executeOperatorFeePeriod = event.params.value;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -279,7 +273,7 @@ export function handleLiquidationThresholdPeriodUpdated(
     dao.updateType = "LIQUIDATION_THRESHOLD";
     dao.liquidationThresholdSSV = event.params.value;
   }
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 export function handleLiquidationThresholdPeriodSSVUpdated(
@@ -305,7 +299,7 @@ export function handleLiquidationThresholdPeriodSSVUpdated(
   );
   dao.updateType = "LIQUIDATION_THRESHOLD_SSV";
   dao.liquidationThresholdSSV = event.params.value;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -347,7 +341,7 @@ export function handleMinimumLiquidationCollateralUpdated(
     dao.updateType = "MIN_LIQUIDATION_COLLATERAL_SSV";
     dao.minimumLiquidationCollateralSSV = event.params.value;
   }
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -374,7 +368,7 @@ export function handleMinimumLiquidationCollateralSSVUpdated(
   );
   dao.updateType = "MIN_LIQUIDATION_COLLATERAL_SSV";
   dao.minimumLiquidationCollateralSSV = event.params.value;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -448,7 +442,7 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
     dao.networkFeeIndexBlockNumberSSV = event.block.number;
     dao.networkFeeSSV = event.params.newFee;
   }
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -483,7 +477,7 @@ export function handleNetworkFeeUpdatedSSV(
   );
   dao.networkFeeIndexBlockNumberSSV = event.block.number;
   dao.networkFeeSSV = event.params.newFee;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -510,7 +504,7 @@ export function handleOperatorFeeIncreaseLimitUpdated(
   );
   dao.updateType = "OPERATOR_FEE_INCREASE_LIMIT";
   dao.operatorFeeIncreaseLimit = event.params.value;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -537,7 +531,7 @@ export function handleOperatorMaximumFeeUpdated(
   );
   dao.updateType = "OPERATOR_MAX_FEE";
   dao.operatorMaximumFee = event.params.maxFee;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -607,12 +601,13 @@ export function handleClusterBalanceUpdated(
     event.params.cluster.active,
     event.params.cluster.balance,
   );
-  saveClusterProjection(
+  stampUpdate(
     cluster,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  cluster.save();
 
   let dao = DAOValues.load(event.address);
   if (!dao) {
@@ -697,12 +692,13 @@ export function handleClusterMigratedToETH(
     event.params.cluster.active,
     event.params.cluster.balance,
   );
-  saveClusterProjection(
+  stampUpdate(
     cluster,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  cluster.save();
 
   for (var i = 0; i < event.params.operatorIds.length; i++) {
     let operator = loadLoopOperatorOrLog(
@@ -714,12 +710,13 @@ export function handleClusterMigratedToETH(
       continue;
     }
 
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -766,12 +763,13 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
     event.params.cluster.active,
     event.params.cluster.balance,
   );
-  saveClusterProjection(
+  stampUpdate(
     cluster,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  cluster.save();
 }
 
 export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
@@ -843,12 +841,13 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
     event.params.cluster.active,
     event.params.cluster.balance,
   );
-  saveClusterProjection(
+  stampUpdate(
     cluster,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  cluster.save();
 
   entity.cluster = cluster.id;
   entity.save();
@@ -867,12 +866,13 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
       operator.validatorCount = operator.validatorCount.minus(
         event.params.cluster.validatorCount,
       );
-      saveOperatorProjection(
+      stampUpdate(
         operator,
         event.block.number,
         event.block.timestamp,
         event.transaction.hash,
       );
+      operator.save();
     }
   }
 }
@@ -950,12 +950,13 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
     event.params.cluster.active,
     event.params.cluster.balance,
   );
-  saveClusterProjection(
+  stampUpdate(
     cluster,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  cluster.save();
 
   entity.cluster = cluster.id;
   entity.save();
@@ -974,12 +975,13 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
       operator.validatorCount = operator.validatorCount.plus(
         event.params.cluster.validatorCount,
       );
-      saveOperatorProjection(
+      stampUpdate(
         operator,
         event.block.number,
         event.block.timestamp,
         event.transaction.hash,
       );
+      operator.save();
     }
   }
 }
@@ -1031,12 +1033,13 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
     event.params.cluster.active,
     event.params.cluster.balance,
   );
-  saveClusterProjection(
+  stampUpdate(
     cluster,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  cluster.save();
 }
 
 export function handleValidatorAdded(event: ValidatorAddedEvent): void {
@@ -1107,12 +1110,13 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     event.params.cluster.active,
     event.params.cluster.balance,
   );
-  saveClusterProjection(
+  stampUpdate(
     cluster,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  cluster.save();
 
   entity.cluster = cluster.id;
   entity.save();
@@ -1134,12 +1138,13 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   validator.cluster = cluster.id;
   validator.removed = false;
   validator.shares = event.params.shares;
-  saveValidatorProjection(
+  stampUpdate(
     validator,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  validator.save();
 
   for (var i = 0; i < event.params.operatorIds.length; i++) {
     let operatorId = event.params.operatorIds[i].toString();
@@ -1158,12 +1163,13 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     operator.operatorId = event.params.operatorIds[i];
     operator.validatorCount = operator.validatorCount.plus(BigInt.fromI32(1));
 
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
   // always save dao counters
   log.info(
@@ -1250,12 +1256,13 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     event.params.cluster.active,
     event.params.cluster.balance,
   );
-  saveClusterProjection(
+  stampUpdate(
     cluster,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  cluster.save();
 
   entity.cluster = cluster.id;
   entity.save();
@@ -1277,12 +1284,13 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     );
     validator.owner = owner.id; // this does not sound right 🧐
     validator.removed = true;
-    saveValidatorProjection(
+    stampUpdate(
       validator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    validator.save();
   }
 
   for (var i = 0; i < event.params.operatorIds.length; i++) {
@@ -1302,12 +1310,13 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
       operator.validatorCount = operator.validatorCount.minus(
         BigInt.fromI32(1),
       );
-      saveOperatorProjection(
+      stampUpdate(
         operator,
         event.block.number,
         event.block.timestamp,
         event.transaction.hash,
       );
+      operator.save();
     }
   }
   // always save dao totals counter
@@ -1414,12 +1423,13 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
     dao.totalOperators = dao.totalOperators.plus(BigInt.fromI32(1));
   }
 
-  saveOperatorProjection(
+  stampUpdate(
     operator,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  operator.save();
 
   log.info(
     `Dao Values update type: ${dao.updateType}, operator count: ${dao.totalOperators}`,
@@ -1480,12 +1490,13 @@ export function handleOperatorFeeDeclarationCancelled(
     } else {
       operator.declaredSSVFee = BigInt.zero();
     }
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -1543,12 +1554,13 @@ export function handleOperatorFeeDeclared(
     } else {
       operator.declaredSSVFee = event.params.fee; // storing declared fee, in case fee change gets cancelled
     }
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -1644,12 +1656,13 @@ export function handleOperatorFeeExecuted(
         operator.fee = event.params.fee; // if fee is set to 0 for SSV, also set it to 0 for ETH, to avoid confusion (as fee field is used for both SSV and ETH fee depending on the cluster type)
       }
     }
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -1719,12 +1732,13 @@ export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
     operator.declaredSSVFee = BigInt.zero(); // reset declared fee, as fee change was executed
 
     operator.validatorCount = new BigInt(0);
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 
   log.info(
@@ -1787,12 +1801,13 @@ export function handleOperatorWhitelistUpdated(
       operator.isPrivate = true;
       operator.whitelisted = [whitelisted.id];
     }
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -1847,12 +1862,13 @@ export function handleOperatorMultipleWhitelistUpdated(
     }
     operator.operatorId = event.params.operatorIds[j];
     operator.whitelisted = operator.whitelisted.concat(whitelistIDList);
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -1921,12 +1937,13 @@ export function handleOperatorMultipleWhitelistRemoved(
     }
 
     operator.whitelisted = whitelistArray;
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -1960,12 +1977,13 @@ export function handleOperatorWhitelistingContractUpdated(
     }
     operator.operatorId = event.params.operatorIds[i];
     operator.whitelistedContract = event.params.whitelistingContract;
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -2000,12 +2018,13 @@ export function handleOperatorPrivacyStatusUpdated(
     }
     operator.operatorId = event.params.operatorIds[i];
     operator.isPrivate = event.params.toPrivate;
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -2063,12 +2082,13 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
         event.params.value,
       );
     }
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -2113,12 +2133,13 @@ export function handleOperatorWithdrawnSSV(
     operator.totalWithdrawnSSV = operator.totalWithdrawnSSV.plus(
       event.params.value,
     );
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -2168,7 +2189,7 @@ export function handleFeesSynced(event: FeesSyncedEvent): void {
   dao.updateType = "FEES_SYNCED";
   dao.accEthPerShare = event.params.accEthPerShare;
   dao.newFeesWei = event.params.newFeesWei;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
 
   log.info(
     `Dao Values update type: ${dao.updateType}, new ETH per share: ${dao.accEthPerShare}, new fees wei: ${dao.newFeesWei}`,
@@ -2297,7 +2318,7 @@ export function handleRootCommitted(event: RootCommittedEvent): void {
   }
   dao.updateType = "ROOT_COMMITTED";
   dao.latestMerkleRoot = event.params.merkleRoot;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
 
   log.info(
     `Dao Values update type: ${dao.updateType}, new latest merkle root: ${dao.latestMerkleRoot.toHexString()}`,
@@ -2384,7 +2405,7 @@ export function handleOracleReplaced(event: OracleReplacedEvent): void {
     oracle = new Oracle(oracleId);
     oracle.oracleId = event.params.oracleId;
     // oracle.totalDelegatedAmount = BigInt.zero();
-    stampOracleUpdate(
+    stampUpdate(
       oracle,
       event.block.number,
       event.block.timestamp,
@@ -2417,7 +2438,7 @@ export function handleQuorumUpdated(event: QuorumUpdatedEvent): void {
 
   dao.updateType = "QUORUM_UPDATED";
   dao.quorum = event.params.newQuorum;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
 
   log.info(
     `Dao Values update type: ${dao.updateType}, new quorum: ${dao.quorum}`,
@@ -2473,7 +2494,7 @@ export function handleSSVNetworkUpgradeBlock(
     dao.networkFeeIndex = BigInt.zero();
     dao.networkFeeIndexBlockNumber = event.params.blockNumber;
   }
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
 
   log.info(
     `Dao Values update type: ${dao.updateType}, contract upgraded to version ${dao.version}`,
