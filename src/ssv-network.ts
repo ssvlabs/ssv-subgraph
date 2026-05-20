@@ -134,6 +134,39 @@ function createDefaultAccount(address: Address): Account {
   return account;
 }
 
+function loadOrCreateAccount(address: Address): Account {
+  let account = Account.load(address);
+  if (!account) {
+    account = createDefaultAccount(address);
+  }
+
+  return account;
+}
+
+function loadOrCreateDAOValuesWithWarning(
+  address: Address,
+  blockNumber: BigInt,
+  blockTimestamp: BigInt,
+  transactionHash: Bytes,
+  updateType: string,
+): DAOValues {
+  let dao = DAOValues.load(address);
+  if (!dao) {
+    log.warning(
+      `New DAO Event, DAO values store with ID ${address.toHexString()} does not exist on the database, creating it. Update type: ${updateType}`,
+      [],
+    );
+    dao = createDefaultDAOValues(
+      address,
+      blockNumber,
+      blockTimestamp,
+      transactionHash,
+    );
+  }
+
+  return dao;
+}
+
 function loadOrCreateValidatorOwnerAccount(
   ownerAddress: Address,
   dao: DAOValues,
@@ -149,6 +182,86 @@ function loadOrCreateValidatorOwnerAccount(
   }
 
   return owner;
+}
+
+function loadRequiredClusterOwnerAccount(ownerAddress: Address): Account | null {
+  let owner = Account.load(ownerAddress);
+  if (!owner) {
+    log.error(
+      `Trying to update account with address ${ownerAddress.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
+      [],
+    );
+    return null;
+  }
+
+  return owner;
+}
+
+function loadRequiredOperatorOwnerAccount(
+  ownerAddress: Address,
+  operatorId: BigInt,
+  action: string,
+): Account | null {
+  let owner = Account.load(ownerAddress);
+  if (!owner) {
+    log.error(
+      `${action} for Operator ${operatorId}, but Owner ${ownerAddress.toHexString()} did not exist on the database`,
+      [],
+    );
+    return null;
+  }
+
+  return owner;
+}
+
+function loadRequiredLifecycleCluster(
+  clusterId: string,
+  action: string,
+): Cluster | null {
+  let cluster = Cluster.load(clusterId);
+  if (!cluster) {
+    log.error(
+      `Cluster ${clusterId} is being ${action}, but it does not exist on the database`,
+      [],
+    );
+    return null;
+  }
+
+  return cluster;
+}
+
+function loadRequiredStakingAccount(
+  userAddress: Address,
+  action: string,
+): Account | null {
+  let user = Account.load(userAddress);
+  if (!user) {
+    log.error(
+      `${action} for User ${userAddress.toHexString()}, but the account does not exist on the database`,
+      [],
+    );
+    return null;
+  }
+
+  return user;
+}
+
+function loadLoopOperatorOrLog(
+  operatorId: BigInt,
+  missingMessage: string,
+  missingInformation: string,
+): Operator | null {
+  let operator = Operator.load(operatorId.toString());
+  if (!operator) {
+    log.error(missingMessage, []);
+    log.error(
+      `Could not create ${operatorId.toString()} on the database, because of missing ${missingInformation}`,
+      [],
+    );
+    return null;
+  }
+
+  return operator;
 }
 
 function applyOwnerValidatorAdded(owner: Account): void {
@@ -183,19 +296,13 @@ export function handleDeclareOperatorFeePeriodUpdated(
 
   entity.save();
 
-  let dao = DAOValues.load(event.address);
-  if (!dao) {
-    log.warning(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
-      [],
-    );
-    dao = createDefaultDAOValues(
-      event.address,
-      event.block.number,
-      event.block.timestamp,
-      event.transaction.hash,
-    );
-  }
+  let dao = loadOrCreateDAOValuesWithWarning(
+    event.address,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+    "DECLARE_OPERATOR_FEE_PERIOD",
+  );
   dao.updateType = "DECLARE_OPERATOR_FEE_PERIOD";
   dao.declareOperatorFeePeriod = event.params.value;
   stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
@@ -216,19 +323,13 @@ export function handleExecuteOperatorFeePeriodUpdated(
 
   entity.save();
 
-  let dao = DAOValues.load(event.address);
-  if (!dao) {
-    log.warning(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: EXECUTE_OPERATOR_FEE_PERIOD`,
-      [],
-    );
-    dao = createDefaultDAOValues(
-      event.address,
-      event.block.number,
-      event.block.timestamp,
-      event.transaction.hash,
-    );
-  }
+  let dao = loadOrCreateDAOValuesWithWarning(
+    event.address,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+    "EXECUTE_OPERATOR_FEE_PERIOD",
+  );
   dao.updateType = "EXECUTE_OPERATOR_FEE_PERIOD";
   dao.executeOperatorFeePeriod = event.params.value;
   stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
@@ -276,19 +377,13 @@ export function handleLiquidationThresholdPeriodUpdated(
 
   entity.save();
 
-  let dao = DAOValues.load(event.address);
-  if (!dao) {
-    log.warning(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: LIQUIDATION_THRESHOLD`,
-      [],
-    );
-    dao = createDefaultDAOValues(
-      event.address,
-      event.block.number,
-      event.block.timestamp,
-      event.transaction.hash,
-    );
-  }
+  let dao = loadOrCreateDAOValuesWithWarning(
+    event.address,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+    "LIQUIDATION_THRESHOLD",
+  );
   // if the dao variable update happened before the ssv staking update, it refers to the ssv value
   if (legacyDaoFeeEventTargetsPrimaryFields(dao)) {
     log.info(
@@ -322,19 +417,13 @@ export function handleLiquidationThresholdPeriodSSVUpdated(
 
   entity.save();
 
-  let dao = DAOValues.load(event.address);
-  if (!dao) {
-    log.warning(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: LIQUIDATION_THRESHOLD`,
-      [],
-    );
-    dao = createDefaultDAOValues(
-      event.address,
-      event.block.number,
-      event.block.timestamp,
-      event.transaction.hash,
-    );
-  }
+  let dao = loadOrCreateDAOValuesWithWarning(
+    event.address,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+    "LIQUIDATION_THRESHOLD",
+  );
   dao.updateType = "LIQUIDATION_THRESHOLD_SSV";
   dao.liquidationThresholdSSV = event.params.value;
   stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
@@ -355,19 +444,13 @@ export function handleMinimumLiquidationCollateralUpdated(
 
   entity.save();
 
-  let dao = DAOValues.load(event.address);
-  if (!dao) {
-    log.warning(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: MIN_LIQUIDATION_COLLATERAL`,
-      [],
-    );
-    dao = createDefaultDAOValues(
-      event.address,
-      event.block.number,
-      event.block.timestamp,
-      event.transaction.hash,
-    );
-  }
+  let dao = loadOrCreateDAOValuesWithWarning(
+    event.address,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+    "MIN_LIQUIDATION_COLLATERAL",
+  );
 
   // if the dao variable update happened before the ssv staking update, it refers to the ssv value
   if (legacyDaoFeeEventTargetsPrimaryFields(dao)) {
@@ -403,19 +486,13 @@ export function handleMinimumLiquidationCollateralSSVUpdated(
 
   entity.save();
 
-  let dao = DAOValues.load(event.address);
-  if (!dao) {
-    log.warning(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: MIN_LIQUIDATION_COLLATERAL`,
-      [],
-    );
-    dao = createDefaultDAOValues(
-      event.address,
-      event.block.number,
-      event.block.timestamp,
-      event.transaction.hash,
-    );
-  }
+  let dao = loadOrCreateDAOValuesWithWarning(
+    event.address,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+    "MIN_LIQUIDATION_COLLATERAL",
+  );
   dao.updateType = "MIN_LIQUIDATION_COLLATERAL_SSV";
   dao.minimumLiquidationCollateralSSV = event.params.value;
   stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
@@ -455,19 +532,13 @@ export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
     [],
   );
 
-  let dao = DAOValues.load(event.address);
-  if (!dao) {
-    log.warning(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: NETWORK_FEE`,
-      [],
-    );
-    dao = createDefaultDAOValues(
-      event.address,
-      event.block.number,
-      event.block.timestamp,
-      event.transaction.hash,
-    );
-  }
+  let dao = loadOrCreateDAOValuesWithWarning(
+    event.address,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+    "NETWORK_FEE",
+  );
   dao.updateType = "NETWORK_FEE";
 
   if (usesEthFeeRegime(dao)) {
@@ -517,19 +588,13 @@ export function handleNetworkFeeUpdatedSSV(
 
   entity.save();
 
-  let dao = DAOValues.load(event.address);
-  if (!dao) {
-    log.warning(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: NETWORK_FEE`,
-      [],
-    );
-    dao = createDefaultDAOValues(
-      event.address,
-      event.block.number,
-      event.block.timestamp,
-      event.transaction.hash,
-    );
-  }
+  let dao = loadOrCreateDAOValuesWithWarning(
+    event.address,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+    "NETWORK_FEE",
+  );
   dao.updateType = "NETWORK_FEE_SSV";
   // update the index first, because it's using "old" fee, and "old" feeIndexBlockNumber values
   dao.networkFeeIndexSSV = dao.networkFeeIndexSSV.plus(
@@ -557,19 +622,13 @@ export function handleOperatorFeeIncreaseLimitUpdated(
 
   entity.save();
 
-  let dao = DAOValues.load(event.address);
-  if (!dao) {
-    log.warning(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: OPERATOR_FEE_INCREASE_LIMIT`,
-      [],
-    );
-    dao = createDefaultDAOValues(
-      event.address,
-      event.block.number,
-      event.block.timestamp,
-      event.transaction.hash,
-    );
-  }
+  let dao = loadOrCreateDAOValuesWithWarning(
+    event.address,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+    "OPERATOR_FEE_INCREASE_LIMIT",
+  );
   dao.updateType = "OPERATOR_FEE_INCREASE_LIMIT";
   dao.operatorFeeIncreaseLimit = event.params.value;
   stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
@@ -590,19 +649,13 @@ export function handleOperatorMaximumFeeUpdated(
 
   entity.save();
 
-  let dao = DAOValues.load(event.address);
-  if (!dao) {
-    log.warning(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
-      [],
-    );
-    dao = createDefaultDAOValues(
-      event.address,
-      event.block.number,
-      event.block.timestamp,
-      event.transaction.hash,
-    );
-  }
+  let dao = loadOrCreateDAOValuesWithWarning(
+    event.address,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+    "DECLARE_OPERATOR_FEE_PERIOD",
+  );
   dao.updateType = "OPERATOR_MAX_FEE";
   dao.operatorMaximumFee = event.params.maxFee;
   stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
@@ -644,12 +697,8 @@ export function handleClusterBalanceUpdated(
     cluster.feeAsset = SSV_FEE_ASSET;
   }
 
-  let owner = Account.load(event.params.owner);
+  let owner = loadRequiredClusterOwnerAccount(event.params.owner);
   if (!owner) {
-    log.error(
-      `Trying to update account with address ${event.params.owner.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
-      [],
-    );
     return;
   }
   // subtracting previous effective balance and adding the one from the event
@@ -728,12 +777,8 @@ export function handleClusterMigratedToETH(
   entity.blockTimestamp = event.block.timestamp;
   entity.transactionHash = event.transaction.hash;
 
-  let owner = Account.load(event.params.owner);
+  let owner = loadRequiredClusterOwnerAccount(event.params.owner);
   if (!owner) {
-    log.error(
-      `Trying to update account with address ${event.params.owner.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
-      [],
-    );
     return;
   }
 
@@ -781,25 +826,21 @@ export function handleClusterMigratedToETH(
   );
 
   for (var i = 0; i < event.params.operatorIds.length; i++) {
-    let operatorId = event.params.operatorIds[i].toString();
-    let operator = Operator.load(operatorId);
+    let operator = loadLoopOperatorOrLog(
+      event.params.operatorIds[i],
+      `Cluster is migrated to ETH, but Operator ${event.params.operatorIds[i]} does not exist on the database`,
+      "information",
+    );
     if (!operator) {
-      log.error(
-        `Cluster is migrated to ETH, but Operator ${event.params.operatorIds[i]} does not exist on the database`,
-        [],
-      );
-      log.error(
-        `Could not create ${operatorId} on the database, because of missing information`,
-        [],
-      );
-    } else {
-      saveOperatorProjection(
-        operator,
-        event.block.number,
-        event.block.timestamp,
-        event.transaction.hash,
-      );
+      continue;
     }
+
+    saveOperatorProjection(
+      operator,
+      event.block.number,
+      event.block.timestamp,
+      event.transaction.hash,
+    );
   }
 }
 
@@ -822,22 +863,14 @@ export function handleClusterDeposited(event: ClusterDepositedEvent): void {
 
   entity.save();
 
-  let owner = Account.load(event.params.owner);
+  let owner = loadRequiredClusterOwnerAccount(event.params.owner);
   if (!owner) {
-    log.error(
-      `Trying to update account with address ${event.params.owner.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
-      [],
-    );
     return;
   }
 
   let clusterId = buildClusterId(event.params.owner, event.params.operatorIds);
-  let cluster = Cluster.load(clusterId);
+  let cluster = loadRequiredLifecycleCluster(clusterId, "deposited");
   if (!cluster) {
-    log.error(
-      `Cluster ${clusterId} is being deposited, but it does not exist on the database`,
-      [],
-    );
     return;
   }
 
@@ -879,21 +912,13 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   let clusterId = buildClusterId(event.params.owner, event.params.operatorIds);
-  let cluster = Cluster.load(clusterId);
+  let cluster = loadRequiredLifecycleCluster(clusterId, "liquidated");
   if (!cluster) {
-    log.error(
-      `Cluster ${clusterId} is being liquidated, but it does not exist on the database`,
-      [],
-    );
     return;
   }
 
-  let owner = Account.load(event.params.owner);
+  let owner = loadRequiredClusterOwnerAccount(event.params.owner);
   if (!owner) {
-    log.error(
-      `Trying to update account with address ${event.params.owner.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
-      [],
-    );
     return;
   }
   owner.validatorCount = owner.validatorCount.minus(
@@ -950,18 +975,16 @@ export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
   entity.save();
 
   for (var i = 0; i < event.params.operatorIds.length; i++) {
-    let operatorId = event.params.operatorIds[i].toString();
-    let operator = Operator.load(operatorId);
+    let operator = loadLoopOperatorOrLog(
+      event.params.operatorIds[i],
+      `Removing validator data for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`,
+      "owner, publicKey and fee information",
+    );
     if (!operator) {
-      log.error(
-        `Removing validator data for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`,
-        [],
-      );
-      log.error(
-        `Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`,
-        [],
-      );
-    } else if (!operator.removed) {
+      continue;
+    }
+
+    if (!operator.removed) {
       operator.validatorCount = operator.validatorCount.minus(
         event.params.cluster.validatorCount,
       );
@@ -992,21 +1015,13 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   let clusterId = buildClusterId(event.params.owner, event.params.operatorIds);
-  let cluster = Cluster.load(clusterId);
+  let cluster = loadRequiredLifecycleCluster(clusterId, "reactivated");
   if (!cluster) {
-    log.error(
-      `Cluster ${clusterId} is being reactivated, but it does not exist on the database`,
-      [],
-    );
     return;
   }
 
-  let owner = Account.load(event.params.owner);
+  let owner = loadRequiredClusterOwnerAccount(event.params.owner);
   if (!owner) {
-    log.error(
-      `Trying to update account with address ${event.params.owner.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
-      [],
-    );
     return;
   }
   owner.validatorCount = owner.validatorCount.plus(
@@ -1067,18 +1082,16 @@ export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   entity.save();
 
   for (var i = 0; i < event.params.operatorIds.length; i++) {
-    let operatorId = event.params.operatorIds[i].toString();
-    let operator = Operator.load(operatorId);
+    let operator = loadLoopOperatorOrLog(
+      event.params.operatorIds[i],
+      `Adding validator data for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`,
+      "owner, publicKey and fee information",
+    );
     if (!operator) {
-      log.error(
-        `Adding validator data for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`,
-        [],
-      );
-      log.error(
-        `Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`,
-        [],
-      );
-    } else if (!operator.removed) {
+      continue;
+    }
+
+    if (!operator.removed) {
       operator.validatorCount = operator.validatorCount.plus(
         event.params.cluster.validatorCount,
       );
@@ -1111,22 +1124,14 @@ export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
 
   entity.save();
 
-  let owner = Account.load(event.params.owner);
+  let owner = loadRequiredClusterOwnerAccount(event.params.owner);
   if (!owner) {
-    log.error(
-      `Trying to update account with address ${event.params.owner.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
-      [],
-    );
     return;
   }
 
   let clusterId = buildClusterId(event.params.owner, event.params.operatorIds);
-  let cluster = Cluster.load(clusterId);
+  let cluster = loadRequiredLifecycleCluster(clusterId, "withdrawn");
   if (!cluster) {
-    log.error(
-      `Cluster ${clusterId} is being withdrawn, but it does not exist on the database`,
-      [],
-    );
     return;
   }
 
@@ -1324,12 +1329,8 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   dao.validatorsRemoved = dao.validatorsRemoved.plus(BigInt.fromI32(1));
   dao.totalValidators = dao.totalValidators.minus(BigInt.fromI32(1));
 
-  let owner = Account.load(event.params.owner);
+  let owner = loadRequiredClusterOwnerAccount(event.params.owner);
   if (!owner) {
-    log.error(
-      `Trying to update account with address ${event.params.owner.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
-      [],
-    );
     return;
   }
   // update owner validator count if the cluster is active
@@ -1406,20 +1407,18 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   }
 
   for (var i = 0; i < event.params.operatorIds.length; i++) {
-    let operatorId = event.params.operatorIds[i].toString();
-    let operator = Operator.load(operatorId);
+    let operator = loadLoopOperatorOrLog(
+      event.params.operatorIds[i],
+      `Removing validator data for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`,
+      "owner, publicKey and fee information",
+    );
     if (!operator) {
-      log.error(
-        `Removing validator data for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`,
-        [],
-      );
-      log.error(
-        `Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`,
-        [],
-      );
       // We only want to amend the validator details if the cluster and the operator are active
       // This keeps the data in line when liquidations/reactivation events are parsed
-    } else if (!operator.removed && cluster.active) {
+      continue;
+    }
+
+    if (!operator.removed && cluster.active) {
       operator.operatorId = event.params.operatorIds[i];
       operator.validatorCount = operator.validatorCount.minus(
         BigInt.fromI32(1),
@@ -1481,7 +1480,7 @@ export function handleOperatorAdded(event: OperatorAddedEvent): void {
 
   let owner = Account.load(event.params.owner);
   if (!owner) {
-    owner = createDefaultAccount(event.params.owner);
+    owner = loadOrCreateAccount(event.params.owner);
     owner.save();
     // if it's a new account, also update total counter
     dao.totalAccounts = dao.totalAccounts.plus(BigInt.fromI32(1));
@@ -1565,14 +1564,12 @@ export function handleOperatorFeeDeclarationCancelled(
 
   entity.save();
 
-  let owner = Account.load(event.params.owner);
+  let owner = loadRequiredOperatorOwnerAccount(
+    event.params.owner,
+    event.params.operatorId,
+    "Cancelling fee declaration",
+  );
   if (!owner) {
-    log.error(
-      `Cancelling fee declaration for Operator ${
-        event.params.operatorId
-      }, but Owner ${event.params.owner.toHexString()} did not exist on the database`,
-      [],
-    );
     return;
   }
 
@@ -1630,14 +1627,12 @@ export function handleOperatorFeeDeclared(
 
   entity.save();
 
-  let owner = Account.load(event.params.owner);
+  let owner = loadRequiredOperatorOwnerAccount(
+    event.params.owner,
+    event.params.operatorId,
+    "Declaring fees",
+  );
   if (!owner) {
-    log.error(
-      `Declaring fees for Operator ${
-        event.params.operatorId
-      }, but Owner ${event.params.owner.toHexString()} did not exist on the database`,
-      [],
-    );
     return;
   }
 
@@ -1704,14 +1699,12 @@ export function handleOperatorFeeExecuted(
 
   entity.save();
 
-  let owner = Account.load(event.params.owner);
+  let owner = loadRequiredOperatorOwnerAccount(
+    event.params.owner,
+    event.params.operatorId,
+    "Executing fees change",
+  );
   if (!owner) {
-    log.error(
-      `Executing fees change for Operator ${
-        event.params.operatorId
-      }, but Owner ${event.params.owner.toHexString()} did not exist on the database`,
-      [],
-    );
     return;
   }
 
@@ -1889,7 +1882,7 @@ export function handleOperatorWhitelistUpdated(
       }, this is a new Account`,
       [],
     );
-    whitelisted = createDefaultAccount(event.params.whitelisted);
+    whitelisted = loadOrCreateAccount(event.params.whitelisted);
     whitelisted.save();
   }
   let operatorId = event.params.operatorId.toString();
@@ -1954,37 +1947,33 @@ export function handleOperatorMultipleWhitelistUpdated(
         }}, this is a new Account`,
         [],
       );
-      whitelisted = createDefaultAccount(event.params.whitelistAddresses[i]);
+      whitelisted = loadOrCreateAccount(event.params.whitelistAddresses[i]);
       whitelisted.save();
     }
     whitelistIDList.push(whitelisted.id);
   }
 
   for (let j = 0; j < event.params.operatorIds.length; j++) {
-    let operatorId = event.params.operatorIds[j].toString();
-    let operator = Operator.load(operatorId);
+    let operator = loadLoopOperatorOrLog(
+      event.params.operatorIds[j],
+      `Executing whitelist additions for Operator ${event.params.operatorIds[j]}, but it does not exist on the database`,
+      "owner, publicKey and fee information",
+    );
     if (!operator) {
-      log.error(
-        `Executing whitelist additions for Operator ${event.params.operatorIds[j]}, but it does not exist on the database`,
-        [],
-      );
-      log.error(
-        `Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`,
-        [],
-      );
-    } else {
-      if (!operator.whitelisted) {
-        operator.whitelisted = [];
-      }
-      operator.operatorId = event.params.operatorIds[j];
-      operator.whitelisted = operator.whitelisted.concat(whitelistIDList);
-      saveOperatorProjection(
-        operator,
-        event.block.number,
-        event.block.timestamp,
-        event.transaction.hash,
-      );
+      continue;
     }
+
+    if (!operator.whitelisted) {
+      operator.whitelisted = [];
+    }
+    operator.operatorId = event.params.operatorIds[j];
+    operator.whitelisted = operator.whitelisted.concat(whitelistIDList);
+    saveOperatorProjection(
+      operator,
+      event.block.number,
+      event.block.timestamp,
+      event.transaction.hash,
+    );
   }
 }
 
@@ -2016,53 +2005,49 @@ export function handleOperatorMultipleWhitelistRemoved(
         }, this is a new Account`,
         [],
       );
-      whitelisted = createDefaultAccount(address);
+      whitelisted = loadOrCreateAccount(address);
       whitelisted.save();
     }
     whitelistAddressSet.push(whitelisted.id as Bytes);
   }
 
   for (let j = 0; j < event.params.operatorIds.length; j++) {
-    let operatorId = event.params.operatorIds[j].toString();
-    let operator = Operator.load(operatorId);
+    let operator = loadLoopOperatorOrLog(
+      event.params.operatorIds[j],
+      `Executing whitelist removals for Operator ${event.params.operatorIds[j]}, but it does not exist on the database`,
+      "owner, publicKey and fee information",
+    );
     if (!operator) {
-      log.error(
-        `Executing whitelist removals for Operator ${event.params.operatorIds[j]}, but it does not exist on the database`,
-        [],
-      );
-      log.error(
-        `Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`,
-        [],
-      );
-    } else {
-      if (!operator.whitelisted) {
-        operator.whitelisted = [];
-      }
+      continue;
+    }
 
-      operator.operatorId = event.params.operatorIds[j];
+    if (!operator.whitelisted) {
+      operator.whitelisted = [];
+    }
 
-      let whitelistArray = operator.whitelisted;
-      let indexesToRemove: i32[] = [];
-      for (let k = whitelistArray.length - 1; k >= 0; k--) {
-        for (let l = 0; l < whitelistAddressSet.length; l++) {
-          if (whitelistAddressSet[l] == whitelistArray[k]) {
-            indexesToRemove.push(k);
-          }
+    operator.operatorId = event.params.operatorIds[j];
+
+    let whitelistArray = operator.whitelisted;
+    let indexesToRemove: i32[] = [];
+    for (let k = whitelistArray.length - 1; k >= 0; k--) {
+      for (let l = 0; l < whitelistAddressSet.length; l++) {
+        if (whitelistAddressSet[l] == whitelistArray[k]) {
+          indexesToRemove.push(k);
         }
       }
-
-      for (let m = 0; m < indexesToRemove.length; m++) {
-        whitelistArray.splice(indexesToRemove[m], 1);
-      }
-
-      operator.whitelisted = whitelistArray;
-      saveOperatorProjection(
-        operator,
-        event.block.number,
-        event.block.timestamp,
-        event.transaction.hash,
-      );
     }
+
+    for (let m = 0; m < indexesToRemove.length; m++) {
+      whitelistArray.splice(indexesToRemove[m], 1);
+    }
+
+    operator.whitelisted = whitelistArray;
+    saveOperatorProjection(
+      operator,
+      event.block.number,
+      event.block.timestamp,
+      event.transaction.hash,
+    );
   }
 }
 
@@ -2082,30 +2067,26 @@ export function handleOperatorWhitelistingContractUpdated(
 
   entity.save();
   for (var i = 0; i < event.params.operatorIds.length; i++) {
-    let operatorId = event.params.operatorIds[i].toString();
-    let operator = Operator.load(operatorId);
+    let operator = loadLoopOperatorOrLog(
+      event.params.operatorIds[i],
+      `Executing whitelist contract updates for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`,
+      "owner, publicKey and fee information",
+    );
     if (!operator) {
-      log.error(
-        `Executing whitelist contract updates for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`,
-        [],
-      );
-      log.error(
-        `Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`,
-        [],
-      );
-    } else {
-      if (!operator.whitelisted) {
-        operator.whitelisted = [];
-      }
-      operator.operatorId = event.params.operatorIds[i];
-      operator.whitelistedContract = event.params.whitelistingContract;
-      saveOperatorProjection(
-        operator,
-        event.block.number,
-        event.block.timestamp,
-        event.transaction.hash,
-      );
+      continue;
     }
+
+    if (!operator.whitelisted) {
+      operator.whitelisted = [];
+    }
+    operator.operatorId = event.params.operatorIds[i];
+    operator.whitelistedContract = event.params.whitelistingContract;
+    saveOperatorProjection(
+      operator,
+      event.block.number,
+      event.block.timestamp,
+      event.transaction.hash,
+    );
   }
 }
 
@@ -2126,30 +2107,26 @@ export function handleOperatorPrivacyStatusUpdated(
   entity.save();
 
   for (var i = 0; i < event.params.operatorIds.length; i++) {
-    let operatorId = event.params.operatorIds[i].toString();
-    let operator = Operator.load(operatorId);
+    let operator = loadLoopOperatorOrLog(
+      event.params.operatorIds[i],
+      `Executing privacy status updates for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`,
+      "owner, publicKey and fee information",
+    );
     if (!operator) {
-      log.error(
-        `Executing privacy status updates for Operator ${event.params.operatorIds[i]}, but it does not exist on the database`,
-        [],
-      );
-      log.error(
-        `Could not create ${operatorId} on the database, because of missing owner, publicKey and fee information`,
-        [],
-      );
-    } else {
-      if (!operator.whitelisted) {
-        operator.whitelisted = [];
-      }
-      operator.operatorId = event.params.operatorIds[i];
-      operator.isPrivate = event.params.toPrivate;
-      saveOperatorProjection(
-        operator,
-        event.block.number,
-        event.block.timestamp,
-        event.transaction.hash,
-      );
+      continue;
     }
+
+    if (!operator.whitelisted) {
+      operator.whitelisted = [];
+    }
+    operator.operatorId = event.params.operatorIds[i];
+    operator.isPrivate = event.params.toPrivate;
+    saveOperatorProjection(
+      operator,
+      event.block.number,
+      event.block.timestamp,
+      event.transaction.hash,
+    );
   }
 }
 
@@ -2167,14 +2144,12 @@ export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
 
   entity.save();
 
-  let owner = Account.load(event.params.owner);
+  let owner = loadRequiredOperatorOwnerAccount(
+    event.params.owner,
+    event.params.operatorId,
+    "Executing fees change",
+  );
   if (!owner) {
-    log.error(
-      `Executing fees change for Operator ${
-        event.params.operatorId
-      }, but Owner ${event.params.owner.toHexString()} did not exist on the database`,
-      [],
-    );
     return;
   }
 
@@ -2234,14 +2209,12 @@ export function handleOperatorWithdrawnSSV(
 
   entity.save();
 
-  let owner = Account.load(event.params.owner);
+  let owner = loadRequiredOperatorOwnerAccount(
+    event.params.owner,
+    event.params.operatorId,
+    "Executing fees change",
+  );
   if (!owner) {
-    log.error(
-      `Executing fees change for Operator ${
-        event.params.operatorId
-      }, but Owner ${event.params.owner.toHexString()} did not exist on the database`,
-      [],
-    );
     return;
   }
 
@@ -2368,10 +2341,7 @@ export function handleStaked(event: StakedEvent): void {
 
   entity.save();
 
-  let user = Account.load(event.params.user);
-  if (!user) {
-    user = createDefaultAccount(event.params.user);
-  }
+  let user = loadOrCreateAccount(event.params.user);
   user.stakedAmount = user.stakedAmount.plus(event.params.amount);
   user.save();
 }
@@ -2390,12 +2360,8 @@ export function handleUnstakeRequested(event: UnstakeRequestedEvent): void {
 
   entity.save();
 
-  let user = Account.load(event.params.user);
+  let user = loadRequiredStakingAccount(event.params.user, "Unstake requested");
   if (!user) {
-    log.error(
-      `Unstake requested for User ${event.params.user.toHexString()}, but the account does not exist on the database`,
-      [],
-    );
     return;
   }
   user.unstakePendingAmount = user.unstakePendingAmount.plus(
@@ -2418,12 +2384,8 @@ export function handleUnstakedWithdrawn(event: UnstakedWithdrawnEvent): void {
 
   entity.save();
 
-  let user = Account.load(event.params.user);
+  let user = loadRequiredStakingAccount(event.params.user, "Unstake withdrawn");
   if (!user) {
-    log.error(
-      `Unstake withdrawn for User ${event.params.user.toHexString()}, but the account does not exist on the database`,
-      [],
-    );
     return;
   }
   user.unstakePendingAmount = user.unstakePendingAmount.minus(

@@ -18,7 +18,7 @@ export function stampDAOUpdate(
   dao.lastUpdateTransactionHash = transactionHash;
 }
 
-export function stampClusterUpdate(
+function stampClusterUpdate(
   cluster: Cluster,
   blockNumber: BigInt,
   blockTimestamp: BigInt,
@@ -39,7 +39,7 @@ export function saveClusterProjection(
   cluster.save();
 }
 
-export function stampOperatorUpdate(
+function stampOperatorUpdate(
   operator: Operator,
   blockNumber: BigInt,
   blockTimestamp: BigInt,
@@ -60,7 +60,7 @@ export function saveOperatorProjection(
   operator.save();
 }
 
-export function stampValidatorUpdate(
+function stampValidatorUpdate(
   validator: Validator,
   blockNumber: BigInt,
   blockTimestamp: BigInt,
