@@ -98,7 +98,21 @@ import {
   Oracle,
   OperatorWithdrawnSSV,
 } from "../generated/schema";
-import { assignClusterMembership, assignClusterSnapshot, clusterUsesEthFees } from "./helpers/cluster";
+import {
+  applyOwnerValidatorAdded,
+  applyOwnerValidatorRemoved,
+  loadOrCreateAccount,
+  loadOrCreateValidatorOwnerAccount,
+  loadRequiredClusterOwnerAccount,
+  loadRequiredOperatorOwnerAccount,
+  loadRequiredStakingAccount,
+} from "./helpers/account";
+import {
+  assignClusterMembership,
+  assignClusterSnapshot,
+  clusterUsesEthFees,
+  loadRequiredLifecycleCluster,
+} from "./helpers/cluster";
 import {
   createDefaultDAOValues,
   ETH_FEE_ASSET,
@@ -115,33 +129,12 @@ import {
   stampDAOUpdate,
   stampOracleUpdate,
 } from "./helpers/metadata";
+import { loadLoopOperatorOrLog } from "./helpers/operator";
 
 const VUNITS_PRECISION = BigInt.fromI32(100000);
 const DEFAULT_BALANCE = BigInt.fromI32(32);
 const SSV_STAKING_UPDATE_BLOCK_NUMBER = BigInt.fromI32(2442571);
 const DEFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(1_778_800_000);
-
-function createDefaultAccount(address: Address): Account {
-  let account = new Account(address);
-
-  account.nonce = BigInt.zero();
-  account.validatorCount = BigInt.zero();
-  account.feeRecipient = address;
-  account.stakedAmount = BigInt.zero();
-  account.unstakePendingAmount = BigInt.zero();
-  account.effectiveBalance = BigInt.zero();
-
-  return account;
-}
-
-function loadOrCreateAccount(address: Address): Account {
-  let account = Account.load(address);
-  if (!account) {
-    account = createDefaultAccount(address);
-  }
-
-  return account;
-}
 
 function loadOrCreateDAOValuesWithWarning(
   address: Address,
@@ -166,120 +159,6 @@ function loadOrCreateDAOValuesWithWarning(
 
   return dao;
 }
-
-function loadOrCreateValidatorOwnerAccount(
-  ownerAddress: Address,
-  dao: DAOValues,
-): Account {
-  let owner = Account.load(ownerAddress);
-  if (!owner) {
-    owner = createDefaultAccount(ownerAddress);
-    log.info(
-      `New Address ${owner.id.toHexString()} is adding a validator, creating new Account`,
-      [],
-    );
-    dao.totalAccounts = dao.totalAccounts.plus(BigInt.fromI32(1));
-  }
-
-  return owner;
-}
-
-function loadRequiredClusterOwnerAccount(ownerAddress: Address): Account | null {
-  let owner = Account.load(ownerAddress);
-  if (!owner) {
-    log.error(
-      `Trying to update account with address ${ownerAddress.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
-      [],
-    );
-    return null;
-  }
-
-  return owner;
-}
-
-function loadRequiredOperatorOwnerAccount(
-  ownerAddress: Address,
-  operatorId: BigInt,
-  action: string,
-): Account | null {
-  let owner = Account.load(ownerAddress);
-  if (!owner) {
-    log.error(
-      `${action} for Operator ${operatorId}, but Owner ${ownerAddress.toHexString()} did not exist on the database`,
-      [],
-    );
-    return null;
-  }
-
-  return owner;
-}
-
-function loadRequiredLifecycleCluster(
-  clusterId: string,
-  action: string,
-): Cluster | null {
-  let cluster = Cluster.load(clusterId);
-  if (!cluster) {
-    log.error(
-      `Cluster ${clusterId} is being ${action}, but it does not exist on the database`,
-      [],
-    );
-    return null;
-  }
-
-  return cluster;
-}
-
-function loadRequiredStakingAccount(
-  userAddress: Address,
-  action: string,
-): Account | null {
-  let user = Account.load(userAddress);
-  if (!user) {
-    log.error(
-      `${action} for User ${userAddress.toHexString()}, but the account does not exist on the database`,
-      [],
-    );
-    return null;
-  }
-
-  return user;
-}
-
-function loadLoopOperatorOrLog(
-  operatorId: BigInt,
-  missingMessage: string,
-  missingInformation: string,
-): Operator | null {
-  let operator = Operator.load(operatorId.toString());
-  if (!operator) {
-    log.error(missingMessage, []);
-    log.error(
-      `Could not create ${operatorId.toString()} on the database, because of missing ${missingInformation}`,
-      [],
-    );
-    return null;
-  }
-
-  return operator;
-}
-
-function applyOwnerValidatorAdded(owner: Account): void {
-  log.info(`Old nonce of Account ${owner.id.toHexString()}: ${owner.nonce}`, []);
-  owner.nonce = owner.nonce.plus(BigInt.fromI32(1));
-  log.info(
-    `Increased nonce of Account ${owner.id.toHexString()} to ${owner.nonce}`,
-    [],
-  );
-  owner.validatorCount = owner.validatorCount.plus(BigInt.fromI32(1));
-  owner.effectiveBalance = owner.effectiveBalance.plus(DEFAULT_BALANCE);
-}
-
-function applyOwnerValidatorRemoved(owner: Account): void {
-  owner.validatorCount = owner.validatorCount.minus(BigInt.fromI32(1));
-  owner.effectiveBalance = owner.effectiveBalance.minus(DEFAULT_BALANCE);
-}
-
 // ###### DAO Events ######
 
 export function handleDeclareOperatorFeePeriodUpdated(

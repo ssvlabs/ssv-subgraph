@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { BigInt, log } from "@graphprotocol/graph-ts";
 import { Account, Cluster } from "../../generated/schema";
 import { ETH_FEE_ASSET } from "./dao";
 
@@ -28,4 +28,20 @@ export function assignClusterSnapshot(
 
 export function clusterUsesEthFees(cluster: Cluster): bool {
   return cluster.feeAsset == ETH_FEE_ASSET;
+}
+
+export function loadRequiredLifecycleCluster(
+  clusterId: string,
+  action: string,
+): Cluster | null {
+  let cluster = Cluster.load(clusterId);
+  if (!cluster) {
+    log.error(
+      `Cluster ${clusterId} is being ${action}, but it does not exist on the database`,
+      [],
+    );
+    return null;
+  }
+
+  return cluster;
 }
