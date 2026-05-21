@@ -1,6 +1,6 @@
 import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts";
 import { DAOValues } from "../../generated/schema";
-import { stampDAOUpdate } from "./metadata";
+import { stampUpdate } from "./metadata";
 
 export const ETH_FEE_ASSET = "ETH";
 export const SSV_FEE_ASSET = "SSV";
@@ -43,7 +43,7 @@ export function createDefaultDAOValues(
   dao.validatorsRemoved = BigInt.zero();
   dao.operatorsAdded = BigInt.zero();
   dao.operatorsRemoved = BigInt.zero();
-  stampDAOUpdate(dao, blockNumber, blockTimestamp, transactionHash);
+  stampUpdate(dao, blockNumber, blockTimestamp, transactionHash);
 
   return dao;
 }
