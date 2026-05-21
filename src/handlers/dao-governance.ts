@@ -33,7 +33,7 @@ import {
   usesEthFeeRegime,
 } from "../helpers/dao";
 import { buildEventEntityId } from "../helpers/ids";
-import { stampDAOUpdate } from "../helpers/metadata";
+import { stampUpdate } from "../helpers/metadata";
 
 const SSV_STAKING_UPDATE_BLOCK_NUMBER = BigInt.fromI32(2442571);
 
@@ -84,7 +84,7 @@ export function handleDeclareOperatorFeePeriodUpdatedImplementation(
   );
   dao.updateType = "DECLARE_OPERATOR_FEE_PERIOD";
   dao.declareOperatorFeePeriod = event.params.value;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -111,7 +111,7 @@ export function handleExecuteOperatorFeePeriodUpdatedImplementation(
   );
   dao.updateType = "EXECUTE_OPERATOR_FEE_PERIOD";
   dao.executeOperatorFeePeriod = event.params.value;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -151,7 +151,7 @@ export function handleLiquidationThresholdPeriodUpdatedImplementation(
     dao.updateType = "LIQUIDATION_THRESHOLD";
     dao.liquidationThresholdSSV = event.params.value;
   }
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -178,7 +178,7 @@ export function handleLiquidationThresholdPeriodSSVUpdatedImplementation(
   );
   dao.updateType = "LIQUIDATION_THRESHOLD_SSV";
   dao.liquidationThresholdSSV = event.params.value;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -219,7 +219,7 @@ export function handleMinimumLiquidationCollateralUpdatedImplementation(
     dao.updateType = "MIN_LIQUIDATION_COLLATERAL_SSV";
     dao.minimumLiquidationCollateralSSV = event.params.value;
   }
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -246,7 +246,7 @@ export function handleMinimumLiquidationCollateralSSVUpdatedImplementation(
   );
   dao.updateType = "MIN_LIQUIDATION_COLLATERAL_SSV";
   dao.minimumLiquidationCollateralSSV = event.params.value;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -304,7 +304,7 @@ export function handleNetworkFeeUpdatedImplementation(
     dao.networkFeeIndexBlockNumberSSV = event.block.number;
     dao.networkFeeSSV = event.params.newFee;
   }
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -338,7 +338,7 @@ export function handleNetworkFeeUpdatedSSVImplementation(
   );
   dao.networkFeeIndexBlockNumberSSV = event.block.number;
   dao.networkFeeSSV = event.params.newFee;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -365,7 +365,7 @@ export function handleOperatorFeeIncreaseLimitUpdatedImplementation(
   );
   dao.updateType = "OPERATOR_FEE_INCREASE_LIMIT";
   dao.operatorFeeIncreaseLimit = event.params.value;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -392,7 +392,7 @@ export function handleOperatorMaximumFeeUpdatedImplementation(
   );
   dao.updateType = "OPERATOR_MAX_FEE";
   dao.operatorMaximumFee = event.params.maxFee;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
   dao.save();
 }
 
@@ -420,7 +420,7 @@ export function handleQuorumUpdatedImplementation(
 
   dao.updateType = "QUORUM_UPDATED";
   dao.quorum = event.params.newQuorum;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
 
   log.info(
     `Dao Values update type: ${dao.updateType}, new quorum: ${dao.quorum}`,
@@ -457,7 +457,7 @@ export function handleSSVNetworkUpgradeBlockImplementation(
     dao.networkFeeIndex = BigInt.zero();
     dao.networkFeeIndexBlockNumber = event.params.blockNumber;
   }
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
 
   log.info(
     `Dao Values update type: ${dao.updateType}, contract upgraded to version ${dao.version}`,

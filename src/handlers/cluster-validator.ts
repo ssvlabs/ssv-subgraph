@@ -41,11 +41,7 @@ import {
   getInitialClusterFeeAsset,
 } from "../helpers/dao";
 import { buildClusterId, buildEventEntityId } from "../helpers/ids";
-import {
-  saveClusterProjection,
-  saveOperatorProjection,
-  saveValidatorProjection,
-} from "../helpers/metadata";
+import { stampUpdate } from "../helpers/metadata";
 import { loadLoopOperatorOrLog } from "../helpers/operator";
 
 const VUNITS_PRECISION = BigInt.fromI32(100000);
@@ -114,12 +110,13 @@ export function handleClusterBalanceUpdatedImplementation(
     event.params.cluster.active,
     event.params.cluster.balance,
   );
-  saveClusterProjection(
+  stampUpdate(
     cluster,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  cluster.save();
 
   let dao = DAOValues.load(event.address);
   if (!dao) {
@@ -203,12 +200,13 @@ export function handleClusterMigratedToETHImplementation(
     event.params.cluster.active,
     event.params.cluster.balance,
   );
-  saveClusterProjection(
+  stampUpdate(
     cluster,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  cluster.save();
 
   for (let i = 0; i < event.params.operatorIds.length; i++) {
     let operator = loadLoopOperatorOrLog(
@@ -220,12 +218,13 @@ export function handleClusterMigratedToETHImplementation(
       continue;
     }
 
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -274,12 +273,13 @@ export function handleClusterDepositedImplementation(
     event.params.cluster.active,
     event.params.cluster.balance,
   );
-  saveClusterProjection(
+  stampUpdate(
     cluster,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  cluster.save();
 }
 
 export function handleClusterLiquidatedImplementation(
@@ -352,12 +352,13 @@ export function handleClusterLiquidatedImplementation(
     event.params.cluster.active,
     event.params.cluster.balance,
   );
-  saveClusterProjection(
+  stampUpdate(
     cluster,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  cluster.save();
 
   entity.cluster = cluster.id;
   entity.save();
@@ -376,12 +377,13 @@ export function handleClusterLiquidatedImplementation(
       operator.validatorCount = operator.validatorCount.minus(
         event.params.cluster.validatorCount,
       );
-      saveOperatorProjection(
+      stampUpdate(
         operator,
         event.block.number,
         event.block.timestamp,
         event.transaction.hash,
       );
+      operator.save();
     }
   }
 }
@@ -460,12 +462,13 @@ export function handleClusterReactivatedImplementation(
     event.params.cluster.active,
     event.params.cluster.balance,
   );
-  saveClusterProjection(
+  stampUpdate(
     cluster,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  cluster.save();
 
   entity.cluster = cluster.id;
   entity.save();
@@ -484,12 +487,13 @@ export function handleClusterReactivatedImplementation(
       operator.validatorCount = operator.validatorCount.plus(
         event.params.cluster.validatorCount,
       );
-      saveOperatorProjection(
+      stampUpdate(
         operator,
         event.block.number,
         event.block.timestamp,
         event.transaction.hash,
       );
+      operator.save();
     }
   }
 }
@@ -543,12 +547,13 @@ export function handleClusterWithdrawnImplementation(
     event.params.cluster.active,
     event.params.cluster.balance,
   );
-  saveClusterProjection(
+  stampUpdate(
     cluster,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  cluster.save();
 }
 
 export function handleValidatorAddedImplementation(
@@ -621,12 +626,13 @@ export function handleValidatorAddedImplementation(
     event.params.cluster.active,
     event.params.cluster.balance,
   );
-  saveClusterProjection(
+  stampUpdate(
     cluster,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  cluster.save();
 
   entity.cluster = cluster.id;
   entity.save();
@@ -648,12 +654,13 @@ export function handleValidatorAddedImplementation(
   validator.cluster = cluster.id;
   validator.removed = false;
   validator.shares = event.params.shares;
-  saveValidatorProjection(
+  stampUpdate(
     validator,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  validator.save();
 
   for (let i = 0; i < event.params.operatorIds.length; i++) {
     let operatorId = event.params.operatorIds[i].toString();
@@ -672,12 +679,13 @@ export function handleValidatorAddedImplementation(
     operator.operatorId = event.params.operatorIds[i];
     operator.validatorCount = operator.validatorCount.plus(BigInt.fromI32(1));
 
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 
   log.info(
@@ -764,12 +772,13 @@ export function handleValidatorRemovedImplementation(
     event.params.cluster.active,
     event.params.cluster.balance,
   );
-  saveClusterProjection(
+  stampUpdate(
     cluster,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  cluster.save();
 
   entity.cluster = cluster.id;
   entity.save();
@@ -791,12 +800,13 @@ export function handleValidatorRemovedImplementation(
     );
     validator.owner = owner.id;
     validator.removed = true;
-    saveValidatorProjection(
+    stampUpdate(
       validator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    validator.save();
   }
 
   for (let i = 0; i < event.params.operatorIds.length; i++) {
@@ -814,12 +824,13 @@ export function handleValidatorRemovedImplementation(
       operator.validatorCount = operator.validatorCount.minus(
         BigInt.fromI32(1),
       );
-      saveOperatorProjection(
+      stampUpdate(
         operator,
         event.block.number,
         event.block.timestamp,
         event.transaction.hash,
       );
+      operator.save();
     }
   }
 

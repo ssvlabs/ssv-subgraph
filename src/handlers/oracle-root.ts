@@ -12,7 +12,7 @@ import {
   WeightedRootProposed,
 } from "../../generated/schema";
 import { buildEventEntityId } from "../helpers/ids";
-import { stampDAOUpdate, stampOracleUpdate } from "../helpers/metadata";
+import { stampUpdate } from "../helpers/metadata";
 
 export function handleRootCommittedImplementation(
   event: RootCommittedEvent,
@@ -38,7 +38,7 @@ export function handleRootCommittedImplementation(
   }
   dao.updateType = "ROOT_COMMITTED";
   dao.latestMerkleRoot = event.params.merkleRoot;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
 
   log.info(
     `Dao Values update type: ${dao.updateType}, new latest merkle root: ${dao.latestMerkleRoot.toHexString()}`,
@@ -68,7 +68,7 @@ export function handleOracleReplacedImplementation(
   if (!oracle) {
     oracle = new Oracle(oracleId);
     oracle.oracleId = event.params.oracleId;
-    stampOracleUpdate(
+    stampUpdate(
       oracle,
       event.block.number,
       event.block.timestamp,

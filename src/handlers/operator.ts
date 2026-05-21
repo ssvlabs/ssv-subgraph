@@ -36,7 +36,7 @@ import {
 } from "../helpers/account";
 import { createDefaultDAOValues, usesEthFeeRegime } from "../helpers/dao";
 import { buildEventEntityId } from "../helpers/ids";
-import { saveOperatorProjection } from "../helpers/metadata";
+import { stampUpdate } from "../helpers/metadata";
 import { loadLoopOperatorOrLog } from "../helpers/operator";
 
 const SSV_STAKING_UPDATE_BLOCK_NUMBER = BigInt.fromI32(2442571);
@@ -133,12 +133,13 @@ export function handleOperatorAddedImplementation(
     dao.totalOperators = dao.totalOperators.plus(BigInt.fromI32(1));
   }
 
-  saveOperatorProjection(
+  stampUpdate(
     operator,
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
   );
+  operator.save();
 
   log.info(
     `Dao Values update type: ${dao.updateType}, operator count: ${dao.totalOperators}`,
@@ -199,12 +200,13 @@ export function handleOperatorFeeDeclarationCancelledImplementation(
     } else {
       operator.declaredSSVFee = BigInt.zero();
     }
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -262,12 +264,13 @@ export function handleOperatorFeeDeclaredImplementation(
     } else {
       operator.declaredSSVFee = event.params.fee;
     }
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -360,12 +363,13 @@ export function handleOperatorFeeExecutedImplementation(
         operator.fee = event.params.fee;
       }
     }
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -434,12 +438,13 @@ export function handleOperatorRemovedImplementation(
     operator.declaredSSVFee = BigInt.zero();
 
     operator.validatorCount = new BigInt(0);
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 
   log.info(
@@ -502,12 +507,13 @@ export function handleOperatorWhitelistUpdatedImplementation(
       operator.isPrivate = true;
       operator.whitelisted = [whitelisted.id];
     }
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -562,12 +568,13 @@ export function handleOperatorMultipleWhitelistUpdatedImplementation(
     }
     operator.operatorId = event.params.operatorIds[j];
     operator.whitelisted = operator.whitelisted.concat(whitelistIDList);
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -636,12 +643,13 @@ export function handleOperatorMultipleWhitelistRemovedImplementation(
     }
 
     operator.whitelisted = whitelistArray;
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -675,12 +683,13 @@ export function handleOperatorWhitelistingContractUpdatedImplementation(
     }
     operator.operatorId = event.params.operatorIds[i];
     operator.whitelistedContract = event.params.whitelistingContract;
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -715,12 +724,13 @@ export function handleOperatorPrivacyStatusUpdatedImplementation(
     }
     operator.operatorId = event.params.operatorIds[i];
     operator.isPrivate = event.params.toPrivate;
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -780,12 +790,13 @@ export function handleOperatorWithdrawnImplementation(
         event.params.value,
       );
     }
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }
 
@@ -830,11 +841,12 @@ export function handleOperatorWithdrawnSSVImplementation(
     operator.totalWithdrawnSSV = operator.totalWithdrawnSSV.plus(
       event.params.value,
     );
-    saveOperatorProjection(
+    stampUpdate(
       operator,
       event.block.number,
       event.block.timestamp,
       event.transaction.hash,
     );
+    operator.save();
   }
 }

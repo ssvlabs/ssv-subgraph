@@ -25,7 +25,7 @@ import {
   loadRequiredStakingAccount,
 } from "../helpers/account";
 import { buildEventEntityId } from "../helpers/ids";
-import { stampDAOUpdate } from "../helpers/metadata";
+import { stampUpdate } from "../helpers/metadata";
 
 export function handleERC20RescuedImplementation(
   event: ERC20RescuedEvent,
@@ -75,7 +75,7 @@ export function handleFeesSyncedImplementation(
   dao.updateType = "FEES_SYNCED";
   dao.accEthPerShare = event.params.accEthPerShare;
   dao.newFeesWei = event.params.newFeesWei;
-  stampDAOUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
 
   log.info(
     `Dao Values update type: ${dao.updateType}, new ETH per share: ${dao.accEthPerShare}, new fees wei: ${dao.newFeesWei}`,
