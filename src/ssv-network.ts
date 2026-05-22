@@ -43,7 +43,6 @@ import {
   ValidatorRemoved as ValidatorRemovedEvent,
   WeightedRootProposed as WeightedRootProposedEvent,
 } from "../generated/SSVNetwork/SSVNetwork";
-import { handleFeeRecipientAddressUpdatedImplementation } from "./handlers/account";
 import {
   handleClusterBalanceUpdatedImplementation,
   handleClusterDepositedImplementation,
@@ -51,52 +50,45 @@ import {
   handleClusterMigratedToETHImplementation,
   handleClusterReactivatedImplementation,
   handleClusterWithdrawnImplementation,
-  handleValidatorAddedImplementation,
-  handleValidatorRemovedImplementation,
-} from "./handlers/cluster-validator";
-import {
   handleDeclareOperatorFeePeriodUpdatedImplementation,
+  handleERC20RescuedImplementation,
   handleExecuteOperatorFeePeriodUpdatedImplementation,
+  handleFeeRecipientAddressUpdatedImplementation,
+  handleFeesSyncedImplementation,
   handleLiquidationThresholdPeriodSSVUpdatedImplementation,
   handleLiquidationThresholdPeriodUpdatedImplementation,
   handleMinimumLiquidationCollateralSSVUpdatedImplementation,
   handleMinimumLiquidationCollateralUpdatedImplementation,
+  handleNetworkEarningsWithdrawnImplementation,
   handleNetworkFeeUpdatedImplementation,
   handleNetworkFeeUpdatedSSVImplementation,
-  handleOperatorFeeIncreaseLimitUpdatedImplementation,
-  handleOperatorMaximumFeeUpdatedImplementation,
-  handleQuorumUpdatedImplementation,
-  handleSSVNetworkUpgradeBlockImplementation,
-} from "./handlers/dao-governance";
-import {
   handleOperatorAddedImplementation,
   handleOperatorFeeDeclarationCancelledImplementation,
   handleOperatorFeeDeclaredImplementation,
   handleOperatorFeeExecutedImplementation,
+  handleOperatorFeeIncreaseLimitUpdatedImplementation,
+  handleOperatorMaximumFeeUpdatedImplementation,
   handleOperatorMultipleWhitelistRemovedImplementation,
   handleOperatorMultipleWhitelistUpdatedImplementation,
   handleOperatorPrivacyStatusUpdatedImplementation,
   handleOperatorRemovedImplementation,
-  handleOperatorWhitelistUpdatedImplementation,
   handleOperatorWhitelistingContractUpdatedImplementation,
+  handleOperatorWhitelistUpdatedImplementation,
   handleOperatorWithdrawnImplementation,
   handleOperatorWithdrawnSSVImplementation,
-} from "./handlers/operator";
-import {
   handleOracleReplacedImplementation,
-  handleRootCommittedImplementation,
-  handleWeightedRootProposedImplementation,
-} from "./handlers/oracle-root";
-import {
-  handleERC20RescuedImplementation,
-  handleFeesSyncedImplementation,
-  handleNetworkEarningsWithdrawnImplementation,
+  handleQuorumUpdatedImplementation,
   handleRewardsClaimedImplementation,
   handleRewardsSettledImplementation,
+  handleRootCommittedImplementation,
+  handleSSVNetworkUpgradeBlockImplementation,
   handleStakedImplementation,
   handleUnstakeRequestedImplementation,
   handleUnstakedWithdrawnImplementation,
-} from "./handlers/staking";
+  handleValidatorAddedImplementation,
+  handleValidatorRemovedImplementation,
+  handleWeightedRootProposedImplementation,
+} from "./handlers";
 
 // DAO and governance events
 
