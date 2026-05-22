@@ -44,7 +44,7 @@ import {
 const VUNITS_PRECISION = BigInt.fromI32(100000);
 const DEFAULT_BALANCE = BigInt.fromI32(32);
 
-export function handleClusterBalanceUpdatedImplementation(
+export function handleClusterBalanceUpdated(
   event: ClusterBalanceUpdatedEvent,
 ): void {
   let entity = new ClusterBalanceUpdated(
@@ -136,7 +136,7 @@ export function handleClusterBalanceUpdatedImplementation(
   dao.save();
 }
 
-export function handleClusterMigratedToETHImplementation(
+export function handleClusterMigratedToETH(
   event: ClusterMigratedToETHEvent,
 ): void {
   let entity = new ClusterMigratedToETH(
@@ -225,9 +225,7 @@ export function handleClusterMigratedToETHImplementation(
   }
 }
 
-export function handleClusterDepositedImplementation(
-  event: ClusterDepositedEvent,
-): void {
+export function handleClusterDeposited(event: ClusterDepositedEvent): void {
   let entity = new ClusterDeposited(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );
@@ -279,9 +277,7 @@ export function handleClusterDepositedImplementation(
   cluster.save();
 }
 
-export function handleClusterLiquidatedImplementation(
-  event: ClusterLiquidatedEvent,
-): void {
+export function handleClusterLiquidated(event: ClusterLiquidatedEvent): void {
   let entity = new ClusterLiquidated(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );
@@ -385,9 +381,7 @@ export function handleClusterLiquidatedImplementation(
   }
 }
 
-export function handleClusterReactivatedImplementation(
-  event: ClusterReactivatedEvent,
-): void {
+export function handleClusterReactivated(event: ClusterReactivatedEvent): void {
   let entity = new ClusterReactivated(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );
@@ -495,9 +489,7 @@ export function handleClusterReactivatedImplementation(
   }
 }
 
-export function handleClusterWithdrawnImplementation(
-  event: ClusterWithdrawnEvent,
-): void {
+export function handleClusterWithdrawn(event: ClusterWithdrawnEvent): void {
   let entity = new ClusterWithdrawn(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );
@@ -553,9 +545,7 @@ export function handleClusterWithdrawnImplementation(
   cluster.save();
 }
 
-export function handleValidatorAddedImplementation(
-  event: ValidatorAddedEvent,
-): void {
+export function handleValidatorAdded(event: ValidatorAddedEvent): void {
   let entity = new ValidatorAdded(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );
@@ -697,9 +687,7 @@ export function handleValidatorAddedImplementation(
   dao.save();
 }
 
-export function handleValidatorRemovedImplementation(
-  event: ValidatorRemovedEvent,
-): void {
+export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   let entity = new ValidatorRemoved(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );

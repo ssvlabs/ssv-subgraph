@@ -43,9 +43,7 @@ import {
 const SSV_STAKING_UPDATE_BLOCK_NUMBER = BigInt.fromI32(2442571);
 const DEFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(1_778_800_000);
 
-export function handleOperatorAddedImplementation(
-  event: OperatorAddedEvent,
-): void {
+export function handleOperatorAdded(event: OperatorAddedEvent): void {
   let entity = new OperatorAdded(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );
@@ -149,7 +147,7 @@ export function handleOperatorAddedImplementation(
   dao.save();
 }
 
-export function handleOperatorFeeDeclarationCancelledImplementation(
+export function handleOperatorFeeDeclarationCancelled(
   event: OperatorFeeDeclarationCancelledEvent,
 ): void {
   let entity = new OperatorFeeDeclarationCancelled(
@@ -211,7 +209,7 @@ export function handleOperatorFeeDeclarationCancelledImplementation(
   }
 }
 
-export function handleOperatorFeeDeclaredImplementation(
+export function handleOperatorFeeDeclared(
   event: OperatorFeeDeclaredEvent,
 ): void {
   let entity = new OperatorFeeDeclared(
@@ -275,7 +273,7 @@ export function handleOperatorFeeDeclaredImplementation(
   }
 }
 
-export function handleOperatorFeeExecutedImplementation(
+export function handleOperatorFeeExecuted(
   event: OperatorFeeExecutedEvent,
 ): void {
   log.warning(
@@ -374,9 +372,7 @@ export function handleOperatorFeeExecutedImplementation(
   }
 }
 
-export function handleOperatorRemovedImplementation(
-  event: OperatorRemovedEvent,
-): void {
+export function handleOperatorRemoved(event: OperatorRemovedEvent): void {
   let entity = new OperatorRemoved(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );
@@ -455,7 +451,7 @@ export function handleOperatorRemovedImplementation(
   dao.save();
 }
 
-export function handleOperatorWhitelistUpdatedImplementation(
+export function handleOperatorWhitelistUpdated(
   event: OperatorWhitelistUpdatedEvent,
 ): void {
   let entity = new OperatorWhitelistUpdated(
@@ -518,7 +514,7 @@ export function handleOperatorWhitelistUpdatedImplementation(
   }
 }
 
-export function handleOperatorMultipleWhitelistUpdatedImplementation(
+export function handleOperatorMultipleWhitelistUpdated(
   event: OperatorMultipleWhitelistUpdatedEvent,
 ): void {
   let entity = new OperatorMultipleWhitelistUpdated(
@@ -579,7 +575,7 @@ export function handleOperatorMultipleWhitelistUpdatedImplementation(
   }
 }
 
-export function handleOperatorMultipleWhitelistRemovedImplementation(
+export function handleOperatorMultipleWhitelistRemoved(
   event: OperatorMultipleWhitelistRemovedEvent,
 ): void {
   let entity = new OperatorMultipleWhitelistRemoved(
@@ -654,7 +650,7 @@ export function handleOperatorMultipleWhitelistRemovedImplementation(
   }
 }
 
-export function handleOperatorWhitelistingContractUpdatedImplementation(
+export function handleOperatorWhitelistingContractUpdated(
   event: OperatorWhitelistingContractUpdatedEvent,
 ): void {
   let entity = new OperatorWhitelistingContractUpdated(
@@ -694,7 +690,7 @@ export function handleOperatorWhitelistingContractUpdatedImplementation(
   }
 }
 
-export function handleOperatorPrivacyStatusUpdatedImplementation(
+export function handleOperatorPrivacyStatusUpdated(
   event: OperatorPrivacyStatusUpdatedEvent,
 ): void {
   let entity = new OperatorPrivacyStatusUpdated(
@@ -735,9 +731,7 @@ export function handleOperatorPrivacyStatusUpdatedImplementation(
   }
 }
 
-export function handleOperatorWithdrawnImplementation(
-  event: OperatorWithdrawnEvent,
-): void {
+export function handleOperatorWithdrawn(event: OperatorWithdrawnEvent): void {
   let entity = new OperatorWithdrawn(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );
@@ -801,7 +795,7 @@ export function handleOperatorWithdrawnImplementation(
   }
 }
 
-export function handleOperatorWithdrawnSSVImplementation(
+export function handleOperatorWithdrawnSSV(
   event: OperatorWithdrawnSSVEvent,
 ): void {
   let entity = new OperatorWithdrawnSSV(

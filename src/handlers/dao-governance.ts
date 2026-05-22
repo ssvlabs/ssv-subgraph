@@ -61,7 +61,7 @@ function loadOrCreateDAOValuesWithWarning(
   return dao;
 }
 
-export function handleDeclareOperatorFeePeriodUpdatedImplementation(
+export function handleDeclareOperatorFeePeriodUpdated(
   event: DeclareOperatorFeePeriodUpdatedEvent,
 ): void {
   let entity = new DeclareOperatorFeePeriodUpdated(
@@ -84,11 +84,16 @@ export function handleDeclareOperatorFeePeriodUpdatedImplementation(
   );
   dao.updateType = "DECLARE_OPERATOR_FEE_PERIOD";
   dao.declareOperatorFeePeriod = event.params.value;
-  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(
+    dao,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+  );
   dao.save();
 }
 
-export function handleExecuteOperatorFeePeriodUpdatedImplementation(
+export function handleExecuteOperatorFeePeriodUpdated(
   event: ExecuteOperatorFeePeriodUpdatedEvent,
 ): void {
   let entity = new ExecuteOperatorFeePeriodUpdated(
@@ -111,11 +116,16 @@ export function handleExecuteOperatorFeePeriodUpdatedImplementation(
   );
   dao.updateType = "EXECUTE_OPERATOR_FEE_PERIOD";
   dao.executeOperatorFeePeriod = event.params.value;
-  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(
+    dao,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+  );
   dao.save();
 }
 
-export function handleLiquidationThresholdPeriodUpdatedImplementation(
+export function handleLiquidationThresholdPeriodUpdated(
   event: LiquidationThresholdPeriodUpdatedEvent,
 ): void {
   let entity = new LiquidationThresholdPeriodUpdated(
@@ -151,11 +161,16 @@ export function handleLiquidationThresholdPeriodUpdatedImplementation(
     dao.updateType = "LIQUIDATION_THRESHOLD";
     dao.liquidationThresholdSSV = event.params.value;
   }
-  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(
+    dao,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+  );
   dao.save();
 }
 
-export function handleLiquidationThresholdPeriodSSVUpdatedImplementation(
+export function handleLiquidationThresholdPeriodSSVUpdated(
   event: LiquidationThresholdPeriodSSVUpdatedEvent,
 ): void {
   let entity = new LiquidationThresholdPeriodSSVUpdated(
@@ -178,11 +193,16 @@ export function handleLiquidationThresholdPeriodSSVUpdatedImplementation(
   );
   dao.updateType = "LIQUIDATION_THRESHOLD_SSV";
   dao.liquidationThresholdSSV = event.params.value;
-  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(
+    dao,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+  );
   dao.save();
 }
 
-export function handleMinimumLiquidationCollateralUpdatedImplementation(
+export function handleMinimumLiquidationCollateralUpdated(
   event: MinimumLiquidationCollateralUpdatedEvent,
 ): void {
   let entity = new MinimumLiquidationCollateralUpdated(
@@ -219,11 +239,16 @@ export function handleMinimumLiquidationCollateralUpdatedImplementation(
     dao.updateType = "MIN_LIQUIDATION_COLLATERAL_SSV";
     dao.minimumLiquidationCollateralSSV = event.params.value;
   }
-  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(
+    dao,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+  );
   dao.save();
 }
 
-export function handleMinimumLiquidationCollateralSSVUpdatedImplementation(
+export function handleMinimumLiquidationCollateralSSVUpdated(
   event: MinimumLiquidationCollateralSSVUpdatedEvent,
 ): void {
   let entity = new MinimumLiquidationCollateralSSVUpdated(
@@ -246,13 +271,16 @@ export function handleMinimumLiquidationCollateralSSVUpdatedImplementation(
   );
   dao.updateType = "MIN_LIQUIDATION_COLLATERAL_SSV";
   dao.minimumLiquidationCollateralSSV = event.params.value;
-  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(
+    dao,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+  );
   dao.save();
 }
 
-export function handleNetworkFeeUpdatedImplementation(
-  event: NetworkFeeUpdatedEvent,
-): void {
+export function handleNetworkFeeUpdated(event: NetworkFeeUpdatedEvent): void {
   let entity = new NetworkFeeUpdated(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );
@@ -304,11 +332,16 @@ export function handleNetworkFeeUpdatedImplementation(
     dao.networkFeeIndexBlockNumberSSV = event.block.number;
     dao.networkFeeSSV = event.params.newFee;
   }
-  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(
+    dao,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+  );
   dao.save();
 }
 
-export function handleNetworkFeeUpdatedSSVImplementation(
+export function handleNetworkFeeUpdatedSSV(
   event: NetworkFeeUpdatedEvent,
 ): void {
   let entity = new NetworkFeeUpdatedSSV(
@@ -338,11 +371,16 @@ export function handleNetworkFeeUpdatedSSVImplementation(
   );
   dao.networkFeeIndexBlockNumberSSV = event.block.number;
   dao.networkFeeSSV = event.params.newFee;
-  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(
+    dao,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+  );
   dao.save();
 }
 
-export function handleOperatorFeeIncreaseLimitUpdatedImplementation(
+export function handleOperatorFeeIncreaseLimitUpdated(
   event: OperatorFeeIncreaseLimitUpdatedEvent,
 ): void {
   let entity = new OperatorFeeIncreaseLimitUpdated(
@@ -365,11 +403,16 @@ export function handleOperatorFeeIncreaseLimitUpdatedImplementation(
   );
   dao.updateType = "OPERATOR_FEE_INCREASE_LIMIT";
   dao.operatorFeeIncreaseLimit = event.params.value;
-  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(
+    dao,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+  );
   dao.save();
 }
 
-export function handleOperatorMaximumFeeUpdatedImplementation(
+export function handleOperatorMaximumFeeUpdated(
   event: OperatorMaximumFeeUpdatedEvent,
 ): void {
   let entity = new OperatorMaximumFeeUpdated(
@@ -392,13 +435,16 @@ export function handleOperatorMaximumFeeUpdatedImplementation(
   );
   dao.updateType = "OPERATOR_MAX_FEE";
   dao.operatorMaximumFee = event.params.maxFee;
-  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(
+    dao,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+  );
   dao.save();
 }
 
-export function handleQuorumUpdatedImplementation(
-  event: QuorumUpdatedEvent,
-): void {
+export function handleQuorumUpdated(event: QuorumUpdatedEvent): void {
   let entity = new QuorumUpdated(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );
@@ -420,7 +466,12 @@ export function handleQuorumUpdatedImplementation(
 
   dao.updateType = "QUORUM_UPDATED";
   dao.quorum = event.params.newQuorum;
-  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(
+    dao,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+  );
 
   log.info(
     `Dao Values update type: ${dao.updateType}, new quorum: ${dao.quorum}`,
@@ -429,7 +480,7 @@ export function handleQuorumUpdatedImplementation(
   dao.save();
 }
 
-export function handleSSVNetworkUpgradeBlockImplementation(
+export function handleSSVNetworkUpgradeBlock(
   event: SSVNetworkUpgradeBlockEvent,
 ): void {
   let entity = new SSVNetworkUpgradeBlock(
@@ -457,7 +508,12 @@ export function handleSSVNetworkUpgradeBlockImplementation(
     dao.networkFeeIndex = BigInt.zero();
     dao.networkFeeIndexBlockNumber = event.params.blockNumber;
   }
-  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(
+    dao,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+  );
 
   log.info(
     `Dao Values update type: ${dao.updateType}, contract upgraded to version ${dao.version}`,

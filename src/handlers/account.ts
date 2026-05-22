@@ -3,7 +3,7 @@ import { FeeRecipientAddressUpdated as FeeRecipientAddressUpdatedEvent } from ".
 import { Account, FeeRecipientAddressUpdated } from "../../generated/schema";
 import { buildEventEntityId } from "../helpers/ids";
 
-export function handleFeeRecipientAddressUpdatedImplementation(
+export function handleFeeRecipientAddressUpdated(
   event: FeeRecipientAddressUpdatedEvent,
 ): void {
   let entity = new FeeRecipientAddressUpdated(

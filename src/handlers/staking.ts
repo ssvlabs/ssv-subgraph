@@ -27,9 +27,7 @@ import {
   stampUpdate,
 } from "../helpers";
 
-export function handleERC20RescuedImplementation(
-  event: ERC20RescuedEvent,
-): void {
+export function handleERC20Rescued(event: ERC20RescuedEvent): void {
   let entity = new ERC20Rescued(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );
@@ -44,9 +42,7 @@ export function handleERC20RescuedImplementation(
   entity.save();
 }
 
-export function handleFeesSyncedImplementation(
-  event: FeesSyncedEvent,
-): void {
+export function handleFeesSynced(event: FeesSyncedEvent): void {
   log.info(
     `New feesWei: ${event.params.newFeesWei}, accEthPerShare: ${event.params.accEthPerShare}`,
     [],
@@ -75,7 +71,12 @@ export function handleFeesSyncedImplementation(
   dao.updateType = "FEES_SYNCED";
   dao.accEthPerShare = event.params.accEthPerShare;
   dao.newFeesWei = event.params.newFeesWei;
-  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(
+    dao,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+  );
 
   log.info(
     `Dao Values update type: ${dao.updateType}, new ETH per share: ${dao.accEthPerShare}, new fees wei: ${dao.newFeesWei}`,
@@ -84,7 +85,7 @@ export function handleFeesSyncedImplementation(
   dao.save();
 }
 
-export function handleNetworkEarningsWithdrawnImplementation(
+export function handleNetworkEarningsWithdrawn(
   event: NetworkEarningsWithdrawnEvent,
 ): void {
   let entity = new NetworkEarningsWithdrawn(
@@ -100,9 +101,7 @@ export function handleNetworkEarningsWithdrawnImplementation(
   entity.save();
 }
 
-export function handleRewardsClaimedImplementation(
-  event: RewardsClaimedEvent,
-): void {
+export function handleRewardsClaimed(event: RewardsClaimedEvent): void {
   let entity = new RewardsClaimed(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );
@@ -116,9 +115,7 @@ export function handleRewardsClaimedImplementation(
   entity.save();
 }
 
-export function handleRewardsSettledImplementation(
-  event: RewardsSettledEvent,
-): void {
+export function handleRewardsSettled(event: RewardsSettledEvent): void {
   let entity = new RewardsSettled(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );
@@ -134,7 +131,7 @@ export function handleRewardsSettledImplementation(
   entity.save();
 }
 
-export function handleStakedImplementation(event: StakedEvent): void {
+export function handleStaked(event: StakedEvent): void {
   let entity = new Staked(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );
@@ -152,9 +149,7 @@ export function handleStakedImplementation(event: StakedEvent): void {
   user.save();
 }
 
-export function handleUnstakeRequestedImplementation(
-  event: UnstakeRequestedEvent,
-): void {
+export function handleUnstakeRequested(event: UnstakeRequestedEvent): void {
   let entity = new UnstakeRequested(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );
@@ -179,9 +174,7 @@ export function handleUnstakeRequestedImplementation(
   user.save();
 }
 
-export function handleUnstakedWithdrawnImplementation(
-  event: UnstakedWithdrawnEvent,
-): void {
+export function handleUnstakedWithdrawn(event: UnstakedWithdrawnEvent): void {
   let entity = new UnstakedWithdrawn(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );

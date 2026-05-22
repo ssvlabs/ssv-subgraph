@@ -13,9 +13,7 @@ import {
 } from "../../generated/schema";
 import { buildEventEntityId, stampUpdate } from "../helpers";
 
-export function handleRootCommittedImplementation(
-  event: RootCommittedEvent,
-): void {
+export function handleRootCommitted(event: RootCommittedEvent): void {
   let entity = new RootCommitted(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );
@@ -37,7 +35,12 @@ export function handleRootCommittedImplementation(
   }
   dao.updateType = "ROOT_COMMITTED";
   dao.latestMerkleRoot = event.params.merkleRoot;
-  stampUpdate(dao, event.block.number, event.block.timestamp, event.transaction.hash);
+  stampUpdate(
+    dao,
+    event.block.number,
+    event.block.timestamp,
+    event.transaction.hash,
+  );
 
   log.info(
     `Dao Values update type: ${dao.updateType}, new latest merkle root: ${dao.latestMerkleRoot.toHexString()}`,
@@ -46,9 +49,7 @@ export function handleRootCommittedImplementation(
   dao.save();
 }
 
-export function handleOracleReplacedImplementation(
-  event: OracleReplacedEvent,
-): void {
+export function handleOracleReplaced(event: OracleReplacedEvent): void {
   let entity = new OracleReplaced(
     buildEventEntityId(event.transaction.hash, event.logIndex),
   );
@@ -78,7 +79,7 @@ export function handleOracleReplacedImplementation(
   oracle.save();
 }
 
-export function handleWeightedRootProposedImplementation(
+export function handleWeightedRootProposed(
   event: WeightedRootProposedEvent,
 ): void {
   let entity = new WeightedRootProposed(
