@@ -26,23 +26,20 @@ import {
 import {
   applyOwnerValidatorAdded,
   applyOwnerValidatorRemoved,
-  loadOrCreateValidatorOwnerAccount,
-  loadRequiredClusterOwnerAccount,
-} from "../helpers/account";
-import {
   assignClusterMembership,
   assignClusterSnapshot,
+  buildClusterId,
+  buildEventEntityId,
   clusterUsesEthFees,
-  loadRequiredLifecycleCluster,
-} from "../helpers/cluster";
-import {
   ETH_FEE_ASSET,
-  SSV_FEE_ASSET,
   getInitialClusterFeeAsset,
-} from "../helpers/dao";
-import { buildClusterId, buildEventEntityId } from "../helpers/ids";
-import { stampUpdate } from "../helpers/metadata";
-import { loadLoopOperatorOrLog } from "../helpers/operator";
+  loadLoopOperatorOrLog,
+  loadOrCreateValidatorOwnerAccount,
+  loadRequiredClusterOwnerAccount,
+  loadRequiredLifecycleCluster,
+  SSV_FEE_ASSET,
+  stampUpdate,
+} from "../helpers";
 
 const VUNITS_PRECISION = BigInt.fromI32(100000);
 const DEFAULT_BALANCE = BigInt.fromI32(32);
@@ -72,7 +69,7 @@ export function handleClusterBalanceUpdatedImplementation(
   let cluster = Cluster.load(clusterId);
   if (!cluster) {
     log.error(
-      `Cluster ${clusterId} is being deposited, but it does not exist on the database`,
+      `Cluster ${clusterId} is having its balance updated, but it does not exist on the database`,
       [],
     );
     cluster = new Cluster(clusterId);
@@ -121,7 +118,7 @@ export function handleClusterBalanceUpdatedImplementation(
   let dao = DAOValues.load(event.address);
   if (!dao) {
     log.error(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
+      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: CLUSTER_BALANCE_UPDATED`,
       [],
     );
     return;
@@ -169,7 +166,7 @@ export function handleClusterMigratedToETHImplementation(
   let cluster = Cluster.load(clusterId);
   if (!cluster) {
     log.error(
-      `Cluster ${clusterId} is being deposited, but it does not exist on the database`,
+      `Cluster ${clusterId} is being migrated to ETH, but it does not exist on the database`,
       [],
     );
     cluster = new Cluster(clusterId);
@@ -321,7 +318,7 @@ export function handleClusterLiquidatedImplementation(
   let dao = DAOValues.load(event.address);
   if (!dao) {
     log.error(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
+      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: CLUSTER_LIQUIDATED`,
       [],
     );
     return;
@@ -427,7 +424,7 @@ export function handleClusterReactivatedImplementation(
   let dao = DAOValues.load(event.address);
   if (!dao) {
     log.error(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
+      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: CLUSTER_REACTIVATED`,
       [],
     );
     return;
@@ -579,7 +576,7 @@ export function handleValidatorAddedImplementation(
   let dao = DAOValues.load(event.address);
   if (!dao) {
     log.error(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
+      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: VALIDATOR_ADDED`,
       [],
     );
     return;
@@ -722,7 +719,7 @@ export function handleValidatorRemovedImplementation(
   let dao = DAOValues.load(event.address);
   if (!dao) {
     log.error(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
+      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: VALIDATOR_REMOVED`,
       [],
     );
     return;
@@ -787,7 +784,7 @@ export function handleValidatorRemovedImplementation(
   let validator = Validator.load(validatorId);
   if (!validator) {
     log.info(
-      `new Validator ${event.params.publicKey.toHexString()} being added to Cluster ${clusterId}`,
+      `Validator ${event.params.publicKey.toHexString()} is being removed from Cluster ${clusterId}, but it does not exist on the database`,
       [],
     );
     log.error(

@@ -21,11 +21,11 @@ import {
   UnstakedWithdrawn,
 } from "../../generated/schema";
 import {
+  buildEventEntityId,
   loadOrCreateAccount,
   loadRequiredStakingAccount,
-} from "../helpers/account";
-import { buildEventEntityId } from "../helpers/ids";
-import { stampUpdate } from "../helpers/metadata";
+  stampUpdate,
+} from "../helpers";
 
 export function handleERC20RescuedImplementation(
   event: ERC20RescuedEvent,
@@ -66,7 +66,7 @@ export function handleFeesSyncedImplementation(
   let dao = DAOValues.load(event.address);
   if (!dao) {
     log.error(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: QUORUM_UPDATED`,
+      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: FEES_SYNCED`,
       [],
     );
     return;

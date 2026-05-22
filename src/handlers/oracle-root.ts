@@ -11,8 +11,7 @@ import {
   RootCommitted,
   WeightedRootProposed,
 } from "../../generated/schema";
-import { buildEventEntityId } from "../helpers/ids";
-import { stampUpdate } from "../helpers/metadata";
+import { buildEventEntityId, stampUpdate } from "../helpers";
 
 export function handleRootCommittedImplementation(
   event: RootCommittedEvent,

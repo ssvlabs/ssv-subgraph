@@ -28,12 +28,12 @@ import {
   SSVNetworkUpgradeBlock,
 } from "../../generated/schema";
 import {
+  buildEventEntityId,
   createDefaultDAOValues,
   legacyDaoFeeEventTargetsPrimaryFields,
+  stampUpdate,
   usesEthFeeRegime,
-} from "../helpers/dao";
-import { buildEventEntityId } from "../helpers/ids";
-import { stampUpdate } from "../helpers/metadata";
+} from "../helpers";
 
 const SSV_STAKING_UPDATE_BLOCK_NUMBER = BigInt.fromI32(2442571);
 
@@ -80,7 +80,7 @@ export function handleDeclareOperatorFeePeriodUpdatedImplementation(
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
-    "DECLARE_OPERATOR_FEE_PERIOD",
+    "OPERATOR_MAX_FEE",
   );
   dao.updateType = "DECLARE_OPERATOR_FEE_PERIOD";
   dao.declareOperatorFeePeriod = event.params.value;
@@ -174,7 +174,7 @@ export function handleLiquidationThresholdPeriodSSVUpdatedImplementation(
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
-    "LIQUIDATION_THRESHOLD",
+    "LIQUIDATION_THRESHOLD_SSV",
   );
   dao.updateType = "LIQUIDATION_THRESHOLD_SSV";
   dao.liquidationThresholdSSV = event.params.value;
@@ -242,7 +242,7 @@ export function handleMinimumLiquidationCollateralSSVUpdatedImplementation(
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
-    "MIN_LIQUIDATION_COLLATERAL",
+    "MIN_LIQUIDATION_COLLATERAL_SSV",
   );
   dao.updateType = "MIN_LIQUIDATION_COLLATERAL_SSV";
   dao.minimumLiquidationCollateralSSV = event.params.value;
@@ -328,7 +328,7 @@ export function handleNetworkFeeUpdatedSSVImplementation(
     event.block.number,
     event.block.timestamp,
     event.transaction.hash,
-    "NETWORK_FEE",
+    "NETWORK_FEE_SSV",
   );
   dao.updateType = "NETWORK_FEE_SSV";
   dao.networkFeeIndexSSV = dao.networkFeeIndexSSV.plus(
@@ -446,7 +446,7 @@ export function handleSSVNetworkUpgradeBlockImplementation(
   let dao = DAOValues.load(event.address);
   if (!dao) {
     log.error(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: QUORUM_UPDATED`,
+      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: SSV_NETWORK_UPGRADE`,
       [],
     );
     return;

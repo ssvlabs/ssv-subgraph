@@ -48,7 +48,7 @@ export function loadRequiredClusterOwnerAccount(
   let owner = Account.load(ownerAddress);
   if (!owner) {
     log.error(
-      `Trying to update account with address ${ownerAddress.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
+      `Trying to update cluster or validator owner account ${ownerAddress.toHexString()}, but it does not exist on the database`,
       [],
     );
     return null;

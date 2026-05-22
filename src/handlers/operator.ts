@@ -31,13 +31,14 @@ import {
   OperatorWithdrawnSSV,
 } from "../../generated/schema";
 import {
+  buildEventEntityId,
+  createDefaultDAOValues,
   loadOrCreateAccount,
+  loadLoopOperatorOrLog,
   loadRequiredOperatorOwnerAccount,
-} from "../helpers/account";
-import { createDefaultDAOValues, usesEthFeeRegime } from "../helpers/dao";
-import { buildEventEntityId } from "../helpers/ids";
-import { stampUpdate } from "../helpers/metadata";
-import { loadLoopOperatorOrLog } from "../helpers/operator";
+  stampUpdate,
+  usesEthFeeRegime,
+} from "../helpers";
 
 const SSV_STAKING_UPDATE_BLOCK_NUMBER = BigInt.fromI32(2442571);
 const DEFAULT_OPERATOR_ETH_FEE = BigInt.fromI32(1_778_800_000);
@@ -62,7 +63,7 @@ export function handleOperatorAddedImplementation(
   let dao = DAOValues.load(event.address);
   if (!dao) {
     log.error(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
+      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database, creating it. Update type: OPERATOR_ADDED`,
       [],
     );
 
@@ -324,7 +325,7 @@ export function handleOperatorFeeExecutedImplementation(
     let dao = DAOValues.load(event.address);
     if (!dao) {
       log.error(
-        `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
+        `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: OPERATOR_FEE_EXECUTED`,
         [],
       );
       return;
@@ -390,7 +391,7 @@ export function handleOperatorRemovedImplementation(
   let dao = DAOValues.load(event.address);
   if (!dao) {
     log.error(
-      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: DECLARE_OPERATOR_FEE_PERIOD`,
+      `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: OPERATOR_REMOVED`,
       [],
     );
     return;
@@ -488,7 +489,7 @@ export function handleOperatorWhitelistUpdatedImplementation(
   let operator = Operator.load(operatorId);
   if (!operator) {
     log.error(
-      `Executing fees change for Operator ${event.params.operatorId}, but it does not exist on the database`,
+      `Updating whitelist for Operator ${event.params.operatorId}, but it does not exist on the database`,
       [],
     );
     log.error(
@@ -753,7 +754,7 @@ export function handleOperatorWithdrawnImplementation(
   let owner = loadRequiredOperatorOwnerAccount(
     event.params.owner,
     event.params.operatorId,
-    "Executing fees change",
+    "Processing operator withdrawal",
   );
   if (!owner) {
     return;
@@ -763,7 +764,7 @@ export function handleOperatorWithdrawnImplementation(
   let operator = Operator.load(operatorId);
   if (!operator) {
     log.error(
-      `Executing fees change for Operator ${event.params.operatorId}, but it does not exist on the database`,
+      `Processing operator withdrawal for Operator ${event.params.operatorId}, but it does not exist on the database`,
       [],
     );
     log.error(
@@ -819,7 +820,7 @@ export function handleOperatorWithdrawnSSVImplementation(
   let owner = loadRequiredOperatorOwnerAccount(
     event.params.owner,
     event.params.operatorId,
-    "Executing fees change",
+    "Processing SSV operator withdrawal",
   );
   if (!owner) {
     return;
@@ -829,7 +830,7 @@ export function handleOperatorWithdrawnSSVImplementation(
   let operator = Operator.load(operatorId);
   if (!operator) {
     log.error(
-      `Executing fees change for Operator ${event.params.operatorId}, but it does not exist on the database`,
+      `Processing SSV operator withdrawal for Operator ${event.params.operatorId}, but it does not exist on the database`,
       [],
     );
     log.error(
