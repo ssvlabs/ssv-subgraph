@@ -1,12 +1,18 @@
 import { newMockEvent } from "matchstick-as"
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts"
 import {
+  ClusterDeposited,
   NetworkFeeUpdated,
+  OperatorFeeDeclared,
   OperatorAdded,
+  OperatorWithdrawn,
+  OracleReplaced,
   OperatorWhitelistUpdated,
   OperatorWhitelistingContractUpdated,
   SSVNetworkUpgradeBlock,
   ValidatorAdded,
+  ValidatorRemoved,
+  ClusterWithdrawn,
 } from "../generated/SSVNetwork/SSVNetwork"
 
 export function setEventMetadata(
@@ -40,6 +46,34 @@ export function createClusterSnapshot(
   cluster.push(ethereum.Value.fromUnsignedBigInt(balance))
 
   return cluster
+}
+
+export function createClusterDepositedEvent(
+  owner: Address,
+  operatorIds: BigInt[],
+  value: BigInt,
+  cluster: ethereum.Tuple,
+): ClusterDeposited {
+  let event = changetype<ClusterDeposited>(newMockEvent())
+
+  event.parameters = new Array()
+  event.parameters.push(
+    new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner)),
+  )
+  event.parameters.push(
+    new ethereum.EventParam(
+      "operatorIds",
+      ethereum.Value.fromUnsignedBigIntArray(operatorIds),
+    ),
+  )
+  event.parameters.push(
+    new ethereum.EventParam("value", ethereum.Value.fromUnsignedBigInt(value)),
+  )
+  event.parameters.push(
+    new ethereum.EventParam("cluster", ethereum.Value.fromTuple(cluster)),
+  )
+
+  return event
 }
 
 export function createNetworkFeeUpdatedEvent(
@@ -82,6 +116,85 @@ export function createOperatorAddedEvent(
   )
   event.parameters.push(
     new ethereum.EventParam("fee", ethereum.Value.fromUnsignedBigInt(fee)),
+  )
+
+  return event
+}
+
+export function createOperatorFeeDeclaredEvent(
+  owner: Address,
+  operatorId: BigInt,
+  blockNumber: BigInt,
+  fee: BigInt,
+): OperatorFeeDeclared {
+  let event = changetype<OperatorFeeDeclared>(newMockEvent())
+
+  event.parameters = new Array()
+  event.parameters.push(
+    new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner)),
+  )
+  event.parameters.push(
+    new ethereum.EventParam(
+      "operatorId",
+      ethereum.Value.fromUnsignedBigInt(operatorId),
+    ),
+  )
+  event.parameters.push(
+    new ethereum.EventParam(
+      "blockNumber",
+      ethereum.Value.fromUnsignedBigInt(blockNumber),
+    ),
+  )
+  event.parameters.push(
+    new ethereum.EventParam("fee", ethereum.Value.fromUnsignedBigInt(fee)),
+  )
+
+  return event
+}
+
+export function createOperatorWithdrawnEvent(
+  owner: Address,
+  operatorId: BigInt,
+  value: BigInt,
+): OperatorWithdrawn {
+  let event = changetype<OperatorWithdrawn>(newMockEvent())
+
+  event.parameters = new Array()
+  event.parameters.push(
+    new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner)),
+  )
+  event.parameters.push(
+    new ethereum.EventParam(
+      "operatorId",
+      ethereum.Value.fromUnsignedBigInt(operatorId),
+    ),
+  )
+  event.parameters.push(
+    new ethereum.EventParam("value", ethereum.Value.fromUnsignedBigInt(value)),
+  )
+
+  return event
+}
+
+export function createOracleReplacedEvent(
+  oracleId: BigInt,
+  oldOracle: Address,
+  newOracle: Address,
+): OracleReplaced {
+  let event = changetype<OracleReplaced>(newMockEvent())
+
+  event.parameters = new Array()
+  event.parameters.push(
+    new ethereum.EventParam(
+      "oracleId",
+      ethereum.Value.fromUnsignedBigInt(oracleId),
+    ),
+  )
+  event.parameters.push(
+    new ethereum.EventParam("oldOracle", ethereum.Value.fromAddress(oldOracle)),
+  )
+  event.parameters.push(
+    new ethereum.EventParam("newOracle", ethereum.Value.fromAddress(newOracle)),
   )
 
   return event
@@ -177,6 +290,62 @@ export function createValidatorAddedEvent(
   )
   event.parameters.push(
     new ethereum.EventParam("shares", ethereum.Value.fromBytes(shares)),
+  )
+  event.parameters.push(
+    new ethereum.EventParam("cluster", ethereum.Value.fromTuple(cluster)),
+  )
+
+  return event
+}
+
+export function createValidatorRemovedEvent(
+  owner: Address,
+  operatorIds: BigInt[],
+  publicKey: Bytes,
+  cluster: ethereum.Tuple,
+): ValidatorRemoved {
+  let event = changetype<ValidatorRemoved>(newMockEvent())
+
+  event.parameters = new Array()
+  event.parameters.push(
+    new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner)),
+  )
+  event.parameters.push(
+    new ethereum.EventParam(
+      "operatorIds",
+      ethereum.Value.fromUnsignedBigIntArray(operatorIds),
+    ),
+  )
+  event.parameters.push(
+    new ethereum.EventParam("publicKey", ethereum.Value.fromBytes(publicKey)),
+  )
+  event.parameters.push(
+    new ethereum.EventParam("cluster", ethereum.Value.fromTuple(cluster)),
+  )
+
+  return event
+}
+
+export function createClusterWithdrawnEvent(
+  owner: Address,
+  operatorIds: BigInt[],
+  value: BigInt,
+  cluster: ethereum.Tuple,
+): ClusterWithdrawn {
+  let event = changetype<ClusterWithdrawn>(newMockEvent())
+
+  event.parameters = new Array()
+  event.parameters.push(
+    new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner)),
+  )
+  event.parameters.push(
+    new ethereum.EventParam(
+      "operatorIds",
+      ethereum.Value.fromUnsignedBigIntArray(operatorIds),
+    ),
+  )
+  event.parameters.push(
+    new ethereum.EventParam("value", ethereum.Value.fromUnsignedBigInt(value)),
   )
   event.parameters.push(
     new ethereum.EventParam("cluster", ethereum.Value.fromTuple(cluster)),

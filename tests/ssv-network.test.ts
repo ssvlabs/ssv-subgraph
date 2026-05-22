@@ -1,21 +1,33 @@
 import { assert, clearStore, describe, test } from "matchstick-as/assembly/index"
 import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts"
 import {
+  handleClusterDeposited,
+  handleClusterWithdrawn,
   handleNetworkFeeUpdated,
+  handleOperatorFeeDeclared,
   handleOperatorAdded,
+  handleOperatorWithdrawn,
+  handleOracleReplaced,
   handleOperatorWhitelistUpdated,
   handleOperatorWhitelistingContractUpdated,
   handleSSVNetworkUpgradeBlock,
   handleValidatorAdded,
+  handleValidatorRemoved,
 } from "../src/ssv-network"
 import {
   createClusterSnapshot,
+  createClusterDepositedEvent,
+  createClusterWithdrawnEvent,
   createNetworkFeeUpdatedEvent,
   createOperatorAddedEvent,
+  createOperatorFeeDeclaredEvent,
+  createOperatorWithdrawnEvent,
+  createOracleReplacedEvent,
   createOperatorWhitelistUpdatedEvent,
   createOperatorWhitelistingContractUpdatedEvent,
   createSSVNetworkUpgradeBlockEvent,
   createValidatorAddedEvent,
+  createValidatorRemovedEvent,
   setEventMetadata,
 } from "./ssv-network-utils"
 
@@ -46,11 +58,25 @@ const THIRTY_TWO_ETH = BigInt.fromI32(32)
 const CLUSTER_VUNITS = BigInt.fromI32(100000)
 const NETWORK_FEE_OLD = BigInt.fromI32(10)
 const NETWORK_FEE_NEW = BigInt.fromI32(15)
+const DEPOSITED_CLUSTER_BALANCE = BigInt.fromI32(90)
+const WITHDRAWN_CLUSTER_BALANCE = BigInt.fromI32(80)
+const DECLARED_OPERATOR_FEE = BigInt.fromI32(77)
+const OPERATOR_WITHDRAWAL_AMOUNT = BigInt.fromI32(13)
+const ORACLE_ID = BigInt.fromI32(7)
 
 const OPERATOR_PUBLIC_KEY = Bytes.fromHexString("0x01020304") as Bytes
 const SECOND_OPERATOR_PUBLIC_KEY = Bytes.fromHexString("0x01020305") as Bytes
 const VALIDATOR_PUBLIC_KEY = Bytes.fromHexString("0x11121314") as Bytes
 const VALIDATOR_SHARES = Bytes.fromHexString("0x22232425") as Bytes
+const OLD_ORACLE_ADDRESS = Address.fromString(
+  "0x6000000000000000000000000000000000000001",
+)
+const FIRST_ORACLE_ADDRESS = Address.fromString(
+  "0x6000000000000000000000000000000000000002",
+)
+const SECOND_ORACLE_ADDRESS = Address.fromString(
+  "0x6000000000000000000000000000000000000003",
+)
 
 function operatorAddedEventId(logIndex: string, txHash: string): string {
   return `${txHash}-${logIndex}`
@@ -214,6 +240,184 @@ describe("SSVNetwork mappings", () => {
     clearStore()
   })
 
+  test("cluster deposit and withdrawal handlers persist cluster projection updates", () => {
+    clearStore()
+
+    addOperator(
+      OPERATOR_ONE_ID,
+      OPERATOR_PUBLIC_KEY,
+      1,
+      "0x8888888888888888888888888888888888888888888888888888888888888888",
+    )
+    addOperator(
+      OPERATOR_TWO_ID,
+      SECOND_OPERATOR_PUBLIC_KEY,
+      2,
+      "0x9999999999999999999999999999999999999999999999999999999999999999",
+    )
+
+    let validatorAddedEvent = createValidatorAddedEvent(
+      VALIDATOR_OWNER,
+      [OPERATOR_ONE_ID, OPERATOR_TWO_ID],
+      VALIDATOR_PUBLIC_KEY,
+      VALIDATOR_SHARES,
+      createClusterSnapshot(
+        BigInt.fromI32(1),
+        BigInt.zero(),
+        BigInt.fromI32(5),
+        true,
+        BigInt.fromI32(64),
+      ),
+    )
+    setEventMetadata(
+      validatorAddedEvent,
+      NETWORK_ADDRESS,
+      200,
+      2_000,
+      9,
+      "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    )
+    handleValidatorAdded(validatorAddedEvent)
+
+    let clusterId = `${VALIDATOR_OWNER.toHexString()}-1-2`
+
+    let depositedEvent = createClusterDepositedEvent(
+      VALIDATOR_OWNER,
+      [OPERATOR_ONE_ID, OPERATOR_TWO_ID],
+      BigInt.fromI32(20),
+      createClusterSnapshot(
+        BigInt.fromI32(1),
+        BigInt.fromI32(10),
+        BigInt.fromI32(11),
+        true,
+        DEPOSITED_CLUSTER_BALANCE,
+      ),
+    )
+    setEventMetadata(
+      depositedEvent,
+      NETWORK_ADDRESS,
+      210,
+      2_100,
+      10,
+      "0xcccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    )
+    handleClusterDeposited(depositedEvent)
+
+    assert.fieldEquals("Cluster", clusterId, "networkFeeIndex", "10")
+    assert.fieldEquals("Cluster", clusterId, "index", "11")
+    assert.fieldEquals("Cluster", clusterId, "balance", DEPOSITED_CLUSTER_BALANCE.toString())
+    assert.fieldEquals("Cluster", clusterId, "lastUpdateBlockNumber", "210")
+
+    let withdrawnEvent = createClusterWithdrawnEvent(
+      VALIDATOR_OWNER,
+      [OPERATOR_ONE_ID, OPERATOR_TWO_ID],
+      BigInt.fromI32(10),
+      createClusterSnapshot(
+        BigInt.fromI32(1),
+        BigInt.fromI32(12),
+        BigInt.fromI32(13),
+        false,
+        WITHDRAWN_CLUSTER_BALANCE,
+      ),
+    )
+    setEventMetadata(
+      withdrawnEvent,
+      NETWORK_ADDRESS,
+      211,
+      2_110,
+      11,
+      "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+    )
+    handleClusterWithdrawn(withdrawnEvent)
+
+    assert.fieldEquals("Cluster", clusterId, "networkFeeIndex", "12")
+    assert.fieldEquals("Cluster", clusterId, "index", "13")
+    assert.fieldEquals("Cluster", clusterId, "active", "false")
+    assert.fieldEquals("Cluster", clusterId, "balance", WITHDRAWN_CLUSTER_BALANCE.toString())
+    assert.fieldEquals("Cluster", clusterId, "lastUpdateBlockNumber", "211")
+
+    clearStore()
+  })
+
+  test("handleValidatorRemoved persists validator, cluster, operator, and DAO updates", () => {
+    clearStore()
+
+    addOperator(
+      OPERATOR_ONE_ID,
+      OPERATOR_PUBLIC_KEY,
+      1,
+      "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb01",
+    )
+    addOperator(
+      OPERATOR_TWO_ID,
+      SECOND_OPERATOR_PUBLIC_KEY,
+      2,
+      "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb02",
+    )
+
+    let validatorAddedEvent = createValidatorAddedEvent(
+      VALIDATOR_OWNER,
+      [OPERATOR_ONE_ID, OPERATOR_TWO_ID],
+      VALIDATOR_PUBLIC_KEY,
+      VALIDATOR_SHARES,
+      createClusterSnapshot(
+        BigInt.fromI32(1),
+        BigInt.zero(),
+        BigInt.fromI32(5),
+        true,
+        BigInt.fromI32(64),
+      ),
+    )
+    setEventMetadata(
+      validatorAddedEvent,
+      NETWORK_ADDRESS,
+      200,
+      2_000,
+      9,
+      "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+    )
+    handleValidatorAdded(validatorAddedEvent)
+
+    let validatorRemovedEvent = createValidatorRemovedEvent(
+      VALIDATOR_OWNER,
+      [OPERATOR_ONE_ID, OPERATOR_TWO_ID],
+      VALIDATOR_PUBLIC_KEY,
+      createClusterSnapshot(
+        BigInt.zero(),
+        BigInt.fromI32(6),
+        BigInt.fromI32(7),
+        true,
+        BigInt.fromI32(32),
+      ),
+    )
+    setEventMetadata(
+      validatorRemovedEvent,
+      NETWORK_ADDRESS,
+      220,
+      2_200,
+      10,
+      "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    )
+    handleValidatorRemoved(validatorRemovedEvent)
+
+    let clusterId = `${VALIDATOR_OWNER.toHexString()}-1-2`
+
+    assert.fieldEquals("Validator", VALIDATOR_PUBLIC_KEY.toHexString(), "removed", "true")
+    assert.fieldEquals("Validator", VALIDATOR_PUBLIC_KEY.toHexString(), "lastUpdateBlockNumber", "220")
+    assert.fieldEquals("Cluster", clusterId, "validatorCount", "0")
+    assert.fieldEquals("Cluster", clusterId, "effectiveBalance", "0")
+    assert.fieldEquals("Cluster", clusterId, "index", "7")
+    assert.fieldEquals("Account", VALIDATOR_OWNER.toHexString(), "validatorCount", "0")
+    assert.fieldEquals("Account", VALIDATOR_OWNER.toHexString(), "effectiveBalance", "0")
+    assert.fieldEquals("Operator", "1", "validatorCount", "0")
+    assert.fieldEquals("Operator", "1", "lastUpdateBlockNumber", "220")
+    assert.fieldEquals("Operator", "2", "validatorCount", "0")
+    assert.fieldEquals("DAOValues", NETWORK_ADDRESS.toHexString(), "totalValidators", "0")
+    assert.fieldEquals("DAOValues", NETWORK_ADDRESS.toHexString(), "totalEffectiveBalance", "0")
+
+    clearStore()
+  })
+
   test("upgrade and network fee update switch DAO fee writes to ETH fields", () => {
     clearStore()
 
@@ -341,6 +545,113 @@ describe("SSVNetwork mappings", () => {
     assert.fieldEquals("Operator", "1", "whitelistedContract", WHITELISTING_CONTRACT.toHexString())
     assert.fieldEquals("Operator", "1", "isPrivate", "false")
     assert.fieldEquals("Account", WHITELISTED_ADDRESS.toHexString(), "feeRecipient", WHITELISTED_ADDRESS.toHexString())
+
+    clearStore()
+  })
+
+  test("operator fee declaration and withdrawal persist updated operator fields", () => {
+    clearStore()
+
+    addOperator(
+      OPERATOR_ONE_ID,
+      OPERATOR_PUBLIC_KEY,
+      1,
+      "0x1212121212121212121212121212121212121212121212121212121212121212",
+    )
+
+    let feeDeclaredEvent = createOperatorFeeDeclaredEvent(
+      OPERATOR_OWNER,
+      OPERATOR_ONE_ID,
+      BigInt.fromI32(240),
+      DECLARED_OPERATOR_FEE,
+    )
+    setEventMetadata(
+      feeDeclaredEvent,
+      NETWORK_ADDRESS,
+      240,
+      2_400,
+      8,
+      "0x1313131313131313131313131313131313131313131313131313131313131313",
+    )
+    handleOperatorFeeDeclared(feeDeclaredEvent)
+
+    assert.fieldEquals("Operator", "1", "declaredSSVFee", DECLARED_OPERATOR_FEE.toString())
+    assert.fieldEquals("Operator", "1", "lastUpdateBlockNumber", "240")
+
+    let upgradeEvent = createSSVNetworkUpgradeBlockEvent(
+      "v2.0.0",
+      BigInt.fromI32(250),
+    )
+    setEventMetadata(
+      upgradeEvent,
+      NETWORK_ADDRESS,
+      250,
+      2_500,
+      9,
+      "0x1414141414141414141414141414141414141414141414141414141414141414",
+    )
+    handleSSVNetworkUpgradeBlock(upgradeEvent)
+
+    let withdrawnEvent = createOperatorWithdrawnEvent(
+      OPERATOR_OWNER,
+      OPERATOR_ONE_ID,
+      OPERATOR_WITHDRAWAL_AMOUNT,
+    )
+    setEventMetadata(
+      withdrawnEvent,
+      NETWORK_ADDRESS,
+      260,
+      2_600,
+      10,
+      "0x1515151515151515151515151515151515151515151515151515151515151515",
+    )
+    handleOperatorWithdrawn(withdrawnEvent)
+
+    assert.fieldEquals("Operator", "1", "totalWithdrawn", OPERATOR_WITHDRAWAL_AMOUNT.toString())
+    assert.fieldEquals("Operator", "1", "totalWithdrawnSSV", "0")
+    assert.fieldEquals("Operator", "1", "lastUpdateBlockNumber", "260")
+
+    clearStore()
+  })
+
+  test("oracle replacement persists newly created and updated oracle records", () => {
+    clearStore()
+
+    let firstOracleReplacedEvent = createOracleReplacedEvent(
+      ORACLE_ID,
+      OLD_ORACLE_ADDRESS,
+      FIRST_ORACLE_ADDRESS,
+    )
+    setEventMetadata(
+      firstOracleReplacedEvent,
+      NETWORK_ADDRESS,
+      300,
+      3_000,
+      11,
+      "0x1616161616161616161616161616161616161616161616161616161616161616",
+    )
+    handleOracleReplaced(firstOracleReplacedEvent)
+
+    assert.entityCount("Oracle", 1)
+    assert.fieldEquals("Oracle", ORACLE_ID.toString(), "oracleAddress", FIRST_ORACLE_ADDRESS.toHexString())
+    assert.fieldEquals("Oracle", ORACLE_ID.toString(), "lastUpdateBlockNumber", "300")
+
+    let secondOracleReplacedEvent = createOracleReplacedEvent(
+      ORACLE_ID,
+      FIRST_ORACLE_ADDRESS,
+      SECOND_ORACLE_ADDRESS,
+    )
+    setEventMetadata(
+      secondOracleReplacedEvent,
+      NETWORK_ADDRESS,
+      301,
+      3_010,
+      12,
+      "0x1717171717171717171717171717171717171717171717171717171717171717",
+    )
+    handleOracleReplaced(secondOracleReplacedEvent)
+
+    assert.fieldEquals("Oracle", ORACLE_ID.toString(), "oracleAddress", SECOND_ORACLE_ADDRESS.toHexString())
 
     clearStore()
   })
