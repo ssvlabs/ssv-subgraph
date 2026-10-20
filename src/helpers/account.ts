@@ -101,7 +101,10 @@ export function applyOwnerValidatorAdded(owner: Account): void {
   owner.effectiveBalance = owner.effectiveBalance.plus(DEFAULT_BALANCE);
 }
 
-export function applyOwnerValidatorRemoved(owner: Account): void {
+export function applyOwnerValidatorRemoved(
+  owner: Account,
+  removedEffectiveBalance: BigInt,
+): void {
   owner.validatorCount = owner.validatorCount.minus(BigInt.fromI32(1));
-  owner.effectiveBalance = owner.effectiveBalance.minus(DEFAULT_BALANCE);
+  owner.effectiveBalance = owner.effectiveBalance.minus(removedEffectiveBalance);
 }

@@ -1,6 +1,7 @@
 import { newMockEvent } from "matchstick-as"
 import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts"
 import {
+  ClusterBalanceUpdated,
   ClusterDeposited,
   NetworkFeeUpdated,
   OperatorFeeDeclared,
@@ -46,6 +47,41 @@ export function createClusterSnapshot(
   cluster.push(ethereum.Value.fromUnsignedBigInt(balance))
 
   return cluster
+}
+
+export function createClusterBalanceUpdatedEvent(
+  owner: Address,
+  operatorIds: BigInt[],
+  blockNum: BigInt,
+  effectiveBalance: BigInt,
+  cluster: ethereum.Tuple,
+): ClusterBalanceUpdated {
+  let event = changetype<ClusterBalanceUpdated>(newMockEvent())
+
+  event.parameters = new Array()
+  event.parameters.push(
+    new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner)),
+  )
+  event.parameters.push(
+    new ethereum.EventParam(
+      "operatorIds",
+      ethereum.Value.fromUnsignedBigIntArray(operatorIds),
+    ),
+  )
+  event.parameters.push(
+    new ethereum.EventParam("blockNum", ethereum.Value.fromUnsignedBigInt(blockNum)),
+  )
+  event.parameters.push(
+    new ethereum.EventParam(
+      "effectiveBalance",
+      ethereum.Value.fromUnsignedBigInt(effectiveBalance),
+    ),
+  )
+  event.parameters.push(
+    new ethereum.EventParam("cluster", ethereum.Value.fromTuple(cluster)),
+  )
+
+  return event
 }
 
 export function createClusterDepositedEvent(

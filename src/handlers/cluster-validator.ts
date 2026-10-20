@@ -44,6 +44,24 @@ import {
 const VUNITS_PRECISION = BigInt.fromI32(100000);
 const DEFAULT_BALANCE = BigInt.fromI32(32);
 
+// Mirrors SSVValidators._bulkRemoveValidator: each removed validator drops
+// its 32 ETH baseline, and emptying an ETH cluster also clears the deviation
+// left by oracle updates (the contract resets the cluster's vUnits to 0).
+// A bulk removal emits one event per key, all carrying the final validator
+// count, so the first event clears the whole balance and the rest remove 0.
+function getRemovedEffectiveBalance(
+  cluster: Cluster | null,
+  validatorCount: BigInt,
+): BigInt {
+  if (cluster == null) {
+    return DEFAULT_BALANCE;
+  }
+  if (clusterUsesEthFees(cluster) && validatorCount.isZero()) {
+    return cluster.effectiveBalance;
+  }
+  return DEFAULT_BALANCE;
+}
+
 export function handleClusterBalanceUpdated(
   event: ClusterBalanceUpdatedEvent,
 ): void {
@@ -713,8 +731,19 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     );
     return;
   }
+  let clusterId = buildClusterId(event.params.owner, event.params.operatorIds);
+  let cluster = Cluster.load(clusterId);
+  let removedEffectiveBalance = getRemovedEffectiveBalance(
+    cluster,
+    event.params.cluster.validatorCount,
+  );
+
   dao.updateType = "VALIDATOR_REMOVED";
-  dao.totalEffectiveBalance = dao.totalEffectiveBalance.minus(DEFAULT_BALANCE);
+  // Like the contract, only active clusters release the deviation from totals:
+  // a liquidated cluster's balance already left them in handleClusterLiquidated.
+  dao.totalEffectiveBalance = dao.totalEffectiveBalance.minus(
+    event.params.cluster.active ? removedEffectiveBalance : DEFAULT_BALANCE,
+  );
   dao.validatorsRemoved = dao.validatorsRemoved.plus(BigInt.fromI32(1));
   dao.totalValidators = dao.totalValidators.minus(BigInt.fromI32(1));
 
@@ -723,12 +752,10 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     return;
   }
   if (event.params.cluster.active) {
-    applyOwnerValidatorRemoved(owner);
+    applyOwnerValidatorRemoved(owner, removedEffectiveBalance);
   }
   owner.save();
 
-  let clusterId = buildClusterId(event.params.owner, event.params.operatorIds);
-  let cluster = Cluster.load(clusterId);
   if (!cluster) {
     log.error(
       `Validator ${event.params.publicKey.toHexString()} is being removed from Cluster ${clusterId} which does not exist on DB`,
@@ -747,7 +774,9 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     `Set validator count of cluster ${cluster.id} to ${event.params.cluster.validatorCount}`,
     [],
   );
-  cluster.effectiveBalance = cluster.effectiveBalance.minus(DEFAULT_BALANCE);
+  cluster.effectiveBalance = cluster.effectiveBalance.minus(
+    removedEffectiveBalance,
+  );
   cluster.vUnits = cluster.effectiveBalance
     .times(VUNITS_PRECISION)
     .div(DEFAULT_BALANCE);
