@@ -4,6 +4,8 @@ import {
   handleClusterBalanceUpdated,
   handleClusterDeposited,
   handleClusterLiquidated,
+  handleClusterMigratedToETH,
+  handleClusterReactivated,
   handleClusterWithdrawn,
   handleNetworkFeeUpdated,
   handleOperatorFeeDeclared,
@@ -21,6 +23,8 @@ import {
   createClusterSnapshot,
   createClusterDepositedEvent,
   createClusterLiquidatedEvent,
+  createClusterMigratedToETHEvent,
+  createClusterReactivatedEvent,
   createClusterWithdrawnEvent,
   createNetworkFeeUpdatedEvent,
   createOperatorAddedEvent,
@@ -132,6 +136,7 @@ function removeValidator(
   validatorCount: i32,
   logIndex: i32,
   txHash: string,
+  active: boolean = true,
 ): void {
   let event = createValidatorRemovedEvent(
     VALIDATOR_OWNER,
@@ -141,7 +146,7 @@ function removeValidator(
       BigInt.fromI32(validatorCount),
       BigInt.fromI32(6),
       BigInt.fromI32(7),
-      true,
+      active,
       BigInt.fromI32(32),
     ),
   )
@@ -149,9 +154,89 @@ function removeValidator(
   handleValidatorRemoved(event)
 }
 
-// Two validators in an ETH cluster, with an oracle effective balance above
-// the 32 ETH per validator baseline (both validators at the 2048 ETH maximum).
-function setUpEthClusterWithOracleBalance(): void {
+function updateOracleBalance(
+  effectiveBalance: BigInt,
+  active: boolean,
+  logIndex: i32,
+  txHash: string,
+): void {
+  let event = createClusterBalanceUpdatedEvent(
+    VALIDATOR_OWNER,
+    [OPERATOR_ONE_ID, OPERATOR_TWO_ID],
+    BigInt.fromI32(250 + logIndex),
+    effectiveBalance,
+    createClusterSnapshot(
+      BigInt.fromI32(2),
+      BigInt.zero(),
+      BigInt.fromI32(5),
+      active,
+      active ? BigInt.fromI32(64) : BigInt.zero(),
+    ),
+  )
+  setEventMetadata(event, NETWORK_ADDRESS, 250 + logIndex, 2_500 + logIndex, logIndex, txHash)
+  handleClusterBalanceUpdated(event)
+}
+
+function liquidateCluster(logIndex: i32, txHash: string): void {
+  let event = createClusterLiquidatedEvent(
+    VALIDATOR_OWNER,
+    [OPERATOR_ONE_ID, OPERATOR_TWO_ID],
+    createClusterSnapshot(
+      BigInt.fromI32(2),
+      BigInt.zero(),
+      BigInt.zero(),
+      false,
+      BigInt.zero(),
+    ),
+  )
+  setEventMetadata(event, NETWORK_ADDRESS, 270 + logIndex, 2_700 + logIndex, logIndex, txHash)
+  handleClusterLiquidated(event)
+}
+
+function migrateCluster(effectiveBalance: BigInt, logIndex: i32, txHash: string): void {
+  let event = createClusterMigratedToETHEvent(
+    VALIDATOR_OWNER,
+    [OPERATOR_ONE_ID, OPERATOR_TWO_ID],
+    BigInt.fromI32(1),
+    BigInt.zero(),
+    effectiveBalance,
+    createClusterSnapshot(
+      BigInt.fromI32(2),
+      BigInt.zero(),
+      BigInt.fromI32(5),
+      true,
+      BigInt.fromI32(1),
+    ),
+  )
+  setEventMetadata(event, NETWORK_ADDRESS, 280 + logIndex, 2_800 + logIndex, logIndex, txHash)
+  handleClusterMigratedToETH(event)
+}
+
+function reactivateCluster(logIndex: i32, txHash: string): void {
+  let event = createClusterReactivatedEvent(
+    VALIDATOR_OWNER,
+    [OPERATOR_ONE_ID, OPERATOR_TWO_ID],
+    createClusterSnapshot(
+      BigInt.fromI32(2),
+      BigInt.zero(),
+      BigInt.fromI32(5),
+      true,
+      BigInt.fromI32(1),
+    ),
+  )
+  setEventMetadata(event, NETWORK_ADDRESS, 280 + logIndex, 2_800 + logIndex, logIndex, txHash)
+  handleClusterReactivated(event)
+}
+
+function assertTotals(ownerBalance: string, totalBalance: string, ethBalance: string): void {
+  assert.fieldEquals("Account", VALIDATOR_OWNER.toHexString(), "effectiveBalance", ownerBalance)
+  assert.fieldEquals("DAOValues", NETWORK_ADDRESS.toHexString(), "totalEffectiveBalance", totalBalance)
+  assert.fieldEquals("DAOValues", NETWORK_ADDRESS.toHexString(), "effectiveBalanceETH", ethBalance)
+}
+
+// Two validators in a cluster: an ETH cluster when the network is upgraded
+// first, a legacy SSV cluster otherwise.
+function setUpClusterWithTwoValidators(upgraded: boolean): void {
   addOperator(
     OPERATOR_ONE_ID,
     OPERATOR_PUBLIC_KEY,
@@ -165,16 +250,18 @@ function setUpEthClusterWithOracleBalance(): void {
     "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd02",
   )
 
-  let upgradeEvent = createSSVNetworkUpgradeBlockEvent("v2.0.0", BigInt.fromI32(150))
-  setEventMetadata(
-    upgradeEvent,
-    NETWORK_ADDRESS,
-    150,
-    1_500,
-    3,
-    "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd03",
-  )
-  handleSSVNetworkUpgradeBlock(upgradeEvent)
+  if (upgraded) {
+    let upgradeEvent = createSSVNetworkUpgradeBlockEvent("v2.0.0", BigInt.fromI32(150))
+    setEventMetadata(
+      upgradeEvent,
+      NETWORK_ADDRESS,
+      150,
+      1_500,
+      3,
+      "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd03",
+    )
+    handleSSVNetworkUpgradeBlock(upgradeEvent)
+  }
 
   addValidator(
     VALIDATOR_PUBLIC_KEY,
@@ -188,29 +275,18 @@ function setUpEthClusterWithOracleBalance(): void {
     5,
     "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd05",
   )
+}
 
-  let balanceEvent = createClusterBalanceUpdatedEvent(
-    VALIDATOR_OWNER,
-    [OPERATOR_ONE_ID, OPERATOR_TWO_ID],
-    BigInt.fromI32(250),
+// Two validators in an ETH cluster, with an oracle effective balance above
+// the 32 ETH per validator baseline (both validators at the 2048 ETH maximum).
+function setUpEthClusterWithOracleBalance(): void {
+  setUpClusterWithTwoValidators(true)
+  updateOracleBalance(
     ORACLE_EFFECTIVE_BALANCE,
-    createClusterSnapshot(
-      BigInt.fromI32(2),
-      BigInt.zero(),
-      BigInt.fromI32(5),
-      true,
-      BigInt.fromI32(64),
-    ),
-  )
-  setEventMetadata(
-    balanceEvent,
-    NETWORK_ADDRESS,
-    260,
-    2_600,
+    true,
     6,
     "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd06",
   )
-  handleClusterBalanceUpdated(balanceEvent)
 }
 
 describe("SSVNetwork mappings", () => {
@@ -560,9 +636,8 @@ describe("SSVNetwork mappings", () => {
     assert.fieldEquals("Cluster", clusterId, "effectiveBalance", "0")
     assert.fieldEquals("Cluster", clusterId, "vUnits", "0")
     assert.fieldEquals("Account", VALIDATOR_OWNER.toHexString(), "validatorCount", "0")
-    assert.fieldEquals("Account", VALIDATOR_OWNER.toHexString(), "effectiveBalance", "0")
     assert.fieldEquals("DAOValues", NETWORK_ADDRESS.toHexString(), "totalValidators", "0")
-    assert.fieldEquals("DAOValues", NETWORK_ADDRESS.toHexString(), "totalEffectiveBalance", "0")
+    assertTotals("0", "0", "0")
 
     clearStore()
   })
@@ -584,8 +659,7 @@ describe("SSVNetwork mappings", () => {
     assert.fieldEquals("Cluster", clusterId, "validatorCount", "1")
     assert.fieldEquals("Cluster", clusterId, "effectiveBalance", "4064")
     assert.fieldEquals("Cluster", clusterId, "vUnits", "12700000")
-    assert.fieldEquals("Account", VALIDATOR_OWNER.toHexString(), "effectiveBalance", "4064")
-    assert.fieldEquals("DAOValues", NETWORK_ADDRESS.toHexString(), "totalEffectiveBalance", "4064")
+    assertTotals("4064", "4064", "4064")
 
     clearStore()
   })
@@ -594,56 +668,144 @@ describe("SSVNetwork mappings", () => {
     clearStore()
 
     setUpEthClusterWithOracleBalance()
-
-    let liquidatedEvent = createClusterLiquidatedEvent(
-      VALIDATOR_OWNER,
-      [OPERATOR_ONE_ID, OPERATOR_TWO_ID],
-      createClusterSnapshot(
-        BigInt.fromI32(2),
-        BigInt.zero(),
-        BigInt.zero(),
-        false,
-        BigInt.zero(),
-      ),
-    )
-    setEventMetadata(
-      liquidatedEvent,
-      NETWORK_ADDRESS,
-      270,
-      2_700,
+    liquidateCluster(
       7,
       "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd07",
     )
-    handleClusterLiquidated(liquidatedEvent)
-
-    let balanceEvent = createClusterBalanceUpdatedEvent(
-      VALIDATOR_OWNER,
-      [OPERATOR_ONE_ID, OPERATOR_TWO_ID],
-      BigInt.fromI32(280),
+    updateOracleBalance(
       BigInt.fromI32(2048),
-      createClusterSnapshot(
-        BigInt.fromI32(2),
-        BigInt.zero(),
-        BigInt.zero(),
-        false,
-        BigInt.zero(),
-      ),
-    )
-    setEventMetadata(
-      balanceEvent,
-      NETWORK_ADDRESS,
-      290,
-      2_900,
+      false,
       8,
       "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd08",
     )
-    handleClusterBalanceUpdated(balanceEvent)
 
     // The cluster snapshot still follows the oracle, like the contract's vUnits
     let clusterId = `${VALIDATOR_OWNER.toHexString()}-1-2`
     assert.fieldEquals("Cluster", clusterId, "effectiveBalance", "2048")
-    assert.fieldEquals("Account", VALIDATOR_OWNER.toHexString(), "effectiveBalance", "0")
-    assert.fieldEquals("DAOValues", NETWORK_ADDRESS.toHexString(), "totalEffectiveBalance", "0")
+    assertTotals("0", "0", "0")
+
+    clearStore()
+  })
+
+  test("validator additions grow the ETH total by 32 ETH each", () => {
+    clearStore()
+
+    setUpClusterWithTwoValidators(true)
+
+    assertTotals("64", "64", "64")
+
+    clearStore()
+  })
+
+  test("handleValidatorRemoved clears the oracle effective balance when an SSV cluster becomes empty", () => {
+    clearStore()
+
+    setUpClusterWithTwoValidators(false)
+    updateOracleBalance(
+      ORACLE_EFFECTIVE_BALANCE,
+      true,
+      6,
+      "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd06",
+    )
+
+    let clusterId = `${VALIDATOR_OWNER.toHexString()}-1-2`
+    assert.fieldEquals("Cluster", clusterId, "feeAsset", "SSV")
+    assertTotals("4096", "4096", "0")
+
+    removeValidator(
+      VALIDATOR_PUBLIC_KEY,
+      0,
+      7,
+      "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd07",
+    )
+    removeValidator(
+      SECOND_VALIDATOR_PUBLIC_KEY,
+      0,
+      8,
+      "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd07",
+    )
+
+    assert.fieldEquals("Cluster", clusterId, "effectiveBalance", "0")
+    assert.fieldEquals("Cluster", clusterId, "vUnits", "0")
+    assertTotals("0", "0", "0")
+
+    clearStore()
+  })
+
+  test("handleValidatorRemoved leaves totals unchanged for a liquidated cluster", () => {
+    clearStore()
+
+    setUpEthClusterWithOracleBalance()
+    liquidateCluster(
+      7,
+      "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd07",
+    )
+    assertTotals("0", "0", "0")
+
+    removeValidator(
+      VALIDATOR_PUBLIC_KEY,
+      0,
+      8,
+      "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd08",
+      false,
+    )
+    removeValidator(
+      SECOND_VALIDATOR_PUBLIC_KEY,
+      0,
+      9,
+      "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd08",
+      false,
+    )
+
+    let clusterId = `${VALIDATOR_OWNER.toHexString()}-1-2`
+    assert.fieldEquals("Cluster", clusterId, "effectiveBalance", "0")
+    assertTotals("0", "0", "0")
+
+    clearStore()
+  })
+
+  test("handleClusterMigratedToETH moves an active cluster's balance into the ETH total", () => {
+    clearStore()
+
+    setUpClusterWithTwoValidators(false)
+    assertTotals("64", "64", "0")
+
+    migrateCluster(
+      ORACLE_EFFECTIVE_BALANCE,
+      6,
+      "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd06",
+    )
+
+    let clusterId = `${VALIDATOR_OWNER.toHexString()}-1-2`
+    assert.fieldEquals("Cluster", clusterId, "feeAsset", "ETH")
+    assert.fieldEquals("Cluster", clusterId, "effectiveBalance", ORACLE_EFFECTIVE_BALANCE.toString())
+    assertTotals("4096", "4096", "4096")
+
+    clearStore()
+  })
+
+  test("migrating a liquidated cluster counts its balance once, on reactivation", () => {
+    clearStore()
+
+    setUpClusterWithTwoValidators(false)
+    liquidateCluster(
+      6,
+      "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd06",
+    )
+    assertTotals("0", "0", "0")
+
+    // The contract emits ClusterReactivated right after the migration
+    migrateCluster(
+      ORACLE_EFFECTIVE_BALANCE,
+      7,
+      "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd07",
+    )
+    reactivateCluster(
+      8,
+      "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd07",
+    )
+
+    assertTotals("4096", "4096", "4096")
 
     clearStore()
   })

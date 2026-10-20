@@ -45,8 +45,8 @@ const VUNITS_PRECISION = BigInt.fromI32(100000);
 const DEFAULT_BALANCE = BigInt.fromI32(32);
 
 // Mirrors SSVValidators._bulkRemoveValidator: each removed validator drops
-// its 32 ETH baseline, and emptying an ETH cluster also clears the deviation
-// left by oracle updates (the contract resets the cluster's vUnits to 0).
+// its 32 ETH baseline, and emptying a cluster (ETH or SSV) also clears the
+// deviation left by oracle updates (the contract resets its vUnits to 0).
 // A bulk removal emits one event per key, all carrying the final validator
 // count, so the first event clears the whole balance and the rest remove 0.
 function getRemovedEffectiveBalance(
@@ -56,7 +56,7 @@ function getRemovedEffectiveBalance(
   if (cluster == null) {
     return DEFAULT_BALANCE;
   }
-  if (clusterUsesEthFees(cluster) && validatorCount.isZero()) {
+  if (validatorCount.isZero()) {
     return cluster.effectiveBalance;
   }
   return DEFAULT_BALANCE;
@@ -190,12 +190,19 @@ export function handleClusterMigratedToETH(
 
   let clusterId = buildClusterId(event.params.owner, event.params.operatorIds);
   let cluster = Cluster.load(clusterId);
+  // A liquidated cluster is not in the totals: the ClusterReactivated event
+  // that follows its migration adds its new balance back.
+  let wasActive = false;
+  let clusterPreviousBalance = BigInt.zero();
   if (!cluster) {
     log.error(
       `Cluster ${clusterId} is being migrated to ETH, but it does not exist on the database`,
       [],
     );
     cluster = new Cluster(clusterId);
+  } else {
+    wasActive = cluster.active;
+    clusterPreviousBalance = cluster.effectiveBalance;
   }
 
   entity.cluster = cluster.id;
@@ -230,6 +237,29 @@ export function handleClusterMigratedToETH(
     event.transaction.hash,
   );
   cluster.save();
+
+  if (wasActive) {
+    owner.effectiveBalance = owner.effectiveBalance
+      .minus(clusterPreviousBalance)
+      .plus(cluster.effectiveBalance);
+    owner.save();
+
+    let dao = DAOValues.load(event.address);
+    if (!dao) {
+      log.error(
+        `New DAO Event, DAO values store with ID ${event.address.toHexString()} does not exist on the database and cannot be created. Update type: CLUSTER_MIGRATED_TO_ETH`,
+        [],
+      );
+    } else {
+      dao.totalEffectiveBalance = dao.totalEffectiveBalance
+        .minus(clusterPreviousBalance)
+        .plus(cluster.effectiveBalance);
+      dao.effectiveBalanceETH = dao.effectiveBalanceETH.plus(
+        cluster.effectiveBalance,
+      );
+      dao.save();
+    }
+  }
 
   for (let i = 0; i < event.params.operatorIds.length; i++) {
     let operator = loadLoopOperatorOrLog(
@@ -706,9 +736,7 @@ export function handleValidatorAdded(event: ValidatorAddedEvent): void {
     [],
   );
   if (clusterUsesEthFees(cluster)) {
-    dao.effectiveBalanceETH = dao.effectiveBalanceETH.plus(
-      cluster.effectiveBalance,
-    );
+    dao.effectiveBalanceETH = dao.effectiveBalanceETH.plus(DEFAULT_BALANCE);
   }
   dao.save();
 }
@@ -746,11 +774,13 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
   );
 
   dao.updateType = "VALIDATOR_REMOVED";
-  // Like the contract, only active clusters release the deviation from totals:
-  // a liquidated cluster's balance already left them in handleClusterLiquidated.
-  dao.totalEffectiveBalance = dao.totalEffectiveBalance.minus(
-    event.params.cluster.active ? removedEffectiveBalance : DEFAULT_BALANCE,
-  );
+  // A liquidated cluster's balance already left the totals in
+  // handleClusterLiquidated, so only active clusters update them here.
+  if (event.params.cluster.active) {
+    dao.totalEffectiveBalance = dao.totalEffectiveBalance.minus(
+      removedEffectiveBalance,
+    );
+  }
   dao.validatorsRemoved = dao.validatorsRemoved.plus(BigInt.fromI32(1));
   dao.totalValidators = dao.totalValidators.minus(BigInt.fromI32(1));
 
@@ -860,9 +890,9 @@ export function handleValidatorRemoved(event: ValidatorRemovedEvent): void {
     `Dao Values update type: ${dao.updateType}, validator count: ${dao.totalValidators}`,
     [],
   );
-  if (clusterUsesEthFees(cluster)) {
+  if (event.params.cluster.active && clusterUsesEthFees(cluster)) {
     dao.effectiveBalanceETH = dao.effectiveBalanceETH.minus(
-      cluster.effectiveBalance,
+      removedEffectiveBalance,
     );
   }
   dao.save();
