@@ -3,6 +3,7 @@ import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts"
 import {
   ClusterBalanceUpdated,
   ClusterDeposited,
+  ClusterLiquidated,
   NetworkFeeUpdated,
   OperatorFeeDeclared,
   OperatorAdded,
@@ -75,6 +76,30 @@ export function createClusterBalanceUpdatedEvent(
     new ethereum.EventParam(
       "effectiveBalance",
       ethereum.Value.fromUnsignedBigInt(effectiveBalance),
+    ),
+  )
+  event.parameters.push(
+    new ethereum.EventParam("cluster", ethereum.Value.fromTuple(cluster)),
+  )
+
+  return event
+}
+
+export function createClusterLiquidatedEvent(
+  owner: Address,
+  operatorIds: BigInt[],
+  cluster: ethereum.Tuple,
+): ClusterLiquidated {
+  let event = changetype<ClusterLiquidated>(newMockEvent())
+
+  event.parameters = new Array()
+  event.parameters.push(
+    new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner)),
+  )
+  event.parameters.push(
+    new ethereum.EventParam(
+      "operatorIds",
+      ethereum.Value.fromUnsignedBigIntArray(operatorIds),
     ),
   )
   event.parameters.push(

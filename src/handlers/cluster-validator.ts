@@ -99,10 +99,15 @@ export function handleClusterBalanceUpdated(
   if (!owner) {
     return;
   }
-  owner.effectiveBalance = owner.effectiveBalance
-    .minus(cluster.effectiveBalance)
-    .plus(event.params.effectiveBalance);
-  owner.save();
+  // Like the contract, oracle updates on a liquidated cluster only refresh its
+  // snapshot: its balance already left the totals in handleClusterLiquidated.
+  let updatesTotals = event.params.cluster.active;
+  if (updatesTotals) {
+    owner.effectiveBalance = owner.effectiveBalance
+      .minus(cluster.effectiveBalance)
+      .plus(event.params.effectiveBalance);
+    owner.save();
+  }
 
   assignClusterMembership(
     cluster,
@@ -144,13 +149,15 @@ export function handleClusterBalanceUpdated(
   }
 
   dao.updateType = "CLUSTER_BALANCE_UPDATED";
-  dao.totalEffectiveBalance = dao.totalEffectiveBalance
-    .minus(clusterPreviousBalance)
-    .plus(cluster.effectiveBalance);
-  if (clusterUsesEthFees(cluster)) {
-    dao.effectiveBalanceETH = dao.effectiveBalanceETH
+  if (updatesTotals) {
+    dao.totalEffectiveBalance = dao.totalEffectiveBalance
       .minus(clusterPreviousBalance)
       .plus(cluster.effectiveBalance);
+    if (clusterUsesEthFees(cluster)) {
+      dao.effectiveBalanceETH = dao.effectiveBalanceETH
+        .minus(clusterPreviousBalance)
+        .plus(cluster.effectiveBalance);
+    }
   }
   dao.save();
 }

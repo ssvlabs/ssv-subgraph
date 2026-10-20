@@ -3,6 +3,7 @@ import { Address, BigInt, Bytes } from "@graphprotocol/graph-ts"
 import {
   handleClusterBalanceUpdated,
   handleClusterDeposited,
+  handleClusterLiquidated,
   handleClusterWithdrawn,
   handleNetworkFeeUpdated,
   handleOperatorFeeDeclared,
@@ -19,6 +20,7 @@ import {
   createClusterBalanceUpdatedEvent,
   createClusterSnapshot,
   createClusterDepositedEvent,
+  createClusterLiquidatedEvent,
   createClusterWithdrawnEvent,
   createNetworkFeeUpdatedEvent,
   createOperatorAddedEvent,
@@ -584,6 +586,64 @@ describe("SSVNetwork mappings", () => {
     assert.fieldEquals("Cluster", clusterId, "vUnits", "12700000")
     assert.fieldEquals("Account", VALIDATOR_OWNER.toHexString(), "effectiveBalance", "4064")
     assert.fieldEquals("DAOValues", NETWORK_ADDRESS.toHexString(), "totalEffectiveBalance", "4064")
+
+    clearStore()
+  })
+
+  test("handleClusterBalanceUpdated leaves totals unchanged for a liquidated cluster", () => {
+    clearStore()
+
+    setUpEthClusterWithOracleBalance()
+
+    let liquidatedEvent = createClusterLiquidatedEvent(
+      VALIDATOR_OWNER,
+      [OPERATOR_ONE_ID, OPERATOR_TWO_ID],
+      createClusterSnapshot(
+        BigInt.fromI32(2),
+        BigInt.zero(),
+        BigInt.zero(),
+        false,
+        BigInt.zero(),
+      ),
+    )
+    setEventMetadata(
+      liquidatedEvent,
+      NETWORK_ADDRESS,
+      270,
+      2_700,
+      7,
+      "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd07",
+    )
+    handleClusterLiquidated(liquidatedEvent)
+
+    let balanceEvent = createClusterBalanceUpdatedEvent(
+      VALIDATOR_OWNER,
+      [OPERATOR_ONE_ID, OPERATOR_TWO_ID],
+      BigInt.fromI32(280),
+      BigInt.fromI32(2048),
+      createClusterSnapshot(
+        BigInt.fromI32(2),
+        BigInt.zero(),
+        BigInt.zero(),
+        false,
+        BigInt.zero(),
+      ),
+    )
+    setEventMetadata(
+      balanceEvent,
+      NETWORK_ADDRESS,
+      290,
+      2_900,
+      8,
+      "0xdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd08",
+    )
+    handleClusterBalanceUpdated(balanceEvent)
+
+    // The cluster snapshot still follows the oracle, like the contract's vUnits
+    let clusterId = `${VALIDATOR_OWNER.toHexString()}-1-2`
+    assert.fieldEquals("Cluster", clusterId, "effectiveBalance", "2048")
+    assert.fieldEquals("Account", VALIDATOR_OWNER.toHexString(), "effectiveBalance", "0")
+    assert.fieldEquals("DAOValues", NETWORK_ADDRESS.toHexString(), "totalEffectiveBalance", "0")
 
     clearStore()
   })
