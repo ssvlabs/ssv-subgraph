@@ -84,6 +84,7 @@ export function handleClusterBalanceUpdated(
   owner.effectiveBalance = owner.effectiveBalance
     .minus(cluster.effectiveBalance)
     .plus(event.params.effectiveBalance);
+  owner.save();
 
   assignClusterMembership(
     cluster,
