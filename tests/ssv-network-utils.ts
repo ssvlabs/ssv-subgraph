@@ -4,6 +4,8 @@ import {
   ClusterBalanceUpdated,
   ClusterDeposited,
   ClusterLiquidated,
+  ClusterMigratedToETH,
+  ClusterReactivated,
   NetworkFeeUpdated,
   OperatorFeeDeclared,
   OperatorAdded,
@@ -91,6 +93,75 @@ export function createClusterLiquidatedEvent(
   cluster: ethereum.Tuple,
 ): ClusterLiquidated {
   let event = changetype<ClusterLiquidated>(newMockEvent())
+
+  event.parameters = new Array()
+  event.parameters.push(
+    new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner)),
+  )
+  event.parameters.push(
+    new ethereum.EventParam(
+      "operatorIds",
+      ethereum.Value.fromUnsignedBigIntArray(operatorIds),
+    ),
+  )
+  event.parameters.push(
+    new ethereum.EventParam("cluster", ethereum.Value.fromTuple(cluster)),
+  )
+
+  return event
+}
+
+export function createClusterMigratedToETHEvent(
+  owner: Address,
+  operatorIds: BigInt[],
+  ethDeposited: BigInt,
+  ssvRefunded: BigInt,
+  effectiveBalance: BigInt,
+  cluster: ethereum.Tuple,
+): ClusterMigratedToETH {
+  let event = changetype<ClusterMigratedToETH>(newMockEvent())
+
+  event.parameters = new Array()
+  event.parameters.push(
+    new ethereum.EventParam("owner", ethereum.Value.fromAddress(owner)),
+  )
+  event.parameters.push(
+    new ethereum.EventParam(
+      "operatorIds",
+      ethereum.Value.fromUnsignedBigIntArray(operatorIds),
+    ),
+  )
+  event.parameters.push(
+    new ethereum.EventParam(
+      "ethDeposited",
+      ethereum.Value.fromUnsignedBigInt(ethDeposited),
+    ),
+  )
+  event.parameters.push(
+    new ethereum.EventParam(
+      "ssvRefunded",
+      ethereum.Value.fromUnsignedBigInt(ssvRefunded),
+    ),
+  )
+  event.parameters.push(
+    new ethereum.EventParam(
+      "effectiveBalance",
+      ethereum.Value.fromUnsignedBigInt(effectiveBalance),
+    ),
+  )
+  event.parameters.push(
+    new ethereum.EventParam("cluster", ethereum.Value.fromTuple(cluster)),
+  )
+
+  return event
+}
+
+export function createClusterReactivatedEvent(
+  owner: Address,
+  operatorIds: BigInt[],
+  cluster: ethereum.Tuple,
+): ClusterReactivated {
+  let event = changetype<ClusterReactivated>(newMockEvent())
 
   event.parameters = new Array()
   event.parameters.push(
