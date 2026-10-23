@@ -1,7 +1,7 @@
 version: "3"
 services:
   graph-node:
-    image: graphprotocol/graph-node@sha256:7dc172f738d62dbf9fddebc9249566d4f8727825b56b6a1ae218e2ad9334428b
+    image: graphprotocol/graph-node@sha256:b0436347fb24f9ae45b6d3959cac97bf60b3238ad1633a875c118ff86a07a0d3
     ports:
       - "8000:8000"
       - "8001:8001"
