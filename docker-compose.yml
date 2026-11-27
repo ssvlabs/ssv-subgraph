@@ -28,7 +28,7 @@ services:
     volumes:
       - ./data/ipfs:/data/ipfs
   postgres:
-    image: postgres:18@sha256:edb0c08dc33befd0262ab3b5cf1c4f3f8cfd8b09e88c05b45adee29d6761ddb6
+    image: postgres:18@sha256:64c8b0d31e4ab6ea665e8426ea406a94bf52de3c05b3a4a8bf713704eefa9328
     ports:
       - "5432:5432"
     command:
